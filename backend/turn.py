@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Callable
+from typing import Callable, Collection
 
 from briscola.card import BriscolaCard
 from briscola.client import BriscolaGame
@@ -12,11 +12,8 @@ class BriscolaTurnWinner:
     winning_player: BriscolaPlayer
     earned_pts: int
 
-    def __iter__(self):
-        return iter((self.winning_card, self.winning_player, self.earned_pts))
 
-
-def fill_hands(game: BriscolaGame):
+def fill_hands(game: BriscolaGame) -> None:
     game.fill_hands()
 
 
@@ -36,11 +33,11 @@ def end_turn(game: BriscolaGame) -> BriscolaTurnWinner:
     return BriscolaTurnWinner(winning_card, winning_player, earned_pts)
 
 
-def calculate_points(captured_cards: list[BriscolaCard]):
+def calculate_points(captured_cards: list[BriscolaCard]) -> int:
     return sum(card.points for card in captured_cards)
 
 
-def clear_pile(game: BriscolaGame):
+def clear_pile(game: BriscolaGame) -> None:
     game.active_pile.clear_pile()
 
 
@@ -72,7 +69,7 @@ def play_card(player: BriscolaPlayer, card: BriscolaCard, game: BriscolaGame) ->
     return card
 
 
-def start_turn(game: BriscolaGame, choose_card_method: Callable):
+def start_turn(game: BriscolaGame, choose_card_method: Callable) -> None:
     for player in game.get_turn_order():
         played_card = choose_card_method(game=game, player=player)
         play_card(player=player, card=played_card, game=game)

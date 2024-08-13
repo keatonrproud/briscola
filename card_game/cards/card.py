@@ -7,5 +7,5 @@ class Card:
         self.number = number
         self.suit = suit
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.number.name}{self.suit}"

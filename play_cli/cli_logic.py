@@ -6,11 +6,10 @@ from backend.turn import play_turn
 from briscola.card import BriscolaCard
 from briscola.client import BriscolaGame
 from briscola.player import BriscolaPlayer
-from card_game.table.table_settings import TableSettings
 from settings.game_settings import PLAY_DIRECTION
 
 
-def cli_get_player_count():
+def cli_get_player_count() -> int:
     # response = input(f"Player count (2): \n")
     # if response not in "2":
     #     input("The player count must be 2. Input your player count: \n")
@@ -19,15 +18,15 @@ def cli_get_player_count():
     return 2
 
 
-def cli_print_briscola(game: BriscolaGame):
+def cli_print_briscola(game: BriscolaGame) -> None:
     print(f"Briscola Card: {game.briscola_card}\n")
 
 
-def cli_print_played_cards(game: BriscolaGame):
+def cli_print_played_cards(game: BriscolaGame) -> None:
     print(f"PILE: {game.active_pile}\n")
 
 
-def cli_print_game_state(game: BriscolaGame):
+def cli_print_game_state(game: BriscolaGame) -> None:
     print(f"{len(game.deck.cards)}🃏 remain")
     print(
         "       ".join(
@@ -48,10 +47,8 @@ def cli_choose_card(game: BriscolaGame, player: BriscolaPlayer) -> BriscolaCard:
     print(f"In Player {player.player_num}'s hand, there is: {player.hand}")
 
     while True:
-        choice = input("Choose a card by inputting the number you want to play: ")
-
         try:
-            choice = int(choice)
+            choice = int(input("Choose a card by inputting the number you want to play: "))
             assert 1 <= choice <= len(player.hand.cards)
         except ValueError:
             print("You must respond with a whole number!")
@@ -71,13 +68,18 @@ def cli_setup_game() -> BriscolaGame:
     return game
 
 
-def cli_play_game(game: BriscolaGame):
+def cli_play_game(game: BriscolaGame) -> None:
     while (
         # if player reaches game's win condition or no player has cards left, the game ends
         (max_score := max(player.score for player in game.players)) <= game.win_condition
         and max(len(player.hand.cards) for player in game.players) > 0
     ):
-        winning_card, winner, pts = play_turn(game=game, choose_card_method=cli_choose_card)
+        turn_winner = play_turn(game=game, choose_card_method=cli_choose_card)
+        winning_card, winner, pts = (
+            turn_winner.winning_card,
+            turn_winner.winning_player,
+            turn_winner.earned_pts,
+        )
         print(f"========= Winning Card: {winning_card} =============")
         if pts != 0:
             print(

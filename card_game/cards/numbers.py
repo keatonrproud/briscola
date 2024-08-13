@@ -1,6 +1,6 @@
-from enum import Enum, auto
+from enum import Enum
 
 
 class CardNumber(Enum):
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.name

@@ -5,7 +5,7 @@ class Direction(Enum):
     CLOCKWISE = auto()
     COUNTER_CLOCKWISE = auto()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.name
 
 
@@ -16,6 +16,5 @@ class TableSettings:
 
     def __repr__(self) -> str:
         return (
-            f"Player Count: {self.player_count}\n"
-            f"Turn Direction: {self.turn_direction.name}\n"
+            f"Player Count: {self.player_count}\n" f"Turn Direction: {self.turn_direction.name}\n"
         )

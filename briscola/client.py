@@ -1,7 +1,7 @@
 from typing import Final
 
 from briscola.card import BriscolaCard
-from briscola.deck import BRISCOLA_DECK
+from briscola.deck import BriscolaDeck
 from briscola.pile import BriscolaPile
 from briscola.player import BriscolaPlayer
 from card_game.cards.card import Card
@@ -23,11 +23,11 @@ class BriscolaGame(CardGame):
         self,
         table_settings: TableSettings,
         players: list[BriscolaPlayer],
-        first_dealer: BriscolaPlayer = None,
+        first_dealer: BriscolaPlayer | None = None,
     ):
         super().__init__(
             table_settings=table_settings,
-            deck=BRISCOLA_DECK,
+            deck=BriscolaDeck(),
             players=players,
             first_dealer=first_dealer,
         )
@@ -44,13 +44,13 @@ class BriscolaGame(CardGame):
             self.deck.cards.insert(0, self.briscola_card)
         return super().deal_hands(cards_in_hand=cards_in_hand, change_dealers=change_dealers)
 
-    def fill_hands(self, max_cards_in_hand: int = None) -> None:
+    def fill_hands(self, max_cards_in_hand: int | None = None) -> None:
         return self.deck.fill_hands(
             players=self.players,
             max_cards_in_hand=self.max_cards_in_hand or max_cards_in_hand,
         )
 
-    def play_card(self, player: BriscolaPlayer, card: BriscolaCard):
+    def play_card(self, player: BriscolaPlayer, card: BriscolaCard) -> None:
         player.hand.cards.remove(card)
         self.active_pile.cards.append(card)
 

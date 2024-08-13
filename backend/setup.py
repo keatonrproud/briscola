@@ -5,15 +5,15 @@ from card_game.table.table_settings import Direction, TableSettings
 from settings.game_settings import CARDS_IN_HAND
 
 
-def create_table_settings(player_count: int, play_direction: Direction):
+def create_table_settings(player_count: int, play_direction: Direction) -> TableSettings:
     return TableSettings(player_count, play_direction)
 
 
-def create_players(player_count: int):
+def create_players(player_count: int) -> list[BriscolaPlayer]:
     return [BriscolaPlayer(player_num=num + 1) for num in range(player_count)]
 
 
-def create_game(table_settings: TableSettings, players: list[BriscolaPlayer]):
+def create_game(table_settings: TableSettings, players: list[BriscolaPlayer]) -> BriscolaGame:
     return BriscolaGame(table_settings=table_settings, players=players)
 
 

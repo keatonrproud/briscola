@@ -3,7 +3,7 @@ class Suit:
         self.name = name
         self.symbol = symbol
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.symbol
 
 

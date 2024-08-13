@@ -6,8 +6,8 @@ class Player:
     def __init__(
         self,
         player_num: int,
-        hand: Hand = None,
-        captured_cards: list[Card] = None,
+        hand: Hand = Hand(cards=[]),
+        captured_cards: list[Card] | None = None,
         score: int = 0,
         in_game: bool = True,
     ):
@@ -17,8 +17,5 @@ class Player:
         self.score = score
         self.in_game = in_game
 
-    def __repr__(self):
-        return (
-            f"Player {self.player_num} ({self.score} pts)\n"
-            f"  -- Hand:  {self.hand}\n"
-        )
+    def __repr__(self) -> str:
+        return f"Player {self.player_num} ({self.score} pts)\n" f"  -- Hand:  {self.hand}\n"
