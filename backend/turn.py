@@ -62,7 +62,7 @@ def play_card(player: BriscolaPlayer, card: BriscolaCard, game: BriscolaGame) ->
     return card
 
 def start_turn(game: BriscolaGame, choose_card_method: Callable):
-    for player in game.get_turn_order():    
+    for player in game.get_turn_order():
         played_card = choose_card_method(game=game, player=player)
         play_card(player=player, card=played_card, game=game)
 
