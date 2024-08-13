@@ -1,6 +1,6 @@
 from typing import Generic
 
-from card_game.generics import CARD
+from generics.card import CARD
 
 
 class Pile(Generic[CARD]):

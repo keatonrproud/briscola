@@ -1,15 +1,16 @@
 from random import shuffle
 from typing import Generic
 
-from card_game.generics import CARD, PLAYER
 from card_game.table.pile import Pile
+from generics.card import CARD
+from generics.player import PLAYER
 
 
 class UnlimitedHandSizeException(Exception):
     """Exception raised when a hand size is considered unlimited or exceeds allowed limits."""
 
 
-class Deck(Generic[CARD, PLAYER], Pile):
+class Deck(Pile, Generic[CARD, PLAYER]):
     def __init__(self, deck_type: str, card_set: list[CARD]):
         super().__init__(cards=card_set, face_up=False)
         self.deck_type = deck_type

@@ -1,7 +1,9 @@
 from typing import Generic
 
-from card_game.generics import CARD, DECK, PLAYER
 from card_game.table.table_settings import TableSettings
+from generics.card import CARD
+from generics.deck import DECK
+from generics.player import PLAYER
 
 
 class CardGame(Generic[DECK, PLAYER, CARD]):

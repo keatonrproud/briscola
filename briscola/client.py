@@ -40,7 +40,7 @@ class BriscolaGame(CardGame):
         if self.briscola_card is None:
             self.briscola_card = self.deck.draw()
             self.briscola = self.briscola_card.suit
-            # briscola card should be treated as the last card of the deck
+            # briscola card should be treated as the last card of the generics
             self.deck.cards.insert(0, self.briscola_card)
         return super().deal_hands(cards_in_hand=cards_in_hand, change_dealers=change_dealers)
 
