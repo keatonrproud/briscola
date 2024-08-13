@@ -1,5 +1,5 @@
-from card_game.cards.hand import Hand
 from card_game.cards.card import Card
+from card_game.cards.hand import Hand
 
 
 class Player:

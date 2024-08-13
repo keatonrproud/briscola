@@ -1,5 +1,5 @@
-from card_game.cards.suits import Suit
 from card_game.cards.numbers import CardNumber
+from card_game.cards.suits import Suit
 
 
 class Card:

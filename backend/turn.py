@@ -1,8 +1,9 @@
-from briscola_client import BriscolaGame
-from briscola_cards.briscola_player import BriscolaPlayer
-from briscola_cards.briscola_card import BriscolaCard
-from typing import Callable
 from dataclasses import dataclass
+from typing import Callable
+
+from briscola.card import BriscolaCard
+from briscola.client import BriscolaGame
+from briscola.player import BriscolaPlayer
 
 
 @dataclass
@@ -66,9 +67,7 @@ def get_winning_card(game: BriscolaGame) -> tuple[BriscolaCard, BriscolaPlayer]:
     return winning_card, winning_player
 
 
-def play_card(
-    player: BriscolaPlayer, card: BriscolaCard, game: BriscolaGame
-) -> BriscolaCard:
+def play_card(player: BriscolaPlayer, card: BriscolaCard, game: BriscolaGame) -> BriscolaCard:
     game.play_card(player, card)
     return card
 

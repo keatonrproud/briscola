@@ -1,7 +1,7 @@
-from card_game.table.table_settings import TableSettings
+from card_game.cards.card import Card
 from card_game.cards.deck import Deck
 from card_game.table.player import Player
-from card_game.cards.card import Card
+from card_game.table.table_settings import TableSettings
 
 
 class CardGame:

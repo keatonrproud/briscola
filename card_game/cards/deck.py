@@ -1,6 +1,7 @@
+from random import shuffle
+
 from card_game.cards.card import Card
 from card_game.table.pile import Pile
-from random import shuffle
 from card_game.table.player import Player
 
 
