@@ -27,7 +27,15 @@ def cli_print_played_cards(game: BriscolaGame):
 
 def cli_print_game_state(game: BriscolaGame):
     print(f"{len(game.deck.cards)}🃏 remain")
-    print('       '.join([f"Player {player.player_num}: {player.score}pts" for player in game.players]), '\n')
+    print(
+        "       ".join(
+            [
+                f"Player {player.player_num}: {player.score}pts"
+                for player in game.players
+            ]
+        ),
+        "\n",
+    )
 
 
 def cli_choose_card(game: BriscolaGame, player: BriscolaPlayer) -> BriscolaCard:
@@ -35,7 +43,8 @@ def cli_choose_card(game: BriscolaGame, player: BriscolaPlayer) -> BriscolaCard:
     cli_print_briscola(game)
     sleep(0.25)
 
-    if game.active_pile.cards: cli_print_played_cards(game)
+    if game.active_pile.cards:
+        cli_print_played_cards(game)
 
     print(f"In Player {player.player_num}'s hand, there is: {player.hand}")
 
@@ -52,29 +61,44 @@ def cli_choose_card(game: BriscolaGame, player: BriscolaPlayer) -> BriscolaCard:
         else:
             break
 
-    call('clear')
+    call("clear")
 
     return player.hand.cards[choice - 1]
 
 
 def cli_play_game(game: BriscolaGame):
     while (
-            # if player reaches game's win condition or no player has cards left, the game ends
-            (max_score := max(player.score for player in game.players)) <= game.win_condition
-            and max(len(player.hand.cards) for player in game.players) > 0
+        # if player reaches game's win condition or no player has cards left, the game ends
+        (max_score := max(player.score for player in game.players))
+        <= game.win_condition
+        and max(len(player.hand.cards) for player in game.players) > 0
     ):
-        winning_card, winner, pts = play_turn(game=game, choose_card_method=cli_choose_card)
+        winning_card, winner, pts = play_turn(
+            game=game, choose_card_method=cli_choose_card
+        )
         print(f"========= Winning Card: {winning_card} =============")
         if pts != 0:
-            print(f"======= Player {winner.player_num} went from {winner.score-pts} --> {winner.score}pts =======")
+            print(
+                f"======= Player {winner.player_num} went from {winner.score-pts} --> {winner.score}pts ======="
+            )
         else:
-            print(f"========= Player {winner.player_num} stays at {winner.score} =========")
-        print('=========================================\n')
+            print(
+                f"========= Player {winner.player_num} stays at {winner.score} ========="
+            )
+        print("=========================================\n")
 
     else:
         try:
-            winner = next(player for player in game.players if player.score > game.win_condition)
-            print(f'{winner} wins with {winner.score} points!')
+            winner = next(
+                player for player in game.players if player.score > game.win_condition
+            )
+            print(f"{winner} wins with {winner.score} points!")
         except StopIteration:
-            tied_players = [f"Player {player.player_num}" for player in game.players if player.score == max_score]
-            print(f"The game ends with {' and '.join(tied_players)} having {max_score} points!")
+            tied_players = [
+                f"Player {player.player_num}"
+                for player in game.players
+                if player.score == max_score
+            ]
+            print(
+                f"The game ends with {' and '.join(tied_players)} having {max_score} points!"
+            )

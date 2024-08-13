@@ -3,6 +3,7 @@ from card_game.table.pile import Pile
 from random import shuffle
 from card_game.table.player import Player
 
+
 class Deck(Pile):
     def __init__(self, deck_type: str, card_set: list[Card]):
         super().__init__(cards=card_set, face_up=False)

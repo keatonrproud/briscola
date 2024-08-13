@@ -2,8 +2,12 @@ from card_game.cards.card import Card
 
 
 class Hand:
-
-    def __init__(self, cards: list[Card], max_cards: int | None = None, min_cards: int | None = None):
+    def __init__(
+        self,
+        cards: list[Card],
+        max_cards: int | None = None,
+        min_cards: int | None = None,
+    ):
         self.cards = cards
         self.max_cards = max_cards
         self.min_cards = min_cards

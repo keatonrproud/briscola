@@ -2,8 +2,11 @@ from card_game.cards.card import Card
 from briscola_cards.briscola_card_settings import BriscolaCardNumber, BriscolaCardInfo
 from card_game.cards.suits import Suit
 
+
 class BriscolaCard(Card):
-    def __init__(self, number: BriscolaCardNumber, suit: Suit, card_info: BriscolaCardInfo):
+    def __init__(
+        self, number: BriscolaCardNumber, suit: Suit, card_info: BriscolaCardInfo
+    ):
         super().__init__(number=number, suit=suit)
         self.strength = card_info.strength
         self.points = card_info.points

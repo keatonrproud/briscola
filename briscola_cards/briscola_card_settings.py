@@ -18,6 +18,7 @@ class BriscolaCardNumber(CardNumber):
     SOLDIER = auto()
     KING = auto()
 
+
 BriscolaCardInfo = namedtuple("BriscolaCardInfo", ["strength", "points"])
 CARD_INFOS = {
     BriscolaCardNumber.ACE: BriscolaCardInfo(strength=12, points=11),
@@ -29,5 +30,5 @@ CARD_INFOS = {
     BriscolaCardNumber.SIX: BriscolaCardInfo(strength=6, points=0),
     BriscolaCardNumber.FIVE: BriscolaCardInfo(strength=5, points=0),
     BriscolaCardNumber.FOUR: BriscolaCardInfo(strength=4, points=0),
-    BriscolaCardNumber.TWO: BriscolaCardInfo(strength=2, points=0)
+    BriscolaCardNumber.TWO: BriscolaCardInfo(strength=2, points=0),
 }

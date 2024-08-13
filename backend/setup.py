@@ -23,7 +23,9 @@ def deal_hands(game: BriscolaGame) -> list[list[Card]]:
 
 
 def create_game_and_deal(player_count: int, play_direction: Direction) -> BriscolaGame:
-    table_settings = create_table_settings(player_count=player_count, play_direction=play_direction)
+    table_settings = create_table_settings(
+        player_count=player_count, play_direction=play_direction
+    )
     players = create_players(table_settings.player_count)
     game = create_game(table_settings=table_settings, players=players)
     deal_hands(game=game)

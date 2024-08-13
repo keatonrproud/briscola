@@ -1,6 +1,7 @@
 from briscola_cards.briscola_card import BriscolaCard
 from card_game.table.pile import Pile
 
+
 class BriscolaPile(Pile):
     cards: list[BriscolaCard]
 
