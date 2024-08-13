@@ -1,5 +1,5 @@
 from random import shuffle
-from typing import Generic, TypeVar
+from typing import Generic
 
 from card_game.generics import CARD, PLAYER
 from card_game.table.pile import Pile

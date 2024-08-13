@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Callable, Collection
+from typing import Callable
 
 from briscola.card import BriscolaCard
 from briscola.client import BriscolaGame
