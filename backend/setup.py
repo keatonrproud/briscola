@@ -1,5 +1,5 @@
 from briscola.client import BriscolaGame
-from briscola.player import BriscolaPlayer
+from briscola.player import BriscolaPlayer, PlayerColor
 from card_game.cards.card import Card
 from card_game.table.table_settings import Direction, TableSettings
 from settings.game_settings import CARDS_IN_HAND
@@ -10,7 +10,8 @@ def create_table_settings(player_count: int, play_direction: Direction) -> Table
 
 
 def create_players(player_count: int) -> list[BriscolaPlayer]:
-    return [BriscolaPlayer(player_num=num + 1) for num in range(player_count)]
+    colors = list(PlayerColor)
+    return [BriscolaPlayer(player_num=num + 1, color=colors[num]) for num in range(player_count)]
 
 
 def create_game(table_settings: TableSettings, players: list[BriscolaPlayer]) -> BriscolaGame:

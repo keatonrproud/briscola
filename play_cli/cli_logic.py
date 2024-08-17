@@ -29,9 +29,7 @@ def cli_print_played_cards(game: BriscolaGame) -> None:
 def cli_print_game_state(game: BriscolaGame) -> None:
     print(f"{len(game.deck.cards)}🃏 remain")
     print(
-        "       ".join(
-            [f"Player {player.player_num}: {player.score}pts" for player in game.players]
-        ),
+        "       ".join([f"{player}: {player.score}pts" for player in game.players]),
         "\n",
     )
 
@@ -44,7 +42,7 @@ def cli_choose_card(game: BriscolaGame, player: BriscolaPlayer) -> BriscolaCard:
     if game.active_pile.cards:
         cli_print_played_cards(game)
 
-    print(f"In Player {player.player_num}'s hand, there is: {player.hand}")
+    print(f"{player}\n{player.hand}")
 
     while True:
         try:
@@ -94,9 +92,5 @@ def cli_play_game(game: BriscolaGame) -> None:
             winner = next(player for player in game.players if player.score > game.win_condition)
             print(f"{winner} wins with {winner.score} points!")
         except StopIteration:
-            tied_players = [
-                f"Player {player.player_num}"
-                for player in game.players
-                if player.score == max_score
-            ]
+            tied_players = [f"{player}" for player in game.players if player.score == max_score]
             print(f"The game ends with {' and '.join(tied_players)} having {max_score} points!")

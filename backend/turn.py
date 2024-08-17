@@ -22,11 +22,6 @@ def end_turn(game: BriscolaGame) -> BriscolaTurnWinner:
     earned_pts = calculate_points(game.active_pile.cards)
     winning_player.score += earned_pts
 
-    print("cards played: ", game.active_pile.cards)
-    print("winning card: ", winning_card)
-    print("winning player: Player ", winning_player.player_num)
-    print("earned points: ", earned_pts)
-
     clear_pile(game)
     fill_hands(game)
 
@@ -58,7 +53,7 @@ def get_winning_card(game: BriscolaGame) -> tuple[BriscolaCard, BriscolaPlayer]:
     winning_player = turn_order[winning_card_idx]
 
     # In Briscola, the winner plays next. So the person before the winner is the 'dealer'
-    next_dealer_idx = winning_card_idx - 1 if winning_card_idx != 0 else 0
+    next_dealer_idx = winning_card_idx - 1 if winning_card_idx != 0 else -1
     game.dealer = turn_order[next_dealer_idx]
 
     return winning_card, winning_player

@@ -18,4 +18,4 @@ class Player:
         self.in_game = in_game
 
     def __repr__(self) -> str:
-        return f"Player {self.player_num} ({self.score} pts)\n" f"  -- Hand:  {self.hand}\n"
+        return f"Player {self.player_num}"
