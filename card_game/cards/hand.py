@@ -18,4 +18,4 @@ class Hand(Generic[CARD]):
         self.cards += cards_drawn
 
     def __repr__(self) -> str:
-        return f'[{", ".join(f"{{{idx+1}}}-{card}" for idx, card in enumerate(self.cards))}]'
+        return f'{", ".join(f"{{{idx+1}}}-{card}" for idx, card in enumerate(self.cards))}'
