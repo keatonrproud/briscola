@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Briscola</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+    <script src="/static/script.js" defer></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Confetti element, animated via JavaScript -->
+        <div class="confetti"></div>
+
+        <!-- Main content area for game introduction and button -->
+        <div class="intro-card">
+            <h1 class="title">Welcome to Briscola!</h1>
+            <p>A classic game with a modern UI</p>
+            <br>
+            <button class="button" onclick="window.location.href='/turn'">Start Game</button>
+        </div>
+    </div>
+    <script>
+        // Call the showConfetti function to initiate the confetti effect
+        document.addEventListener('DOMContentLoaded', () => {
+            showConfetti();
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const startGameButton = document.getElementById('start-game-btn');
+            if (startGameButton) {
+                startGameButton.addEventListener('click', () => {
+                    // Redirect to /turn
+                    window.location.href = '/turn';
+                });
+            }
+        });
+
+    </script>
+</body>
+</html>
