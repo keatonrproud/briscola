@@ -51,14 +51,14 @@ def get_winning_card(game: BriscolaGame) -> tuple[BriscolaCard, BriscolaPlayer]:
     winning_card = trump_cards[0]
 
     winning_card_idx = played_cards.index(winning_card)
-    winning_player = game.turn_order[winning_card_idx]
+    winning_player = game.turn_order()[winning_card_idx]
 
     # in Briscola, the winner plays next...
     game.active_player = winning_player
 
     # and the person before the winner is the 'dealer'
     next_dealer_idx = winning_card_idx - 1 if winning_card_idx != 0 else -1
-    game.dealer = game.turn_order[next_dealer_idx]
+    game.dealer = game.turn_order()[next_dealer_idx]
 
     return winning_card, winning_player
 
@@ -69,7 +69,7 @@ def play_card(player: BriscolaPlayer, card: BriscolaCard, game: BriscolaGame) ->
 
 
 def start_turn(game: BriscolaGame, choose_card_method: Callable) -> None:
-    for player in game.turn_order:
+    for player in game.turn_order():
         game.active_player = player
         if player.is_person:
             played_card = choose_card_method(game=game, player=player)

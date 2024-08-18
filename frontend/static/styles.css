@@ -221,8 +221,9 @@ br {
 /* Briscola card container styling */
 #briscola-container {
     position: absolute;
-    top: 20px;
-    right: 20px; /* Move to the top right */
+    left: 10%; /* Move to the left side */
+    top: 50%; /* Center vertically */
+    transform: translateY(-50%); /* Adjust to truly center */
     width: 120px; /* Adjust width as needed */
     height: 180px; /* Adjust height as needed */
     border: 2px solid #007bff; /* Modern blue border */
@@ -266,10 +267,11 @@ br {
     justify-content: center;
 }
 
+
 /* Deck container /* Deck container styling */
 #deck-container {
     position: absolute;
-    top: 40%; /* Position below the Briscola card */
+    top: 20%; /* Position below the Briscola card */
     right: 20px; /* Align with the Briscola card */
     width: 120px; /* Adjust width as needed */
     height: auto;
@@ -359,15 +361,21 @@ br {
 
 
 /* Active Pile Section */
-.active-pile {
-    margin-top: 5%;
-    border: none; /* No border by default */
-    border-radius: 12px;
+#active-pile {
+    position: absolute;
+    top: 30%; /* Vertically center */
+    left: 50%; /* Horizontally center */
+    transform: translate(-50%, -50%); /* Adjust to center the element exactly */
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10; /* Ensure it's on top of other elements */
+    pointer-events: none;
 }
 
 .active-pile .card {
     background-color: lightgray;
-    margin: 5px 5px; /* Space between active pile cards */
 }
 
 /* End Game Container */
@@ -492,3 +500,35 @@ br {
 .button:active {
     transform: translateY(1px); /* Button press effect */
 }
+
+/* Face down cards for opponents */
+#opp-cards {
+    position: absolute;
+    top: -40px; /* Move halfway off the top of the screen */
+    left: 50%; /* Center horizontally */
+    transform: translateX(-50%); /* Center the cards container */
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    width: 100%; /* Full width to align multiple cards */
+    pointer-events: none; /* Disable interaction */
+}
+
+.face-down-cards .card {
+    width: 80px; /* Adjust the width as needed */
+    height: 120px; /* Adjust the height as needed */
+    background-color: #007bff; /* Matching the deck card color */
+    border-radius: 10px;
+    border: 2px solid white; /* Darker border color */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    /*margin: 0 -30px; !* Negative margin to overlay cards *!*/
+    position: relative;
+    z-index: 1;
+    user-select: none; /* Disable text selection */
+}
+
+/*!* Ensure the cards overlap more *!*/
+/*.face-down-cards .card:not(:first-child) {*/
+/*    margin-left: -60px; !* Adjust for more overlap *!*/
+/*}*/

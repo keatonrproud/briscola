@@ -1,16 +1,16 @@
 
 
-function updateCards(cards) {
-    const cardsContainer = document.getElementById('player-cards');
-    cardsContainer.innerHTML = '';  // Clear existing cards
+function updateCards(playerCards, oppCards) {
+    const playerCardsContainer = document.getElementById('player-cards');
+    playerCardsContainer.innerHTML = '';  // Clear existing cards
 
-    cards.forEach((card) => {
+    playerCards.forEach((card) => {
         const cardDiv = document.createElement('div');
 
         // Add click event listener to each card
         cardDiv.addEventListener('click', () => {
-            const cardIndex = Array.from(cardsContainer.children).indexOf(cardDiv);
-            playCard(cardIndex, cardDiv); // Pass the position of the current card
+            const cardIndex = Array.from(playerCardsContainer.children).indexOf(cardDiv);
+            playHumanCard(cardIndex, cardDiv); // Pass the position of the current card
         });
 
         cardDiv.className = 'card';
@@ -19,7 +19,17 @@ function updateCards(cards) {
             <div class="number">${card.number.name}</div>
         `;
 
-        cardsContainer.appendChild(cardDiv);
+        playerCardsContainer.appendChild(cardDiv);
+    });
+
+    const oppCardsContainer = document.getElementById('opp-cards');
+    oppCardsContainer.innerHTML = '';  // Clear existing cards
+
+    oppCards.forEach((_) => {
+        const oppCardDiv = document.createElement('div');
+
+        oppCardDiv.className = 'card';
+        oppCardsContainer.appendChild(oppCardDiv);
     });
 }
 
@@ -45,11 +55,11 @@ function updateBriscolaCard(card, num_cards_in_deck) {
 }
 
 
-function playCard(cardIndex, cardDiv) {
+function playHumanCard(cardIndex, cardDiv) {
     cardDiv.classList.add('played'); // Add the class to trigger animation
 
     setTimeout(() => {
-    fetch('/api/play_card', {
+    fetch('/api/play_human_card', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -64,6 +74,65 @@ function playCard(cardIndex, cardDiv) {
     .catch(error => console.error('Error:', error));
     }, 500)
 }
+
+async function getComputerChoice() {
+    try {
+        const response = await fetch('/api/get_computer_choice');
+        const data = await response.json();
+        return data.card_idx;
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+async function playComputerCard(cardIndex, cardDiv) {
+
+    // TODO add animation for computer card
+    // cardDiv.classList.add('played'); // Add the class to trigger animation
+
+    fetch('/api/play_computer_card', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ card_index: cardIndex }) // Send card index as JSON
+    })
+    .then(response => response.json())
+    .then(data => {
+        updateGameState(data, continue_play=false); // Update the UI based on new game state
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+
+async function endComputerTurn() {
+    fetch('/api/end_computer_turn', {})
+    .then(response => response.json())
+    .then(data => {
+        // Handle the updated game state
+        setTimeout(() => {
+            updateGameState(data); // Update the UI based on new game state
+        }, 1500)
+    })
+    .catch(error => console.error('Error:', error));
+
+}
+
+async function playComputerTurn() {
+    // get their choice
+    const computerChoice = await getComputerChoice();
+
+    // play their card and update state
+    const oppCardsContainer = document.getElementById('opp-cards');
+    const oppCardDiv = Array.from(oppCardsContainer.children).indexOf(computerChoice);
+
+    setTimeout(async () => {
+        console.log('playing computer card');
+        await playComputerCard(computerChoice, oppCardDiv);
+        console.log('done computer card');
+        setTimeout(async () => {await endComputerTurn();}, 1500)
+    }, 1500)
+}
+
 
 function showConfetti(xOrigin, yOrigin) {
     // Simple confetti burst
@@ -111,9 +180,6 @@ function updateDeck(cards) {
     }
 }
 
-// Example usage: Draw a card when the deck is clicked
-document.querySelector('.deck-container').addEventListener('click', drawCard);
-
 function updateActivePile(cards) {
     const activePileContainer = document.getElementById('active-pile');
     activePileContainer.innerHTML = '';  // Clear existing cards
@@ -143,33 +209,46 @@ function endGame() {
 }
 
 // Call this function after fetching game data
-function updateGameState() {
+function updateGameState(data, continue_play= true) {
     fetch('/api/get_state') // Adjust endpoint as necessary
         .then(response => response.json())
-        .then(data => {
+        .then(async data => {
 
             console.log(data);
 
             // Extract data for the active player
-            const player = data.active_player;
-            const playerNum = player.player_num; // Example: Player 1
-            const color = player.color; // Example: 🟦
-            updateTurnInfo(playerNum, color); // Update the turn info
+            const activePlayer = data.active_player;
+            const playerNum = activePlayer.player_num; // Example: Player 1
+            const color = activePlayer.color; // Example: 🟦
 
-            if (player.score - pastScores[playerNum] > 11) {
+            if (activePlayer.is_person) {
+                updateTurnInfo(playerNum, color); // Update the turn info
+            }
+
+            if (activePlayer.score - pastScores[playerNum] > 11) {
                 const scoreboard = document.getElementById('scoreboard');
                 const rect = scoreboard.getBoundingClientRect();
                 const x = rect.left + rect.width / 2; // Horizontal center of the scoreboard
                 const y = rect.top; // Top of the scoreboard
 
-                showConfetti(xOrigin=x/window.innerWidth, yOrigin=y/window.innerHeight);
+                showConfetti(xOrigin = x / window.innerWidth, yOrigin = y / window.innerHeight);
             }
 
             updateBriscolaCard(data.briscola.card, data.deck.current_cards.length); // Update the Briscola card
-            updateCards(player.hand.cards); // Pass cards to updateCards
             updateScoreboard(data.players); // Update scoreboard
             updateDeck(data.deck.current_cards); // Update the deck
             updateActivePile(data.pile.cards); // Update active player
+
+            const oppPlayer = data.players.find(other_player => other_player.player_num !== activePlayer.player_num);
+
+            if (activePlayer.is_person) {
+                updateCards(activePlayer.hand.cards, oppPlayer.hand.cards); // View setup as normal
+            } else {
+                updateCards(oppPlayer.hand.cards, activePlayer.hand.cards); // View setup from the person's point of view
+                if (continue_play) {
+                    await playComputerTurn();
+                    }
+            }
 
             if (!data.game_ongoing) {
                 endGame();

@@ -32,7 +32,8 @@ class Player:
         self.is_person = is_person
 
     def __repr__(self) -> str:
-        return f"{self.color.value} Player {self.player_num}"
+        player_type = "Player" if self.is_person else "Computer"
+        return f"{self.color.value} {player_type} {self.player_num}"
 
     def to_dict(self) -> dict:
         return {
@@ -42,4 +43,5 @@ class Player:
             "score": self.score,
             "in_game": self.in_game,
             "color": self.color.value,
+            "is_person": self.is_person,
         }

@@ -24,7 +24,6 @@ class CardGame(Generic[DECK, PLAYER, CARD], ABC):
         player_info = "".join([str(player) for player in self.players])
         return game_info + "\n----\n" + player_info
 
-    @property
     def turn_order(self) -> list[PLAYER]:
         dealer_idx = self.players.index(self.dealer)
         first_player_idx = dealer_idx + 1 if dealer_idx < len(self.players) - 1 else 0

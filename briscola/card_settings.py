@@ -16,8 +16,8 @@ class BriscolaCardNumber(CardNumber):
     FIVE = auto()
     SIX = auto()
     SEVEN = auto()
-    JACK = auto()
     SOLDIER = auto()
+    HORSE = auto()
     KING = auto()
 
 
@@ -31,8 +31,8 @@ CARD_INFOS = {
     BriscolaCardNumber.ACE: BriscolaCardInfo(strength=12, points=11),
     BriscolaCardNumber.THREE: BriscolaCardInfo(strength=11, points=10),
     BriscolaCardNumber.KING: BriscolaCardInfo(strength=10, points=4),
-    BriscolaCardNumber.SOLDIER: BriscolaCardInfo(strength=9, points=3),
-    BriscolaCardNumber.JACK: BriscolaCardInfo(strength=8, points=2),
+    BriscolaCardNumber.HORSE: BriscolaCardInfo(strength=9, points=3),
+    BriscolaCardNumber.SOLDIER: BriscolaCardInfo(strength=8, points=2),
     BriscolaCardNumber.SEVEN: BriscolaCardInfo(strength=7, points=0),
     BriscolaCardNumber.SIX: BriscolaCardInfo(strength=6, points=0),
     BriscolaCardNumber.FIVE: BriscolaCardInfo(strength=5, points=0),
