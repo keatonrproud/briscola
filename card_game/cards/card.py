@@ -9,3 +9,6 @@ class Card:
 
     def __repr__(self) -> str:
         return f"{self.number.name}{self.suit}"
+
+    def to_dict(self) -> dict:
+        return {"number": self.number.to_dict(), "suit": self.suit.to_dict()}

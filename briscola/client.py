@@ -7,30 +7,20 @@ from briscola.player import BriscolaPlayer
 from card_game.cards.card import Card
 from card_game.cards.suits import Suit
 from card_game.game_client import CardGame
+from card_game.table.player import PlayerColor
 from card_game.table.table_settings import TableSettings
+from settings.game_settings import CARDS_IN_HAND
 
 
 class BriscolaGame(CardGame):
     briscola: Suit | None = None
-    briscola_card: Card | None = None
+    briscola_card: BriscolaCard | None = None
     max_cards_in_hand: int = 3
     active_pile: BriscolaPile = BriscolaPile(cards=[], face_up=True)
-    players: list[BriscolaPlayer]
     win_condition: Final = 60
-    dealer: BriscolaPlayer
 
-    def __init__(
-        self,
-        table_settings: TableSettings,
-        players: list[BriscolaPlayer],
-        first_dealer: BriscolaPlayer | None = None,
-    ):
-        super().__init__(
-            table_settings=table_settings,
-            deck=BriscolaDeck(),
-            players=players,
-            first_dealer=first_dealer,
-        )
+    def __init__(self, table_settings: TableSettings):
+        super().__init__(table_settings=table_settings, deck=BriscolaDeck())
 
     def __repr__(self) -> str:
         return f"Briscola Card: {self.briscola_card}\n" f"----\n" f"{super().__repr__()}"
@@ -54,7 +44,42 @@ class BriscolaGame(CardGame):
         player.hand.cards.remove(card)
         self.active_pile.cards.append(card)
 
-    def get_turn_order(self) -> list[BriscolaPlayer]:
-        dealer_idx = self.players.index(self.dealer)
-        first_player_idx = dealer_idx + 1 if dealer_idx < len(self.players) - 1 else 0
-        return self.players[first_player_idx:] + self.players[:first_player_idx]
+    @property
+    def game_ongoing(self) -> bool:
+        no_winner = max(player.score for player in self.players) <= self.win_condition
+        players_have_cards = max(len(player.hand.cards) for player in self.players) > 0
+
+        return no_winner and players_have_cards
+
+    def reset_game(self) -> None:
+        self.deck = BriscolaDeck()
+        self.briscola, self.briscola_card = None, None
+        self.active_pile.clear_pile()
+        self.players = self.create_players(self.table_settings.player_count)
+        self.dealer = self.players[-1]
+        self.active_player = self.players[0]
+        self.deal_hands(cards_in_hand=CARDS_IN_HAND, change_dealers=False)
+
+    def create_players(self, player_count: int) -> list[BriscolaPlayer]:
+        colors = list(PlayerColor)
+        players = [
+            BriscolaPlayer(player_num=num + 1, color=colors[num]) for num in range(player_count)
+        ]
+        for computer_idx in range(1, self.table_settings.computer_count + 1):
+            players[-computer_idx].is_person = False
+        return players
+
+    def to_dict(self) -> dict:
+        return {
+            "table_settings": self.table_settings.to_dict(),
+            "players": [player.to_dict() for player in self.players],
+            "deck": self.deck.to_dict(),
+            "briscola": {
+                "suit": self.briscola.to_dict() if self.briscola is not None else None,
+                "card": self.briscola_card.to_dict() if self.briscola_card is not None else None,
+            },
+            "pile": self.active_pile.to_dict(),
+            "dealer": self.dealer.to_dict(),
+            "active_player": self.active_player.to_dict(),
+            "game_ongoing": self.game_ongoing,
+        }

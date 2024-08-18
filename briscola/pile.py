@@ -3,7 +3,6 @@ from card_game.table.pile import Pile
 
 
 class BriscolaPile(Pile[BriscolaCard]):
-    cards: list[BriscolaCard]
 
     def __init__(self, cards: list[BriscolaCard], face_up: bool = True):
         super().__init__(cards=cards, face_up=face_up)

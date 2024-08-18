@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Briscola</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+    <script src="/static/script.js" defer></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Confetti element, animated via JavaScript -->
+        <div class="confetti"></div>
+
+        <!-- Main content area for game over message and button -->
+        <div class="game-over-card">
+            <p class="message">{{ winner_message }}</p>
+            <div class="game-over-header"></div>
+            <button class="button" onclick="window.location.href='/'">Return Home</button>
+        </div>
+    </div>
+    <script>
+        // Call the showConfetti function to initiate the confetti effect
+        document.addEventListener('DOMContentLoaded', () => {
+            showConfetti();
+        });
+        // Play Again Button
+        document.getElementById('play-again-btn').addEventListener('click', () => {
+            window.location.href = '/'; // Redirect to start game page
+        });
+    </script>
+</body>
+</html>

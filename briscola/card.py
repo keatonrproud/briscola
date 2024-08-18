@@ -16,3 +16,11 @@ class BriscolaCard(Card):
 
     def __lt__(self, other: Any) -> bool:
         return self.strength < other.strength
+
+    def to_dict(self) -> dict:
+        return {
+            "number": self.number.to_dict(),
+            "suit": self.suit.to_dict(),
+            "strength": self.strength,
+            "points": self.points,
+        }

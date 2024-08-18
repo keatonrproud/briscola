@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from typing import Generic
 
 from card_game.table.table_settings import TableSettings
@@ -6,26 +7,25 @@ from generics.deck import DECK
 from generics.player import PLAYER
 
 
-class CardGame(Generic[DECK, PLAYER, CARD]):
+class CardGame(Generic[DECK, PLAYER, CARD], ABC):
     def __init__(
         self,
         table_settings: TableSettings,
         deck: DECK,
-        players: list[PLAYER],
-        first_dealer: PLAYER | None = None,
     ):
         self.table_settings = table_settings
         self.deck = deck
-        self.players = players
-        self.first_dealer = first_dealer
-        self.dealer = first_dealer if first_dealer is not None else self.players[-1]
+        self.players = self.create_players(player_count=self.table_settings.player_count)
+        self.dealer = self.players[-1]
+        self.active_player = self.players[0]
 
     def __repr__(self) -> str:
         game_info = f"{self.table_settings}{self.deck}"
         player_info = "".join([str(player) for player in self.players])
         return game_info + "\n----\n" + player_info
 
-    def get_turn_order(self) -> list[PLAYER]:
+    @property
+    def turn_order(self) -> list[PLAYER]:
         dealer_idx = self.players.index(self.dealer)
         first_player_idx = dealer_idx + 1 if dealer_idx < len(self.players) - 1 else 0
         return self.players[first_player_idx:] + self.players[:first_player_idx]
@@ -44,6 +44,10 @@ class CardGame(Generic[DECK, PLAYER, CARD]):
 
     def draw_card(self, player: PLAYER, draw_count: int = 0) -> None:
         player.hand.cards += self.deck.draw_cards(draw_count=draw_count)
+
+    @abstractmethod
+    def create_players(self, player_count: int) -> list[PLAYER]:
+        """A method to generate players for the game, given a player_count."""
 
     def change_dealers(self) -> None:
         dealer_index = self.players.index(self.dealer)

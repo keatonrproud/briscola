@@ -1,0 +1,494 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+body {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    overflow: hidden; /* Hide overflow to keep confetti effect in view */
+    display: flex;
+    height: 100vh; /* Full viewport height */
+    flex-direction: column;
+    background: linear-gradient(135deg, #4a90e2, #50e3c2); /* Gradient background */
+    justify-content: center; /* Center content vertically */
+    align-items: center; /* Center content horizontally */
+}
+
+p {
+    user-select: none; /* Disables text selection */
+    pointer-events: none; /* Disables clicking on text and images */
+}
+
+br {
+    user-select: none; /* Disables text selection */
+    pointer-events: none; /* Disables clicking on text and images */
+}
+
+/* Container for centering content */
+.container {
+    position: relative;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Confetti effect styling */
+.confetti {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
+    overflow: hidden; /* Hide overflow to keep confetti effect in view */
+}
+
+/* Intro card styling */
+.intro-card {
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+    padding: 40px;
+    width: 100%;
+    max-width: 600px;
+    position: relative;
+    z-index: 20;
+    transform: scale(0.95);
+    animation: zoomIn 0.6s ease-out forwards;
+}
+
+/* Title styling */
+.title {
+    font-size: 3rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2); /* Slight shadow for a 3D effect */
+    user-select: none; /* Disables text selection */
+    pointer-events: none; /* Disables clicking on text and images */
+}
+
+/* Description styling */
+.description {
+    font-size: 1.5rem;
+    color: #555;
+    margin-bottom: 30px;
+    line-height: 1.4;
+}
+
+/* Button styling */
+.button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 15px 30px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.button:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px); /* Lift button on hover */
+}
+
+.button:active {
+    transform: translateY(1px); /* Button press effect */
+}
+
+
+/* Animation for zooming in the intro card */
+@keyframes zoomIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Style for the start game button */
+#start-game-btn {
+    padding: 10px 20px; /* Button padding */
+    font-size: 18px; /* Button font size */
+    cursor: pointer; /* Pointer cursor on hover */
+    border: none; /* Remove default button border */
+    border-radius: 5px; /* Rounded corners */
+    background-color: #007bff; /* Button background color */
+    color: #fff; /* Button text color */
+    transition: background-color 0.3s ease; /* Smooth background color transition */
+}
+
+/* Button hover effect */
+#start-game-btn:hover {
+    background-color: #0056b3; /* Darker background color on hover */
+}
+
+/* Center the cards container vertically and horizontally */
+.cards {
+    pointer-events: auto; /* Enables clicking on the card itself */
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+    min-height: 60vh; /* Ensure the container takes at least 60% of the viewport height */
+    padding: 20px; /* Optional: Add some padding around the container */
+}
+
+/* Style for each card */
+.card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 150px;
+    height: 200px;
+    border: 2px solid #000;
+    border-radius: 15px;
+    margin: 10px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    line-height: 1.2;
+    background-color: #f9f9f9;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    cursor: pointer; /* Show pointer cursor on hover */
+    transition: all 0.3s ease; /* Smooth transition for hover and click effects */
+}
+
+/* Hover effect: Darker background */
+.card:hover {
+    background-color: #e0e0e0;
+}
+
+/* Click effect: Pressed animation */
+.card:active {
+    transform: scale(0.95); /* Slightly shrink the card */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Reduce shadow */
+}
+
+/* Shake animation */
+@keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    75% { transform: translateX(-5px); }
+    100% { transform: translateX(0); }
+}
+
+.card.shake {
+    animation: shake 0.5s ease;
+}
+
+/* Style for the suit symbol */
+.card .symbol {
+    font-size: 48px;
+    margin-bottom: 10px; /* Space between symbol and number */
+}
+
+/* Style for the card number */
+.card .number {
+    font-size: 24px;
+}
+
+/* Turn info styling */
+#turn-info {
+    position: fixed; /* Fixed position relative to the viewport */
+    bottom: 20px; /* 20px from the bottom of the viewport */
+    left: 50%; /* Center horizontally */
+    transform: translateX(-50%); /* Offset to center the element */
+    text-align: center;
+    font-size: 30px;
+    margin: 0;
+    padding: 10px 20px;
+    background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent background */
+    color: #fff; /* White text */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    z-index: 1000; /* Ensure it's above other elements */
+    user-select: none; /* Disables text selection */
+    pointer-events: none; /* Disables clicking on text and images */
+}
+
+/* Briscola card container styling */
+#briscola-container {
+    position: absolute;
+    top: 20px;
+    right: 20px; /* Move to the top right */
+    width: 120px; /* Adjust width as needed */
+    height: 180px; /* Adjust height as needed */
+    border: 2px solid #007bff; /* Modern blue border */
+    border-radius: 10px;
+    background-color: #e6f2ff; /* Very light blue background */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    user-select: none; /* Disables text selection */
+    pointer-events: none; /* Disables clicking on text and images */
+}
+
+/* Title styling */
+#briscola-title {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #007bff; /* Matching color */
+}
+
+/* Symbol and number styling for the Briscola card */
+#briscola-card .symbol {
+    font-size: 36px; /* Larger symbol */
+    margin-bottom: 5px; /* Space between symbol and number */
+}
+
+#briscola-card .number {
+    font-size: 18px; /* Slightly larger text */
+}
+
+/* Modern card container */
+#briscola-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Deck container /* Deck container styling */
+#deck-container {
+    position: absolute;
+    top: 40%; /* Position below the Briscola card */
+    right: 20px; /* Align with the Briscola card */
+    width: 120px; /* Adjust width as needed */
+    height: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Style for each card in the deck */
+.deck-card {
+    width: 100px;
+    height: 140px;
+    border: 6px solid #f9f9f9; /* white border for the card */
+    border-radius: 10px;
+    outline: 1px solid black;
+    background-color: #007bff; /* Face-down card color */
+    margin-top: -150px; /* Increase overlap between cards */
+    /*transition: transform 0.3s ease; !* Smooth transition *!*/
+    position: relative;
+    font-size: 24px; /* Slightly larger text */
+    color: skyblue;
+    align-content: center;
+    font-weight: bold;
+    pointer-events: none;
+}
+
+/* Player cards container at the bottom */
+#player-cards {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: auto; /* Pushes the cards container to the bottom */
+    width: 100%; /* Full width of the container */
+}
+
+/* Scoreboard styling */
+#scoreboard {
+    position: fixed; /* Fix the position to the bottom right corner */
+    bottom: 20px;
+    right: 20px;
+    width: 250px; /* Set a fixed width */
+    background-color: #007bff; /* Background color similar to button */
+    color: #fff; /* Text color */
+    border-radius: 10px; /* Rounded corners */
+    padding: 15px; /* Padding around the content */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    font-family: Arial, sans-serif; /* Consistent font */
+}
+
+#scoreboard h2 {
+    margin: 0;
+    font-size: 20px;
+    border-bottom: 2px solid #0056b3; /* Underline with a darker color */
+    padding-bottom: 5px;
+}
+
+#scores {
+    margin-top: 10px;
+}
+
+.score {
+    display: flex;
+    justify-content: space-between; /* Space out player name and score */
+    margin-bottom: 8px;
+    font-size: 18px;
+}
+
+.score span {
+    font-weight: bold;
+}
+
+/* Keyframes for moving up and fading out */
+@keyframes moveUpFadeOut {
+    0% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-100px); /* Move up 100px */
+        opacity: 0; /* Fade out */
+    }
+}
+
+/* Apply animation to cards being played */
+.card.played {
+    animation: moveUpFadeOut 0.5s ease forwards; /* Apply the animation */
+}
+
+
+/* Active Pile Section */
+.active-pile {
+    margin-top: 5%;
+    border: none; /* No border by default */
+    border-radius: 12px;
+}
+
+.active-pile .card {
+    background-color: lightgray;
+    margin: 5px 5px; /* Space between active pile cards */
+}
+
+/* End Game Container */
+.end-game-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f8f9fa; /* Light grey background */
+}
+
+/* Winner or Tie Message */
+#winner-message {
+    font-size: 2.5rem;
+    color: #007bff; /* Primary color */
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* Play Again Button */
+#play-again-btn {
+    background-color: #007bff; /* Primary button color */
+    color: #fff;
+    font-size: 1.2rem;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+/* Play Again Button Hover */
+#play-again-btn:hover {
+    background-color: #0056b3; /* Darker primary color on hover */
+}
+
+
+/* Container for centering content */
+.container {
+    position: relative;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Confetti effect styling */
+.confetti {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
+    overflow: hidden; /* Hide overflow to keep confetti effect in view */
+}
+
+/* Game over card styling */
+.game-over-card {
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+    padding: 20px;
+    width: 100%;
+    position: relative;
+    z-index: 20;
+    overflow: hidden;
+    transform: scale(0.95);
+    animation: zoomIn 0.6s ease-out forwards;
+}
+
+/* Header styling */
+.game-over-header {
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+}
+
+/* Animation for zooming in the game over card */
+@keyframes zoomIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Game over message styling */
+.message {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #333;
+    margin: 20px 0;
+    line-height: 1.4;
+}
+
+/* Button styling */
+.button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.button:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px); /* Lift button on hover */
+}
+
+.button:active {
+    transform: translateY(1px); /* Button press effect */
+}

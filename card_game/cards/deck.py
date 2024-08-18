@@ -22,6 +22,12 @@ class Deck(Pile, Generic[CARD, PLAYER]):
     def __repr__(self) -> str:
         return f"Deck Info: {self.deck_type} w/ {len(self.cards)} cards left"
 
+    def to_dict(self) -> dict:
+        return {
+            "current_cards": [card.to_dict() for card in self.current_cards],
+            "card_set": [card.to_dict() for card in self.card_set],
+        }
+
     def shuffle(self) -> None:
         shuffle(self.current_cards)
 
@@ -48,4 +54,4 @@ class Deck(Pile, Generic[CARD, PLAYER]):
         return self.draw_cards(draw_count=1)[0]
 
     def draw_cards(self, draw_count: int = 1) -> list[CARD]:
-        return [self.current_cards.pop() for _ in range(draw_count)]
+        return [self.current_cards.pop() for _ in range(min(draw_count, len(self.current_cards)))]

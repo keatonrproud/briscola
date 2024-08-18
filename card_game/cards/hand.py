@@ -19,3 +19,10 @@ class Hand(Generic[CARD]):
 
     def __repr__(self) -> str:
         return f'{", ".join(f"{{{idx+1}}}-{card}" for idx, card in enumerate(self.cards))}'
+
+    def to_dict(self) -> dict:
+        return {
+            "cards": [card.to_dict() for card in self.cards],
+            "max_cards": self.max_cards,
+            "min_cards": self.min_cards,
+        }

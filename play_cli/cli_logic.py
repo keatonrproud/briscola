@@ -2,7 +2,7 @@ from subprocess import call
 from time import sleep
 
 from backend.setup import create_game_and_deal, create_table_settings
-from backend.turn import play_turn
+from backend.turn import BriscolaTurnWinner, play_turn
 from briscola.card import BriscolaCard
 from briscola.client import BriscolaGame
 from briscola.player import BriscolaPlayer
@@ -66,31 +66,35 @@ def cli_setup_game() -> BriscolaGame:
     return game
 
 
-def cli_play_game(game: BriscolaGame) -> None:
-    while (
-        # if player reaches game's win condition or no player has cards left, the game ends
-        (max_score := max(player.score for player in game.players)) <= game.win_condition
-        and max(len(player.hand.cards) for player in game.players) > 0
-    ):
-        turn_winner = play_turn(game=game, choose_card_method=cli_choose_card)
-        winning_card, winner, pts = (
-            turn_winner.winning_card,
-            turn_winner.winning_player,
-            turn_winner.earned_pts,
+def cli_announce_scores(turn_winner: BriscolaTurnWinner) -> None:
+    winning_card, winner, pts = (
+        turn_winner.winning_card,
+        turn_winner.winning_player,
+        turn_winner.earned_pts,
+    )
+    print(f"========= Winning Card: {winning_card} =============")
+    if pts != 0:
+        print(
+            f"======= Player {winner.player_num} went from {winner.score - pts} --> {winner.score}pts ======="
         )
-        print(f"========= Winning Card: {winning_card} =============")
-        if pts != 0:
-            print(
-                f"======= Player {winner.player_num} went from {winner.score-pts} --> {winner.score}pts ======="
-            )
-        else:
-            print(f"========= Player {winner.player_num} stays at {winner.score} =========")
-        print("=========================================\n")
-
     else:
-        try:
-            winner = next(player for player in game.players if player.score > game.win_condition)
-            print(f"{winner} wins with {winner.score} points!")
-        except StopIteration:
-            tied_players = [f"{player}" for player in game.players if player.score == max_score]
-            print(f"The game ends with {' and '.join(tied_players)} having {max_score} points!")
+        print(f"========= Player {winner.player_num} stays at {winner.score} =========")
+    print("=========================================\n")
+
+
+def cli_announce_winner(game: BriscolaGame) -> None:
+    max_score = max(player.score for player in game.players)
+    try:
+        winner = next(player for player in game.players if player.score > game.win_condition)
+        print(f"{winner} wins with {winner.score} points!")
+    except StopIteration:
+        tied_players = [f"{player}" for player in game.players if player.score == max_score]
+        print(f"The game ends with {' and '.join(tied_players)} having {max_score} points!")
+
+
+def cli_play_game(game: BriscolaGame) -> None:
+    while game.game_ongoing:
+        turn_winner = play_turn(game=game, choose_card_method=cli_choose_card)
+        cli_announce_scores(turn_winner)
+    else:
+        cli_announce_winner(game=game)

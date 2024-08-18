@@ -1,4 +1,5 @@
 from collections import namedtuple
+from dataclasses import dataclass
 from enum import auto
 
 from card_game.cards.numbers import CardNumber
@@ -20,7 +21,12 @@ class BriscolaCardNumber(CardNumber):
     KING = auto()
 
 
-BriscolaCardInfo = namedtuple("BriscolaCardInfo", ["strength", "points"])
+@dataclass
+class BriscolaCardInfo:
+    strength: int
+    points: int
+
+
 CARD_INFOS = {
     BriscolaCardNumber.ACE: BriscolaCardInfo(strength=12, points=11),
     BriscolaCardNumber.THREE: BriscolaCardInfo(strength=11, points=10),

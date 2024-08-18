@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Briscola</title>
+    <link rel="stylesheet" href="/static/styles.css"> <!-- Link to the external CSS file -->
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+</head>
+<body>
+
+    <!-- Active Pile Section -->
+    <div id="active-pile" class="active-pile"></div>
+
+    <!-- Briscola Card Display -->
+    <div id="briscola-container">
+        <div id="briscola-title">Briscola</div>
+        <div id="briscola-card">
+            <div class="symbol"></div>
+            <div class="number"></div>
+        </div>
+    </div>
+
+    <!-- Full deck of cards will be inserted here -->
+    <div id="deck-container"></div>
+
+   <!-- Player Cards -->
+    <div id="player-cards" class="cards"></div>
+
+    <!-- Turn Information -->
+    <div id="turn-info"></div>
+
+        <!-- Scoreboard -->
+    <div id="scoreboard">
+        <h2>Scoreboard</h2>
+        <div id="scores">
+            <!-- Scores will be inserted here -->
+        </div>
+    </div>
+
+    <script src="/static/script.js"></script> <!-- Link to the external JavaScript file -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script>document.addEventListener('DOMContentLoaded', updateGameState);</script>
+
+</body>
+</html>
