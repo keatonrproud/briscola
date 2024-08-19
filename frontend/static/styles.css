@@ -1,3 +1,8 @@
+:root {
+  --face-up-card-width: 146px;
+  --face-up-card-height: 250px;
+}
+
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
 
 body {
@@ -65,7 +70,7 @@ br {
     font-size: 3rem;
     font-weight: 700;
     color: #333;
-    margin-bottom: 20px;
+    margin-bottom: 10%;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2); /* Slight shadow for a 3D effect */
     user-select: none; /* Disables text selection */
     pointer-events: none; /* Disables clicking on text and images */
@@ -149,8 +154,8 @@ br {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    width: 150px;
-    height: 200px;
+    width: var(--face-up-card-width);
+    height: var(--face-up-card-height);
     border: 2px solid #000;
     border-radius: 15px;
     margin: 10px;
@@ -224,12 +229,6 @@ br {
     left: 10%; /* Move to the left side */
     top: 50%; /* Center vertically */
     transform: translateY(-50%); /* Adjust to truly center */
-    width: 120px; /* Adjust width as needed */
-    height: 180px; /* Adjust height as needed */
-    border: 2px solid #007bff; /* Modern blue border */
-    border-radius: 10px;
-    background-color: #e6f2ff; /* Very light blue background */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
     padding: 10px;
     display: flex;
     flex-direction: column;
@@ -245,8 +244,7 @@ br {
 #briscola-title {
     font-size: 16px;
     font-weight: bold;
-    margin-bottom: 10px;
-    color: #007bff; /* Matching color */
+    color: #ffffff; /* Matching color */
 }
 
 /* Symbol and number styling for the Briscola card */
@@ -265,6 +263,12 @@ br {
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    width: var(--face-up-card-width); /* Adjust width as needed */
+    height: var(--face-up-card-height); /* Adjust height as needed */
+    border: 2px solid #007bff; /* Modern blue border */
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+
 }
 
 
@@ -363,19 +367,16 @@ br {
 /* Active Pile Section */
 #active-pile {
     position: absolute;
-    top: 30%; /* Vertically center */
-    left: 50%; /* Horizontally center */
-    transform: translate(-50%, -50%); /* Adjust to center the element exactly */
-    border-radius: 10px;
+    top: 30%; /* Center vertically */
+    left: 50%; /* Center horizontally */
+    transform: translate(-50%, -50%); /* Center the element exactly */
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 10; /* Ensure it's on top of other elements */
-    pointer-events: none;
-}
-
-.active-pile .card {
-    background-color: lightgray;
+    pointer-events: none; /* Disable interaction */
+    padding: 15px; /* Add padding if needed */
+    user-select: none; /* Prevent text selection */
 }
 
 /* End Game Container */

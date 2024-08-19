@@ -29,10 +29,13 @@ def get_state() -> Response:
     return jsonify(game.to_dict())
 
 
-# TODO how to visualize computer's plays?
-#  when I play it goes to their turn and shows what I play, then their selection creates a played animation + show in active pile, then reset game state
+# TODO prevent play before computer has gone
+
+# TODO also separate player action into play --> show new active pile --> end turn
 
 # TODO option at start for local or vs computer
+
+# TODO active pile cards should move towards winning player then fade
 
 # TODO multiplayer?
 
@@ -72,14 +75,7 @@ def get_computer_choice() -> Response:
 
 @app.route("/api/end_computer_turn", methods=["GET"])
 def end_computer_turn() -> Response:
-    print(game.turn_order())
-    print(game.active_player)
     web_end_computer_play(game=game)
-
-    print(game.active_player)
-
-    print("========")
-
     return jsonify(game.to_dict())
 
 

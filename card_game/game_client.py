@@ -8,6 +8,8 @@ from generics.player import PLAYER
 
 
 class CardGame(Generic[DECK, PLAYER, CARD], ABC):
+    last_winner: PLAYER | None = None
+
     def __init__(
         self,
         table_settings: TableSettings,

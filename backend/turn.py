@@ -24,6 +24,8 @@ def end_turn(game: BriscolaGame) -> BriscolaTurnWinner:
     earned_pts = calculate_points(game.active_pile.cards)
     winning_player.score += earned_pts
 
+    game.last_winner = winning_player
+
     clear_pile(game)
     fill_hands(game)
 

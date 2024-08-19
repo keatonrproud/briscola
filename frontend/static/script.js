@@ -1,4 +1,14 @@
 
+function setCardImage(cardDiv, card) {
+    if (card && card.number && card.suit) {
+        cardDiv.style.backgroundImage = `url('/static/piacentine/${card.number.name}_${card.suit.name}.png')`;
+        cardDiv.style.backgroundSize = 'contain';
+        cardDiv.style.backgroundRepeat = 'no-repeat';
+        cardDiv.style.backgroundPosition = 'center';
+    } else {
+        console.error('Card data is invalid:', card);
+    }
+}
 
 function updateCards(playerCards, oppCards) {
     const playerCardsContainer = document.getElementById('player-cards');
@@ -14,12 +24,9 @@ function updateCards(playerCards, oppCards) {
         });
 
         cardDiv.className = 'card';
-        cardDiv.innerHTML = `
-            <div class="symbol">${card.suit.symbol}</div>
-            <div class="number">${card.number.name}</div>
-        `;
-
         playerCardsContainer.appendChild(cardDiv);
+
+        setCardImage(cardDiv, card);
     });
 
     const oppCardsContainer = document.getElementById('opp-cards');
@@ -41,16 +48,21 @@ function updateTurnInfo(playerNum, color) {
 function updateBriscolaCard(card, num_cards_in_deck) {
     const briscolaCard = document.getElementById('briscola-card');
 
-    if (card) {
-        briscolaCard.querySelector('.symbol').textContent = card.suit.symbol;
-        if (num_cards_in_deck > 0) {
-            briscolaCard.querySelector('.number').textContent = card.number.name;
+    if (briscolaCard) {
+        if (card) {
+            if (num_cards_in_deck > 0) {
+                setCardImage(briscolaCard, card);
+                console.log('Card data:', card);
+            } else {
+                briscolaCard.querySelector('.symbol').textContent = card.suit.symbol;
+                briscolaCard.querySelector('.number').textContent = '';
+            }
         } else {
+            briscolaCard.querySelector('.symbol').textContent = '';
             briscolaCard.querySelector('.number').textContent = '';
         }
     } else {
-        briscolaCard.querySelector('.symbol').textContent = '';
-        briscolaCard.querySelector('.number').textContent = '';
+        console.error('Briscola card element not found');
     }
 }
 
@@ -184,28 +196,41 @@ function updateActivePile(cards) {
     const activePileContainer = document.getElementById('active-pile');
     activePileContainer.innerHTML = '';  // Clear existing cards
 
-    if (cards.length === 0) {
-        activePileContainer.style.backgroundColor = 'transparent'; // Hide background if empty
-        activePileContainer.style.border = 'none'; // Remove border if empty
-    } else {
-        activePileContainer.style.backgroundColor = '#f1f1f1'; // Default background color
-        activePileContainer.style.border = '1px solid #ccc'; // Default border
-    }
-
     cards.forEach(card => {
         const cardDiv = document.createElement('div');
         cardDiv.className = 'card';
-        cardDiv.innerHTML = `
-            <div class="symbol">${card.suit.symbol}</div>
-            <div class="number">${card.number.name}</div>
-        `;
-
         activePileContainer.appendChild(cardDiv);
+
+        setCardImage(cardDiv, card);
     });
 }
 
 function endGame() {
     window.location.href = '/end_game';
+}
+
+function animateActivePile(data) {
+    if (!data.last_winner) {
+        return
+    }
+
+    const activePile = document.getElementById('active-pile');
+
+    activePile.style.transition = 'transform 1s ease, opacity 1s ease';
+    activePile.style.opacity = '0'; // Fade out
+
+    if (data.last_winner.player_num === playerNum) {
+        activePile.style.transform = `translateY(10%)`; // Shift down 10% of the screen height
+    } else {
+        activePile.style.transform = 'translateY(-10%)'; // Shift down 10% of the screen height
+    }
+
+    setTimeout(() => {
+        activePile.style.transition = 'none';
+        activePile.style.transform = '';
+        activePile.style.opacity = '';
+    }, 1000); // Match the duration of the transition
+
 }
 
 // Call this function after fetching game data
@@ -238,6 +263,7 @@ function updateGameState(data, continue_play= true) {
             updateScoreboard(data.players); // Update scoreboard
             updateDeck(data.deck.current_cards); // Update the deck
             updateActivePile(data.pile.cards); // Update active player
+            animateActivePile(data); // shift towards the winner, if there was one
 
             const oppPlayer = data.players.find(other_player => other_player.player_num !== activePlayer.player_num);
 
