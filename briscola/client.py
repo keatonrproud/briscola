@@ -1,4 +1,4 @@
-from typing import Final
+from typing import Callable, Final
 
 from briscola.card import BriscolaCard
 from briscola.deck import BriscolaDeck
@@ -19,8 +19,11 @@ class BriscolaGame(CardGame):
     active_pile: BriscolaPile = BriscolaPile(cards=[], face_up=True)
     win_condition: Final = 60
 
-    def __init__(self, table_settings: TableSettings):
+    def __init__(
+        self, table_settings: TableSettings, computer_logic_override: tuple[Callable, ...] = ()
+    ):
         super().__init__(table_settings=table_settings, deck=BriscolaDeck())
+        self.computer_logic_override = computer_logic_override
 
     def __repr__(self) -> str:
         return f"Briscola Card: {self.briscola_card}\n" f"----\n" f"{super().__repr__()}"
@@ -67,7 +70,20 @@ class BriscolaGame(CardGame):
         ]
         for computer_idx in range(1, self.table_settings.computer_count + 1):
             players[-computer_idx].is_person = False
+
+        if self.computer_logic_override:
+            self.set_computer_logic()
+
         return players
+
+    def set_computer_logic(self) -> None:
+        computers = [player for player in self.players if not player.is_person]
+        if len(self.computer_logic_override) == self.table_settings.computer_count:
+            for logic, computer in zip(self.computer_logic_override, computers):
+                computer.computer_logic_override = logic
+        else:
+            for computer in computers:
+                computer.computer_logic_override = self.computer_logic_override[0]
 
     def to_dict(self) -> dict:
         return {

@@ -1,20 +1,25 @@
+from typing import Callable
+
 from briscola.client import BriscolaGame
-from briscola.player import BriscolaPlayer, PlayerColor
 from card_game.cards.card import Card
 from card_game.table.table_settings import Direction, TableSettings
-from settings.game_settings import CARDS_IN_HAND
+from settings.game_settings import CARDS_IN_HAND, PLAY_DIRECTION
 
 
 def create_table_settings(
-    player_count: int, play_direction: Direction, computer_count: int
+    player_count: int,
+    play_direction: Direction = PLAY_DIRECTION,
+    computer_count: int = 0,
 ) -> TableSettings:
     return TableSettings(
         player_count=player_count, turn_direction=play_direction, computer_count=computer_count
     )
 
 
-def create_game(table_settings: TableSettings) -> BriscolaGame:
-    return BriscolaGame(table_settings=table_settings)
+def create_game(
+    table_settings: TableSettings, logic_override: tuple[Callable, ...] = ()
+) -> BriscolaGame:
+    return BriscolaGame(table_settings=table_settings, computer_logic_override=logic_override)
 
 
 def deal_hands(game: BriscolaGame) -> list[list[Card]]:
@@ -22,12 +27,15 @@ def deal_hands(game: BriscolaGame) -> list[list[Card]]:
 
 
 def create_game_and_deal(
-    player_count: int, play_direction: Direction, computer_count: int
+    player_count: int,
+    play_direction: Direction = PLAY_DIRECTION,
+    computer_count: int = 0,
+    logic_override: tuple[Callable, ...] = (),
 ) -> BriscolaGame:
     table_settings = create_table_settings(
         player_count=player_count, play_direction=play_direction, computer_count=computer_count
     )
-    game = create_game(table_settings=table_settings)
+    game = create_game(table_settings=table_settings, logic_override=logic_override)
     deal_hands(game=game)
 
     return game

@@ -1,14 +1,14 @@
 from flask import Flask, Response, jsonify, render_template, request
 
 from backend.setup import create_game_and_deal
-from backend.turn import computer_choice_logic
+from backend.turn import play_card_computer
 from briscola.client import BriscolaGame
-from card_game.table.table_settings import Direction
 from play_web.web_logic import web_end_computer_play, web_play_card, web_play_computer_card
+from settings.game_settings import PLAY_DIRECTION
 
 app = Flask(__name__)
 game: BriscolaGame = create_game_and_deal(
-    player_count=2, play_direction=Direction.COUNTER_CLOCKWISE, computer_count=1
+    player_count=2, play_direction=PLAY_DIRECTION, computer_count=1
 )
 
 
@@ -36,6 +36,8 @@ def get_state() -> Response:
 # TODO option at start for local or vs computer
 
 # TODO active pile cards should move towards winning player then fade
+
+# TODO add logging
 
 # TODO multiplayer?
 
@@ -68,9 +70,7 @@ def play_computer_card() -> Response:
 @app.route("/api/get_computer_choice", methods=["GET"])
 def get_computer_choice() -> Response:
     print("choosing...")
-    return jsonify(
-        {"card_idx": computer_choice_logic(game=game, cards=game.active_player.hand.cards)}
-    )
+    return jsonify({"card_idx": play_card_computer(game=game, cards=game.active_player.hand.cards)})
 
 
 @app.route("/api/end_computer_turn", methods=["GET"])
