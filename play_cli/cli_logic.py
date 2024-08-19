@@ -1,12 +1,15 @@
+from logging import getLogger
 from subprocess import call
 from time import sleep
 
 from backend.setup import create_game_and_deal, create_table_settings
-from backend.turn import BriscolaTurnWinner, play_turn
+from backend.turn import BriscolaTurnWinner, play_card_computer, play_turn
 from briscola.card import BriscolaCard
 from briscola.client import BriscolaGame
 from briscola.player import BriscolaPlayer
 from settings.game_settings import PLAY_DIRECTION
+
+logger = getLogger(__name__)
 
 
 def cli_get_player_count() -> int:
@@ -19,16 +22,16 @@ def cli_get_player_count() -> int:
 
 
 def cli_print_briscola(game: BriscolaGame) -> None:
-    print(f"Briscola Card: {game.briscola_card}\n")
+    logger.info(f"Briscola Card: {game.briscola_card}\n")
 
 
 def cli_print_played_cards(game: BriscolaGame) -> None:
-    print(f"PILE: {game.active_pile}\n")
+    logger.info(f"PILE: {game.active_pile}\n")
 
 
 def cli_print_game_state(game: BriscolaGame) -> None:
-    print(f"{len(game.deck.cards)}🃏 remain")
-    print(
+    logger.info(f"{len(game.deck.cards)}🃏 remain")
+    logger.info(
         "       ".join([f"{player}: {player.score}pts" for player in game.players]),
         "\n",
     )
@@ -42,21 +45,24 @@ def cli_choose_card(game: BriscolaGame, player: BriscolaPlayer) -> BriscolaCard:
     if game.active_pile.cards:
         cli_print_played_cards(game)
 
-    print(f"{player}\n{player.hand}")
+    logger.info(f"{player}\n{player.hand}")
 
-    while True:
-        try:
-            choice = int(input("Choose a card by inputting the number you want to play: "))
-            assert 1 <= choice <= len(player.hand.cards)
-        except ValueError:
-            print("You must respond with a whole number!")
-        except AssertionError:
-            print("The number chosen must align with a card in the Player's hand.")
-        else:
-            break
+    if player.is_person:
+        while True:
+            try:
+                choice = int(input("Choose a card by inputting the number you want to play: ")) - 1
+                assert choice in range(len(player.hand.cards))
+            except ValueError:
+                logger.info("You must respond with a whole number!")
+            except AssertionError:
+                logger.info("The number chosen must align with a card in the Player's hand.")
+            else:
+                break
+    else:
+        choice = play_card_computer(game=game, cards=player.hand.cards)
 
     call("clear")
-    return player.hand.cards[choice - 1]
+    return player.hand.cards[choice]
 
 
 def cli_setup_game() -> BriscolaGame:
@@ -72,24 +78,24 @@ def cli_announce_scores(turn_winner: BriscolaTurnWinner) -> None:
         turn_winner.winning_player,
         turn_winner.earned_pts,
     )
-    print(f"========= Winning Card: {winning_card} =============")
+    logger.info(f"========= Winning Card: {winning_card} =============")
     if pts != 0:
-        print(
+        logger.info(
             f"======= Player {winner.player_num} went from {winner.score - pts} --> {winner.score}pts ======="
         )
     else:
-        print(f"========= Player {winner.player_num} stays at {winner.score} =========")
-    print("=========================================\n")
+        logger.info(f"========= Player {winner.player_num} stays at {winner.score} =========")
+    logger.info("=========================================\n")
 
 
 def cli_announce_winner(game: BriscolaGame) -> None:
     max_score = max(player.score for player in game.players)
     try:
         winner = next(player for player in game.players if player.score > game.win_condition)
-        print(f"{winner} wins with {winner.score} points!")
+        logger.info(f"{winner} wins with {winner.score} points!")
     except StopIteration:
         tied_players = [f"{player}" for player in game.players if player.score == max_score]
-        print(f"The game ends with {' and '.join(tied_players)} having {max_score} points!")
+        logger.info(f"The game ends with {' and '.join(tied_players)} having {max_score} points!")
 
 
 def cli_play_game(game: BriscolaGame) -> None:

@@ -17,9 +17,15 @@ def create_table_settings(
 
 
 def create_game(
-    table_settings: TableSettings, logic_override: tuple[Callable, ...] = ()
+    table_settings: TableSettings,
+    logic_override: tuple[Callable, ...] = (),
+    first_dealer: int | None = -1,
 ) -> BriscolaGame:
-    return BriscolaGame(table_settings=table_settings, computer_logic_override=logic_override)
+    return BriscolaGame(
+        table_settings=table_settings,
+        computer_logic_override=logic_override,
+        first_dealer=first_dealer,
+    )
 
 
 def deal_hands(game: BriscolaGame) -> list[list[Card]]:
@@ -31,11 +37,14 @@ def create_game_and_deal(
     play_direction: Direction = PLAY_DIRECTION,
     computer_count: int = 0,
     logic_override: tuple[Callable, ...] = (),
+    first_dealer: int | None = -1,
 ) -> BriscolaGame:
     table_settings = create_table_settings(
         player_count=player_count, play_direction=play_direction, computer_count=computer_count
     )
-    game = create_game(table_settings=table_settings, logic_override=logic_override)
+    game = create_game(
+        table_settings=table_settings, logic_override=logic_override, first_dealer=first_dealer
+    )
     deal_hands(game=game)
 
     return game

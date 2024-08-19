@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Generic
+from typing import Callable, Generic
 
 from card_game.table.table_settings import TableSettings
 from generics.card import CARD
@@ -10,16 +10,17 @@ from generics.player import PLAYER
 class CardGame(Generic[DECK, PLAYER, CARD], ABC):
     last_winner: PLAYER | None = None
 
-    def __init__(
-        self,
-        table_settings: TableSettings,
-        deck: DECK,
-    ):
+    def __init__(self, table_settings: TableSettings, deck: DECK, first_dealer: int | None = None):
         self.table_settings = table_settings
         self.deck = deck
         self.players = self.create_players(player_count=self.table_settings.player_count)
-        self.dealer = self.players[-1]
-        self.active_player = self.players[0]
+        self.dealer = self.players[-1] if first_dealer is None else self.players[first_dealer]
+        first_player_idx = (
+            first_dealer + 1
+            if first_dealer is not None and 0 <= first_dealer < len(self.players) - 1
+            else 0
+        )
+        self.active_player = self.players[first_player_idx]
 
     def __repr__(self) -> str:
         game_info = f"{self.table_settings}{self.deck}"

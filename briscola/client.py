@@ -20,10 +20,17 @@ class BriscolaGame(CardGame):
     win_condition: Final = 60
 
     def __init__(
-        self, table_settings: TableSettings, computer_logic_override: tuple[Callable, ...] = ()
+        self,
+        table_settings: TableSettings,
+        computer_logic_override: tuple[Callable, ...] = (),
+        computer_skill_level: int = 10,
+        first_dealer: int | None = -1,
     ):
-        super().__init__(table_settings=table_settings, deck=BriscolaDeck())
         self.computer_logic_override = computer_logic_override
+        self.computer_skill_level = computer_skill_level
+        super().__init__(
+            table_settings=table_settings, deck=BriscolaDeck(), first_dealer=first_dealer
+        )
 
     def __repr__(self) -> str:
         return f"Briscola Card: {self.briscola_card}\n" f"----\n" f"{super().__repr__()}"
@@ -68,21 +75,24 @@ class BriscolaGame(CardGame):
         players = [
             BriscolaPlayer(player_num=num + 1, color=colors[num]) for num in range(player_count)
         ]
-        for computer_idx in range(1, self.table_settings.computer_count + 1):
-            players[-computer_idx].is_person = False
+        for computer_idx in range(0, self.table_settings.computer_count):
+            computer = players[-(computer_idx + 1)]
+            computer.is_person = False
 
-        if self.computer_logic_override:
-            self.set_computer_logic()
+        if self.table_settings.computer_count > 0:
+            self.set_computer_logic(computers=players[-self.table_settings.computer_count :])
 
         return players
 
-    def set_computer_logic(self) -> None:
-        computers = [player for player in self.players if not player.is_person]
-        if len(self.computer_logic_override) == self.table_settings.computer_count:
-            for logic, computer in zip(self.computer_logic_override, computers):
-                computer.computer_logic_override = logic
-        else:
-            for computer in computers:
+    def set_computer_logic(self, computers: list[BriscolaPlayer]) -> None:
+        for idx, computer in enumerate(computers):
+            computer.is_person = False
+            computer.skill_level = self.computer_skill_level
+
+            # set computer logic as the same idx a the override, or the first if there's no matching override
+            try:
+                computer.computer_logic_override = self.computer_logic_override[idx]
+            except IndexError:
                 computer.computer_logic_override = self.computer_logic_override[0]
 
     def to_dict(self) -> dict:

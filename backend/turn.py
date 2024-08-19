@@ -88,12 +88,11 @@ def play_turn(game: BriscolaGame, choose_card_method: Callable) -> BriscolaTurnW
 def play_card_computer(
     game: BriscolaGame,
     cards: list[BriscolaCard],
-    skill_level: int = 10,
 ) -> int:
 
     random_choice = choice(range(len(cards)))
     # (1 - skill_level) * 10 is the percent chance of computer choosing a card randomly
-    if choice(range(9)) >= skill_level:
+    if choice(range(9)) >= game.computer_skill_level:
         return random_choice
 
     if len(game.players) > 2:
