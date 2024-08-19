@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from logging import getLogger
 from random import choice
 from typing import Callable
 
@@ -7,8 +6,9 @@ from backend.computer_logic.basic import basic_choice
 from briscola.card import BriscolaCard
 from briscola.client import BriscolaGame
 from briscola.player import BriscolaPlayer
+from logging_config import build_logger
 
-logger = getLogger(__name__)
+logger = build_logger(__name__)
 
 
 @dataclass

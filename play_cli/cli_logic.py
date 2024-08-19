@@ -7,9 +7,10 @@ from backend.turn import BriscolaTurnWinner, play_turn
 from briscola.card import BriscolaCard
 from briscola.client import BriscolaGame
 from briscola.player import BriscolaPlayer
+from logging_config import build_logger
 from settings.game_settings import PLAY_DIRECTION
 
-logger = getLogger(__name__)
+logger = build_logger(__name__)
 
 
 def cli_get_player_count() -> int:
@@ -77,10 +78,10 @@ def cli_announce_scores(turn_winner: BriscolaTurnWinner) -> None:
     logger.info(f"========= Winner: {winner} with a {winning_card} =============")
     if pts != 0:
         logger.info(
-            f"======= Player {winner.player_num} went from {winner.score - pts} --> {winner.score}pts ======="
+            f"======= {winner} went from {winner.score - pts} --> {winner.score}pts ======="
         )
     else:
-        logger.info(f"========= Player {winner.player_num} stays at {winner.score} =========")
+        logger.info(f"========= {winner} stays at {winner.score} =========")
     logger.info("=========================================\n")
 
 

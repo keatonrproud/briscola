@@ -19,3 +19,14 @@ class BriscolaPlayer(Player):
             in_game=True,
             color=color,
         )
+
+    def __repr__(self) -> str:
+        logic_method = (
+            self.computer_logic_override.__name__
+            if self.computer_logic_override is not None
+            else ""
+        )
+        repr = super().__repr__()
+        if logic_method:
+            repr += f" {logic_method}"
+        return repr

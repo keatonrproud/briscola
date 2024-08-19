@@ -1,16 +1,17 @@
-import logging
 from pprint import pprint
 from typing import Callable
 
 from backend.computer_logic.basic import basic_choice
 from backend.computer_logic.random_ import random_choice
 from backend.setup import create_game_and_deal
+from logging_config import build_logger
 from play_cli.cli_logic import cli_play_game
 
-logger = logging.getLogger(__name__)
+logger = build_logger(__name__)
+
 # TODO make the logic/choice a ComputerLogic object
 
-N_TEST_GAMES = 1
+N_TEST_GAMES = 1_000
 
 
 def play_game(
@@ -30,27 +31,23 @@ def play_game(
     return {player.computer_logic_override.__name__: player.score for player in game.players}
 
 
-def main(logics: tuple[Callable,], log_cli: bool = False, computer_skill_level: int = 10) -> None:
+def main(logics: tuple[Callable,], computer_skill_level: int = 10) -> None:
     """Run the Monte Carlo to test the computer's logic."""
-    logger_level = logging.DEBUG if log_cli else logging.CRITICAL
-    logging.basicConfig(level=logger_level)
-
     dealer_options = (None,)  # (None, *range(len(logics)))
 
     names = [logic.__name__ for idx, logic in enumerate(logics)]
 
     print(f"Testing {' vs '.join(names)} over {N_TEST_GAMES:,} per dealer variation...\n")
 
-    dealer_chances = {name: 0 for name in names}
-
     full_sum_scores = {name: 0 for name in names}
+    wins = {name: 0 for name in names}
     for dealer_option in dealer_options:
         total_scores = {name: 0 for name in names}
         for game_num in range(N_TEST_GAMES):
             if game_num == N_TEST_GAMES // 2:
-                logger.warning(f"Game #{game_num + 1}")
+                logger.debug(f"Game #{game_num+1}")
             dealer_idx = dealer_option if dealer_option is not None else game_num % 2
-            dealer_chances[names[dealer_idx]] += 1
+
             game_scores = play_game(
                 logics=logics, first_dealer=dealer_idx, computer_skill_level=computer_skill_level
             )
@@ -58,10 +55,13 @@ def main(logics: tuple[Callable,], log_cli: bool = False, computer_skill_level: 
             for name in names:
                 total_scores[name] += game_scores[name]
 
+            winner = max(game_scores, key=lambda x: game_scores[x])
+            wins[winner] += 1
+
         for name in names:
             full_sum_scores[name] += total_scores[name]
 
-        print(f"Dealer: {'random' if dealer_option is None is None else names[dealer_option]}")
+        print(f"Dealer: {'random' if dealer_option is None else names[dealer_option]}")
         pprint(total_scores)
         print("==========\n")
 
@@ -76,9 +76,10 @@ def main(logics: tuple[Callable,], log_cli: bool = False, computer_skill_level: 
     )
     print("\n\n\n")
 
+    print("wins", wins)
+
 
 if __name__ == "__main__":
     skill = 0  # 10 means fully based on the choice, 0 means completely random
 
-    main(logics=(random_choice, basic_choice), log_cli=True, computer_skill_level=skill)
-    main(logics=(basic_choice, random_choice), log_cli=True, computer_skill_level=skill)
+    main(logics=(basic_choice, random_choice), computer_skill_level=skill)

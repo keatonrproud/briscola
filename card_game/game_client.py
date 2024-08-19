@@ -1,13 +1,13 @@
 from abc import ABC, abstractmethod
-from logging import getLogger
 from typing import Generic
 
 from card_game.table.table_settings import TableSettings
 from generics.card import CARD
 from generics.deck import DECK
 from generics.player import PLAYER
+from logging_config import build_logger
 
-logger = getLogger(__name__)
+logger = build_logger(__name__)
 
 
 class CardGame(Generic[DECK, PLAYER, CARD], ABC):
