@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from logging import getLogger
 from random import choice
 from typing import Callable
 
@@ -6,6 +7,8 @@ from backend.computer_logic.basic import basic_choice
 from briscola.card import BriscolaCard
 from briscola.client import BriscolaGame
 from briscola.player import BriscolaPlayer
+
+logger = getLogger(__name__)
 
 
 @dataclass
@@ -20,16 +23,16 @@ def fill_hands(game: BriscolaGame) -> None:
 
 
 def end_turn(game: BriscolaGame) -> BriscolaTurnWinner:
-    winning_card, winning_player = get_winning_card(game)
+    winning_card, game.last_winner = get_winning_card(game)
     earned_pts = calculate_points(game.active_pile.cards)
-    winning_player.score += earned_pts
-
-    game.last_winner = winning_player
+    game.last_winner.score += earned_pts
 
     clear_pile(game)
     fill_hands(game)
 
-    return BriscolaTurnWinner(winning_card, winning_player, earned_pts)
+    logger.debug(", ".join(f"{player} has {player.score}pts" for player in game.players))
+
+    return BriscolaTurnWinner(winning_card, game.last_winner, earned_pts)
 
 
 def calculate_points(captured_cards: list[BriscolaCard]) -> int:
@@ -71,13 +74,17 @@ def play_card(player: BriscolaPlayer, card: BriscolaCard, game: BriscolaGame) ->
 
 
 def start_turn(game: BriscolaGame, choose_card_method: Callable) -> None:
+    logger.debug(f"Briscola is {game.briscola_card}")
     for player in game.turn_order():
         game.active_player = player
+        logger.debug(f"{player} has {player.hand.cards}")
         if player.is_person:
             played_card = choose_card_method(game=game, player=player)
         else:
             chosen_idx = play_card_computer(game=game, cards=player.hand.cards)
             played_card = game.active_player.hand.cards[chosen_idx]
+
+        logger.debug(f"{player} played {played_card}")
         play_card(player=player, card=played_card, game=game)
 
 

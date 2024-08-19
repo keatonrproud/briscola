@@ -1,10 +1,13 @@
 from abc import ABC, abstractmethod
-from typing import Callable, Generic
+from logging import getLogger
+from typing import Generic
 
 from card_game.table.table_settings import TableSettings
 from generics.card import CARD
 from generics.deck import DECK
 from generics.player import PLAYER
+
+logger = getLogger(__name__)
 
 
 class CardGame(Generic[DECK, PLAYER, CARD], ABC):
@@ -21,6 +24,7 @@ class CardGame(Generic[DECK, PLAYER, CARD], ABC):
             else 0
         )
         self.active_player = self.players[first_player_idx]
+        logger.debug(f"First dealer is {self.dealer}, first player is {self.active_player}.")
 
     def __repr__(self) -> str:
         game_info = f"{self.table_settings}{self.deck}"
@@ -28,9 +32,13 @@ class CardGame(Generic[DECK, PLAYER, CARD], ABC):
         return game_info + "\n----\n" + player_info
 
     def turn_order(self) -> list[PLAYER]:
+        logger.debug(f"Dealer is {self.dealer}")
         dealer_idx = self.players.index(self.dealer)
         first_player_idx = dealer_idx + 1 if dealer_idx < len(self.players) - 1 else 0
-        return self.players[first_player_idx:] + self.players[:first_player_idx]
+
+        turn_order = self.players[first_player_idx:] + self.players[:first_player_idx]
+
+        return turn_order
 
     @property
     def scores(self) -> list[int]:
@@ -57,3 +65,4 @@ class CardGame(Generic[DECK, PLAYER, CARD], ABC):
             self.dealer = self.players[0]
         else:
             self.dealer = self.players[dealer_index + 1]
+        logger.debug(f"New dealer is {self.dealer}")

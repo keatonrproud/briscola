@@ -10,9 +10,7 @@ from play_cli.cli_logic import cli_play_game
 logger = logging.getLogger(__name__)
 # TODO make the logic/choice a ComputerLogic object
 
-# TODO add computer logic to CLI
-
-N_TEST_GAMES = 10_000
+N_TEST_GAMES = 1
 
 
 def play_game(
@@ -43,13 +41,16 @@ def main(logics: tuple[Callable,], log_cli: bool = False, computer_skill_level: 
 
     print(f"Testing {' vs '.join(names)} over {N_TEST_GAMES:,} per dealer variation...\n")
 
+    dealer_chances = {name: 0 for name in names}
+
     full_sum_scores = {name: 0 for name in names}
     for dealer_option in dealer_options:
         total_scores = {name: 0 for name in names}
         for game_num in range(N_TEST_GAMES):
-            if N_TEST_GAMES % (game_num + 1) / 10 == 0:
-                logger.warning(game_num + 1)
+            if game_num == N_TEST_GAMES // 2:
+                logger.warning(f"Game #{game_num + 1}")
             dealer_idx = dealer_option if dealer_option is not None else game_num % 2
+            dealer_chances[names[dealer_idx]] += 1
             game_scores = play_game(
                 logics=logics, first_dealer=dealer_idx, computer_skill_level=computer_skill_level
             )
@@ -77,7 +78,7 @@ def main(logics: tuple[Callable,], log_cli: bool = False, computer_skill_level: 
 
 
 if __name__ == "__main__":
-    skill = 10  # 10 means fully based on the choice, 0 means completely random
+    skill = 0  # 10 means fully based on the choice, 0 means completely random
 
-    main(logics=(random_choice, basic_choice), log_cli=False, computer_skill_level=skill)
-    main(logics=(basic_choice, random_choice), log_cli=False, computer_skill_level=skill)
+    main(logics=(random_choice, basic_choice), log_cli=True, computer_skill_level=skill)
+    main(logics=(basic_choice, random_choice), log_cli=True, computer_skill_level=skill)

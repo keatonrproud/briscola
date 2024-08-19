@@ -3,7 +3,7 @@ from subprocess import call
 from time import sleep
 
 from backend.setup import create_game_and_deal, create_table_settings
-from backend.turn import BriscolaTurnWinner, play_card_computer, play_turn
+from backend.turn import BriscolaTurnWinner, play_turn
 from briscola.card import BriscolaCard
 from briscola.client import BriscolaGame
 from briscola.player import BriscolaPlayer
@@ -74,7 +74,7 @@ def cli_announce_scores(turn_winner: BriscolaTurnWinner) -> None:
         turn_winner.winning_player,
         turn_winner.earned_pts,
     )
-    logger.info(f"========= Winning Card: {winning_card} =============")
+    logger.info(f"========= Winner: {winner} with a {winning_card} =============")
     if pts != 0:
         logger.info(
             f"======= Player {winner.player_num} went from {winner.score - pts} --> {winner.score}pts ======="
