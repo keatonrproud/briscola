@@ -55,7 +55,7 @@ def basic_choice(game: BriscolaGame, cards: list[BriscolaCard]) -> int:
         return offsuit_winner
 
     # if you can take any A or 3, take it
-    if opp_card.suit in aces_and_threes:
+    if opp_card.number in aces_and_threes:
         if opp_card.suit == briscola and (
             winning_idx := next(
                 (

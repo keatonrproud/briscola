@@ -20,11 +20,13 @@ def create_game(
     table_settings: TableSettings,
     logic_override: tuple[Callable, ...] = (),
     first_dealer: int | None = -1,
+    computer_skill_level: int = 10,
 ) -> BriscolaGame:
     return BriscolaGame(
         table_settings=table_settings,
         computer_logic_override=logic_override,
         first_dealer=first_dealer,
+        computer_skill_level=computer_skill_level,
     )
 
 
@@ -38,12 +40,16 @@ def create_game_and_deal(
     computer_count: int = 0,
     logic_override: tuple[Callable, ...] = (),
     first_dealer: int | None = -1,
+    computer_skill_level: int = 10,
 ) -> BriscolaGame:
     table_settings = create_table_settings(
         player_count=player_count, play_direction=play_direction, computer_count=computer_count
     )
     game = create_game(
-        table_settings=table_settings, logic_override=logic_override, first_dealer=first_dealer
+        table_settings=table_settings,
+        logic_override=logic_override,
+        first_dealer=first_dealer,
+        computer_skill_level=computer_skill_level,
     )
     deal_hands(game=game)
 
