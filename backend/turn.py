@@ -76,7 +76,8 @@ def start_turn(game: BriscolaGame, choose_card_method: Callable) -> None:
         if player.is_person:
             played_card = choose_card_method(game=game, player=player)
         else:
-            played_card = choice(player.hand.cards)
+            chosen_idx = play_card_computer(game=game, cards=player.hand.cards)
+            played_card = game.active_player.hand.cards[chosen_idx]
         play_card(player=player, card=played_card, game=game)
 
 

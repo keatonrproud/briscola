@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 # TODO add computer logic to CLI
 
-N_TEST_GAMES = 10_000  # 10_000
+N_TEST_GAMES = 1_000
 
 
 def play_game(logics: tuple[Callable, ...], first_dealer: int | None = -1) -> dict[str, int]:
@@ -34,7 +34,7 @@ def main(logics: tuple[Callable,], log_cli: bool = False) -> None:
     logger_level = logging.DEBUG if log_cli else logging.CRITICAL
     logging.basicConfig(level=logger_level)
 
-    dealer_options = ("random",)
+    dealer_options: tuple[str | int, ...] = ("random", *range(len(logics)))
 
     names = [logic.__name__ for logic in logics]
 
@@ -72,5 +72,5 @@ def main(logics: tuple[Callable,], log_cli: bool = False) -> None:
 
 
 if __name__ == "__main__":
-    main(logics=(random_choice, basic_choice), log_cli=False)
     main(logics=(basic_choice, random_choice), log_cli=False)
+    main(logics=(random_choice, basic_choice), log_cli=False)

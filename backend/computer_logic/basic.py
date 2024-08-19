@@ -34,6 +34,7 @@ def basic_choice(game: BriscolaGame, cards: list[BriscolaCard]) -> int:
         ):
             return high_briscola_idx
 
+        # otherwise, random
         return choice(range(len(cards)))
 
     # if you're second
@@ -114,4 +115,4 @@ def basic_choice(game: BriscolaGame, cards: list[BriscolaCard]) -> int:
                 return bad_same_suit
 
     # otherwise, random
-    return random_choice
+    return choice(range(len(cards)))

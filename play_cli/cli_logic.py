@@ -46,20 +46,16 @@ def cli_choose_card(game: BriscolaGame, player: BriscolaPlayer) -> BriscolaCard:
         cli_print_played_cards(game)
 
     logger.info(f"{player}\n{player.hand}")
-
-    if player.is_person:
-        while True:
-            try:
-                choice = int(input("Choose a card by inputting the number you want to play: ")) - 1
-                assert choice in range(len(player.hand.cards))
-            except ValueError:
-                logger.info("You must respond with a whole number!")
-            except AssertionError:
-                logger.info("The number chosen must align with a card in the Player's hand.")
-            else:
-                break
-    else:
-        choice = play_card_computer(game=game, cards=player.hand.cards)
+    while True:
+        try:
+            choice = int(input("Choose a card by inputting the number you want to play: ")) - 1
+            assert choice in range(len(player.hand.cards))
+        except ValueError:
+            logger.info("You must respond with a whole number!")
+        except AssertionError:
+            logger.info("The number chosen must align with a card in the Player's hand.")
+        else:
+            break
 
     call("clear")
     return player.hand.cards[choice]
