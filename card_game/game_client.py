@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
+from functools import cached_property
 from typing import Generic
 
-from card_game.table.table_settings import TableSettings
+from card_game.table.table_settings import Direction, TableSettings
 from generics.card import CARD
 from generics.deck import DECK
 from generics.player import PLAYER
@@ -13,10 +14,9 @@ logger = build_logger(__name__)
 class CardGame(Generic[DECK, PLAYER, CARD], ABC):
     last_winner: PLAYER | None = None
 
-    def __init__(self, table_settings: TableSettings, deck: DECK, first_dealer: int | None = None):
-        self.table_settings = table_settings
+    def __init__(self, deck: DECK, first_dealer: int | None = None, computer_count: int = 0):
         self.deck = deck
-        self.players = self.create_players(player_count=self.table_settings.player_count)
+        self.computer_count = computer_count
         self.dealer = self.players[-1] if first_dealer is None else self.players[first_dealer]
         first_player_idx = (
             first_dealer + 1
@@ -56,8 +56,9 @@ class CardGame(Generic[DECK, PLAYER, CARD], ABC):
         player.hand.cards += self.deck.draw_cards(draw_count=draw_count)
 
     @abstractmethod
-    def create_players(self, player_count: int) -> list[PLAYER]:
-        """A method to generate players for the game, given a player_count."""
+    @cached_property
+    def players(self) -> list[PLAYER]:
+        """A method to generate and access players for the game."""
 
     def change_dealers(self) -> None:
         dealer_index = self.players.index(self.dealer)
@@ -66,3 +67,21 @@ class CardGame(Generic[DECK, PLAYER, CARD], ABC):
         else:
             self.dealer = self.players[dealer_index + 1]
         logger.debug(f"New dealer is {self.dealer}")
+
+    @staticmethod
+    @abstractmethod
+    def get_player_count() -> int:
+        """A method to return the number of players for the game."""
+
+    @abstractmethod
+    @cached_property
+    def play_direction(self) -> Direction:
+        """A method to return the direction of play."""
+
+    @cached_property
+    def table_settings(self) -> TableSettings:
+        return TableSettings(
+            player_count=self.get_player_count(),
+            turn_direction=self.play_direction,
+            computer_count=self.computer_count,
+        )

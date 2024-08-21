@@ -3,9 +3,8 @@ from typing import Callable
 
 from backend.computer_logic.basic import basic_choice
 from backend.computer_logic.random_ import random_choice
-from backend.setup import create_game_and_deal
 from logging_config import build_logger
-from play_cli.cli_logic import cli_play_game
+from play_cli.cli_client import BriscolaCLI
 
 logger = build_logger(__name__)
 
@@ -18,22 +17,24 @@ def play_game(
     logics: tuple[Callable, ...], first_dealer: int | None = -1, computer_skill_level: int = 10
 ) -> dict[str, int]:
     """Play a game, and return the scores for each logic."""
-    game = create_game_and_deal(
-        player_count=2,
+    game = BriscolaCLI(
         computer_count=2,
-        logic_override=logics,
-        first_dealer=first_dealer,
+        computer_logic_override=logics,
         computer_skill_level=computer_skill_level,
+        first_dealer=first_dealer,
     )
+    game.play_game()
 
-    cli_play_game(game)
+    return {
+        player.computer_logic_override.__name__: player.score
+        for player in game.players
+        if player.computer_logic_override is not None
+    }
 
-    return {player.computer_logic_override.__name__: player.score for player in game.players}
 
-
-def main(logics: tuple[Callable,], computer_skill_level: int = 10) -> None:
+def main(logics: tuple[Callable, ...], computer_skill_level: int = 10) -> None:
     """Run the Monte Carlo to test the computer's logic."""
-    dealer_options = (None,)  # (None, *range(len(logics)))
+    dealer_options: tuple[None | int, ...] = (None,)  # (None, *range(len(logics)))
 
     names = [logic.__name__ for idx, logic in enumerate(logics)]
 

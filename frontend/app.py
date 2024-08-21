@@ -1,15 +1,10 @@
 from flask import Flask, Response, jsonify, render_template, request
 
-from backend.setup import create_game_and_deal
-from backend.turn import play_card_computer
-from briscola.client import BriscolaGame
-from play_web.web_logic import web_end_computer_play, web_play_card, web_play_computer_card
-from settings.game_settings import PLAY_DIRECTION
+from backend.computer_logic.basic import basic_choice
+from play_web.web_client import BriscolaWeb
 
 app = Flask(__name__)
-game: BriscolaGame = create_game_and_deal(
-    player_count=2, play_direction=PLAY_DIRECTION, computer_count=1
-)
+game = BriscolaWeb(computer_count=1, computer_logic_override=(basic_choice,))
 
 
 @app.route("/")
@@ -49,7 +44,7 @@ def play_human_card() -> Response:
 
     if (card_idx := res.get("card_index")) is None:
         return Response(status=400)  # Bad request if card_index is not provided
-    web_play_card(card_idx=card_idx, game=game)
+    game.player_play_card_idx(card_idx=card_idx)
 
     return jsonify(game.to_dict())  # Return updated game state
 
@@ -62,20 +57,19 @@ def play_computer_card() -> Response:
     if (card_idx := res.get("card_index")) is None:
         return Response(status=400)  # Bad request if card_index is not provided
 
-    web_play_computer_card(card_idx=card_idx, game=game)
+    game.active_player_play_card_idx(card_idx=card_idx)
 
     return jsonify(game.to_dict())
 
 
 @app.route("/api/get_computer_choice", methods=["GET"])
 def get_computer_choice() -> Response:
-    print("choosing...")
-    return jsonify({"card_idx": play_card_computer(game=game, cards=game.active_player.hand.cards)})
+    return jsonify({"card_idx": game.play_card_computer(cards=game.active_player.hand.cards)})
 
 
 @app.route("/api/end_computer_turn", methods=["GET"])
-def end_computer_turn() -> Response:
-    web_end_computer_play(game=game)
+def end_computer_play() -> Response:
+    game.end_play()
     return jsonify(game.to_dict())
 
 

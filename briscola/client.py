@@ -1,5 +1,11 @@
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
+from functools import cached_property
+from random import choice
 from typing import Callable, Final
 
+from backend.computer_logic.basic import basic_choice
+from backend.computer_logic.random_ import random_choice
 from briscola.card import BriscolaCard
 from briscola.deck import BriscolaDeck
 from briscola.pile import BriscolaPile
@@ -8,11 +14,21 @@ from card_game.cards.card import Card
 from card_game.cards.suits import Suit
 from card_game.game_client import CardGame
 from card_game.table.player import PlayerColor
-from card_game.table.table_settings import TableSettings
-from settings.game_settings import CARDS_IN_HAND
+from card_game.table.table_settings import Direction
+from logging_config import build_logger
+from settings.game_settings import CARDS_IN_HAND, PLAY_DIRECTION
+
+logger = build_logger(__name__)
 
 
-class BriscolaGame(CardGame):
+@dataclass
+class BriscolaTurnWinner:
+    winning_card: BriscolaCard
+    winning_player: BriscolaPlayer
+    earned_pts: int
+
+
+class BriscolaGame(CardGame, ABC):
     briscola: Suit | None = None
     briscola_card: BriscolaCard | None = None
     max_cards_in_hand: int = 3
@@ -21,7 +37,7 @@ class BriscolaGame(CardGame):
 
     def __init__(
         self,
-        table_settings: TableSettings,
+        computer_count: int = 0,
         computer_logic_override: tuple[Callable, ...] = (),
         computer_skill_level: int = 10,
         first_dealer: int | None = -1,
@@ -29,13 +45,20 @@ class BriscolaGame(CardGame):
         self.computer_logic_override = computer_logic_override
         self.computer_skill_level = computer_skill_level
         super().__init__(
-            table_settings=table_settings, deck=BriscolaDeck(), first_dealer=first_dealer
+            deck=BriscolaDeck(), first_dealer=first_dealer, computer_count=computer_count
         )
 
     def __repr__(self) -> str:
         return f"Briscola Card: {self.briscola_card}\n" f"----\n" f"{super().__repr__()}"
 
-    def deal_hands(self, cards_in_hand: int, change_dealers: bool = True) -> list[list[Card]]:
+    @cached_property
+    def play_direction(self) -> Direction:
+        """A method to return the direction of play."""
+        return PLAY_DIRECTION
+
+    def deal_hands(
+        self, cards_in_hand: int = CARDS_IN_HAND, change_dealers: bool = True
+    ) -> list[list[Card]]:
         # if briscola_card hasn't been set yet, then draw and set the briscola card first
         if self.briscola_card is None:
             self.briscola_card = self.deck.draw()
@@ -50,9 +73,32 @@ class BriscolaGame(CardGame):
             max_cards_in_hand=self.max_cards_in_hand or max_cards_in_hand,
         )
 
-    def play_card(self, player: BriscolaPlayer, card: BriscolaCard) -> None:
+    def play_card(self, player: BriscolaPlayer, card: BriscolaCard) -> BriscolaCard:
         player.hand.cards.remove(card)
         self.active_pile.cards.append(card)
+        return card
+
+    def play_card_computer(
+        self,
+        cards: list[BriscolaCard],
+    ) -> int:
+
+        # (1 - skill_level) * 10 is the percent chance of computer choosing a card randomly
+        if choice(range(9)) >= self.computer_skill_level:
+            return random_choice(cards)
+
+        if len(self.players) > 2:
+            raise NotImplementedError()
+
+        assert type(self.briscola) is Suit
+
+        logic = self.active_player.computer_logic_override
+
+        return (
+            random_choice(cards=cards)
+            if logic is None or logic == random_choice
+            else logic(briscola=self.briscola, active_pile=self.active_pile, cards=cards)
+        )
 
     @property
     def game_ongoing(self) -> bool:
@@ -65,24 +111,32 @@ class BriscolaGame(CardGame):
         self.deck = BriscolaDeck()
         self.briscola, self.briscola_card = None, None
         self.active_pile.clear_pile()
-        self.players = self.create_players(self.table_settings.player_count)
         self.dealer = self.players[-1]
         self.active_player = self.players[0]
         self.deal_hands(cards_in_hand=CARDS_IN_HAND, change_dealers=False)
 
-    def create_players(self, player_count: int) -> list[BriscolaPlayer]:
+    @cached_property
+    def players(self) -> list[BriscolaPlayer]:
         colors = list(PlayerColor)
         players = [
-            BriscolaPlayer(player_num=num + 1, color=colors[num]) for num in range(player_count)
+            BriscolaPlayer(player_num=num + 1, color=colors[num])
+            for num in range(self.table_settings.player_count)
         ]
         for computer_idx in range(0, self.table_settings.computer_count):
             computer = players[-(computer_idx + 1)]
             computer.is_person = False
 
         if self.table_settings.computer_count > 0:
+            assert (
+                len(self.computer_logic_override) > 0
+            ), "You must include at least one computer logic override for your computers."
             self.set_computer_logic(computers=players[-self.table_settings.computer_count :])
 
         return players
+
+    @staticmethod
+    def calculate_points(captured_cards: list[BriscolaCard]) -> int:
+        return sum(card.points for card in captured_cards)
 
     def set_computer_logic(self, computers: list[BriscolaPlayer]) -> None:
         for idx, computer in enumerate(computers):
@@ -94,6 +148,45 @@ class BriscolaGame(CardGame):
                 computer.computer_logic_override = self.computer_logic_override[idx]
             except IndexError:
                 computer.computer_logic_override = self.computer_logic_override[0]
+
+    def clear_pile(self) -> None:
+        self.active_pile.clear_pile()
+
+    def get_winning_card(self) -> tuple[BriscolaCard, BriscolaPlayer]:
+        played_cards = self.active_pile.cards
+        trump_suit = (
+            self.briscola
+            if len([card for card in played_cards if card.suit == self.briscola])
+            else played_cards[0].suit
+        )
+        trump_cards = [card for card in played_cards if card.suit == trump_suit]
+        trump_cards.sort(key=lambda x: x.strength, reverse=True)
+
+        winning_card = trump_cards[0]
+
+        winning_card_idx = played_cards.index(winning_card)
+        winning_player = self.turn_order()[winning_card_idx]
+
+        # in Briscola, the winner plays next...
+        self.active_player = winning_player
+
+        # and the person before the winner is the 'dealer'
+        next_dealer_idx = winning_card_idx - 1 if winning_card_idx != 0 else -1
+        self.dealer = self.turn_order()[next_dealer_idx]
+
+        return winning_card, winning_player
+
+    def end_turn(self) -> BriscolaTurnWinner:
+        winning_card, self.last_winner = self.get_winning_card()
+        earned_pts = self.calculate_points(self.active_pile.cards)
+        self.last_winner.score += earned_pts
+
+        self.clear_pile()
+        self.fill_hands()
+
+        logger.debug(", ".join(f"{player} has {player.score}pts" for player in self.players))
+
+        return BriscolaTurnWinner(winning_card, self.last_winner, earned_pts)
 
     def to_dict(self) -> dict:
         return {

@@ -2,17 +2,15 @@ from random import choice
 
 from briscola.card import BriscolaCard
 from briscola.card_settings import BriscolaCardNumber
-from briscola.client import BriscolaGame
+from card_game.cards.suits import Suit
+from card_game.table.pile import Pile
 
 
-def basic_choice(game: BriscolaGame, cards: list[BriscolaCard]) -> int:
-
-    briscola = game.briscola
-
+def basic_choice(briscola: Suit, active_pile: Pile, cards: list[BriscolaCard]) -> int:
     aces_and_threes = (BriscolaCardNumber.ACE, BriscolaCardNumber.THREE)
 
     # if computer is first
-    if not game.active_pile.cards:
+    if not active_pile.cards:
         # have a low non-briscola card, play the worst card
         if bad_card_idx := next(
             (idx for idx, card in enumerate(cards) if card.strength < 8 and card.suit != briscola),
@@ -38,7 +36,7 @@ def basic_choice(game: BriscolaGame, cards: list[BriscolaCard]) -> int:
         return choice(range(len(cards)))
 
     # if you're second
-    opp_card = game.active_pile.cards[0]
+    opp_card = active_pile.cards[0]
 
     # if comp has off-suit for points, and opp played offsuit lower, then play it now
     if offsuit_winner := next(
