@@ -26,6 +26,7 @@ class BriscolaTurnWinner:
     winning_card: BriscolaCard
     winning_player: BriscolaPlayer
     earned_pts: int
+    losing_cards: list[BriscolaCard]
 
 
 class BriscolaGame(CardGame, ABC):
@@ -49,7 +50,7 @@ class BriscolaGame(CardGame, ABC):
         )
 
     def __repr__(self) -> str:
-        return f"Briscola Card: {self.briscola_card}\n" f"----\n" f"{super().__repr__()}"
+        return f"Briscola: {self.briscola_card}\n" f"----\n" f"{super().__repr__()}"
 
     @cached_property
     def play_direction(self) -> Direction:
@@ -181,12 +182,19 @@ class BriscolaGame(CardGame, ABC):
         earned_pts = self.calculate_points(self.active_pile.cards)
         self.last_winner.score += earned_pts
 
+        losing_cards = [card for card in self.active_pile.cards if card != winning_card]
+
         self.clear_pile()
         self.fill_hands()
 
         logger.debug(", ".join(f"{player} has {player.score}pts" for player in self.players))
 
-        return BriscolaTurnWinner(winning_card, self.last_winner, earned_pts)
+        return BriscolaTurnWinner(
+            winning_card=winning_card,
+            winning_player=self.last_winner,
+            earned_pts=earned_pts,
+            losing_cards=losing_cards,
+        )
 
     def to_dict(self) -> dict:
         return {

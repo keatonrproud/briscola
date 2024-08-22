@@ -26,6 +26,8 @@ def get_state() -> Response:
 
 # TODO prevent play before computer has gone
 
+# TODO change turn info at bottom when computer goes, even though not active player
+
 # TODO also separate player action into play --> show new active pile --> end turn
 
 # TODO option at start for local or vs computer
