@@ -25,6 +25,9 @@ def get_state() -> Response:
 
 
 # TODO prevent play before computer has gone
+#  active_player should be the person whose turn/choice it is
+#  shown_player should be the person whose cards are shown on a given turn (ie multiplayer, always show same shown_player)
+#  if active_player != shown_player, input is not allowed
 
 # TODO change turn info at bottom when computer goes, even though not active player
 
