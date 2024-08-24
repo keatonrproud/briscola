@@ -34,16 +34,37 @@
     <div id="turn-info"></div>
 
         <!-- Scoreboard -->
-    <div id="scoreboard">
-        <h2>Scoreboard</h2>
-        <div id="scores">
-            <!-- Scores will be inserted here -->
+    <div id="scoreboard-container">
+        <button id="scoreboard-toggle">Scoreboard</button>
+        <div id="scoreboard">
+            <div id="scores">
+                <!-- Scores will be inserted here -->
+            </div>
         </div>
     </div>
 
     <script src="/static/script.js"></script> <!-- Link to the external JavaScript file -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
-    <script>document.addEventListener('DOMContentLoaded', updateGameState);</script>
+    <script>
+        document.addEventListener('DOMContentLoaded', updateGameState);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const scoreboardToggle = document.getElementById('scoreboard-toggle');
+            const scoreboard = document.getElementById('scoreboard');
+
+            scoreboardToggle.addEventListener('click', () => {
+                if (scoreboard.style.maxHeight) {
+                    // Collapse the scoreboard
+                    scoreboard.style.maxHeight = null;
+                } else {
+                    // Expand the scoreboard
+                    scoreboard.style.maxHeight = scoreboard.scrollHeight + 'px';
+                }
+            });
+        })
+
+
+    </script>
 
 </body>
 </html>

@@ -50,6 +50,8 @@ def get_state() -> Response:
     return jsonify(game.to_dict() | {"local": "true"})
 
 
+# TODO difficulty setting w/ slider
+
 # TODO option at start for local or vs computer
 #  need to change the shown player if it's local
 

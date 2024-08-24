@@ -299,8 +299,8 @@ br {
     width: 100%; /* Full width of the container */
 }
 
-/* Scoreboard styling */
-#scoreboard {
+/* Scoreboard container */
+#scoreboard-container {
     position: fixed; /* Fix the position to the bottom right corner */
     bottom: 20px;
     right: 20px;
@@ -311,13 +311,25 @@ br {
     padding: 15px; /* Padding around the content */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
     font-family: Arial, sans-serif; /* Consistent font */
+    overflow: hidden; /* Hide overflow for smooth collapsing */
 }
 
-#scoreboard h2 {
-    margin: 0;
-    font-size: 20px;
-    border-bottom: 2px solid #0056b3; /* Underline with a darker color */
-    padding-bottom: 5px;
+#scoreboard-toggle {
+    width: 100%;
+    background-color: #3399ff; /* Darker background color */
+    color: #fff; /* Text color */
+    border: none;
+    border-radius: 10px;
+    padding: 10px;
+    cursor: pointer; /* Pointer cursor to indicate clickability */
+    font-size: 18px;
+    text-align: center;
+}
+
+#scoreboard {
+    max-height: 0; /* Initially collapsed */
+    overflow: hidden; /* Hide overflow */
+    transition: max-height 0.5s ease; /* Smooth transition */
 }
 
 #scores {
@@ -334,6 +346,7 @@ br {
 .score span {
     font-weight: bold;
 }
+
 
 /* Keyframes for moving up and fading out */
 @keyframes moveUpFadeOut {
