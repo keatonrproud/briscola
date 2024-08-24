@@ -24,7 +24,20 @@ class CardGame(Generic[DECK, PLAYER, CARD], ABC):
             else 0
         )
         self.active_player = self.players[first_player_idx]
-        logger.debug(f"First dealer is {self.dealer}, first player is {self.active_player}.")
+        try:
+            # show the active player if it's a person, otherwise the first person-player
+            self.shown_player = (
+                self.active_player
+                if self.active_player.is_person
+                else next(p for p in self.players if p.is_person)
+            )
+        except StopIteration:
+            # if there are no person-players, then show the first computer in the list
+            self.shown_player = self.players[0]
+
+        logger.debug(
+            f"First dealer is {self.dealer}, first player is {self.active_player}, shown player is {self.shown_player}."
+        )
 
     def __repr__(self) -> str:
         game_info = f"{self.table_settings}{self.deck}"

@@ -10,32 +10,79 @@
 </head>
 <body>
     <div class="container">
-        <!-- Confetti element, animated via JavaScript -->
-        <div class="confetti"></div>
-
-        <!-- Main content area for game introduction and button -->
         <div class="intro-card">
             <h1 class="title">Welcome to Briscola!</h1>
             <br>
-            <button class="button" onclick="window.location.href='/turn'">Start Game</button>
+
+            <div class="game-mode-selector">
+                <span class="mode-label left-label" aria-label="Computer">💻</span>
+                <label class="toggle">
+                    <input type="checkbox" id="game-mode-toggle">
+                    <span class="slider"></span>
+                </label>
+                <span class="mode-label right-label" aria-label="Local">👥</span>
+            </div>
+            <button class="button" id="start-game-btn">Start Game</button>
         </div>
     </div>
+
     <script>
-        // Call the showConfetti function to initiate the confetti effect
-        document.addEventListener('DOMContentLoaded', () => {
-            showConfetti();
-        });
-
-        document.addEventListener('DOMContentLoaded', () => {
+            document.addEventListener('DOMContentLoaded', () => {
             const startGameButton = document.getElementById('start-game-btn');
-            if (startGameButton) {
-                startGameButton.addEventListener('click', () => {
-                    // Redirect to /turn
-                    window.location.href = '/turn';
-                });
-            }
+            const gameModeToggle = document.getElementById('game-mode-toggle');
+            const leftLabel = document.querySelector('.left-label');
+            const rightLabel = document.querySelector('.right-label');
+
+            if (startGameButton && gameModeToggle) {
+            startGameButton.addEventListener('click', async () => {
+            const gameMode = gameModeToggle.checked ? 'local' : 'computer';
+
+            try {
+            const response = await fetch('/api/reset_state', {
+            method: 'POST',
+            headers: {
+            'Content-Type': 'application/json'
+        },
+            body: JSON.stringify({gameMode: gameMode})
         });
 
+            if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+
+            const data = await response.json();
+            window.location.href = '/turn';
+        } catch (error) {
+            console.error('Error:', error);
+            // Optionally: provide user feedback or retry logic here
+        }
+        });
+        }
+
+            function updateLabels() {
+            if (gameModeToggle.checked) {
+            leftLabel.style.opacity = '0.5';
+            rightLabel.style.opacity = '1';
+        } else {
+            leftLabel.style.opacity = '1';
+            rightLabel.style.opacity = '0.5';
+        }
+        }
+
+            // Add event listeners to emoji icons to toggle the checkbox
+            leftLabel.addEventListener('click', () => {
+            gameModeToggle.checked = false;
+            updateLabels();
+        });
+
+            rightLabel.addEventListener('click', () => {
+            gameModeToggle.checked = true;
+            updateLabels();
+        });
+
+            gameModeToggle.addEventListener('change', updateLabels);
+            updateLabels(); // Initial call to set the correct state on page load
+        });
     </script>
 </body>
 </html>

@@ -4,7 +4,6 @@ from functools import cached_property
 from random import choice
 from typing import Callable, Final
 
-from backend.computer_logic.basic import basic_choice
 from backend.computer_logic.random_ import random_choice
 from briscola.card import BriscolaCard
 from briscola.deck import BriscolaDeck
@@ -48,6 +47,8 @@ class BriscolaGame(CardGame, ABC):
         super().__init__(
             deck=BriscolaDeck(), first_dealer=first_dealer, computer_count=computer_count
         )
+        self.clear_pile()
+        self.deal_hands(cards_in_hand=CARDS_IN_HAND, change_dealers=False)
 
     def __repr__(self) -> str:
         return f"Briscola: {self.briscola_card}\n" f"----\n" f"{super().__repr__()}"
@@ -109,12 +110,14 @@ class BriscolaGame(CardGame, ABC):
         return no_winner and players_have_cards
 
     def reset_game(self) -> None:
-        self.deck = BriscolaDeck()
         self.briscola, self.briscola_card = None, None
-        self.active_pile.clear_pile()
-        self.dealer = self.players[-1]
-        self.active_player = self.players[0]
-        self.deal_hands(cards_in_hand=CARDS_IN_HAND, change_dealers=False)
+        self.deck = BriscolaDeck()
+
+        self.__init__(
+            computer_count=self.computer_count,
+            computer_logic_override=self.computer_logic_override,
+            computer_skill_level=self.computer_skill_level,
+        )
 
     @cached_property
     def players(self) -> list[BriscolaPlayer]:
@@ -123,15 +126,15 @@ class BriscolaGame(CardGame, ABC):
             BriscolaPlayer(player_num=num + 1, color=colors[num])
             for num in range(self.table_settings.player_count)
         ]
-        for computer_idx in range(0, self.table_settings.computer_count):
+        for computer_idx in range(0, self.computer_count):
             computer = players[-(computer_idx + 1)]
             computer.is_person = False
 
-        if self.table_settings.computer_count > 0:
+        if self.computer_count > 0:
             assert (
                 len(self.computer_logic_override) > 0
             ), "You must include at least one computer logic override for your computers."
-            self.set_computer_logic(computers=players[-self.table_settings.computer_count :])
+            self.set_computer_logic(computers=players[-self.computer_count :])
 
         return players
 
@@ -170,6 +173,8 @@ class BriscolaGame(CardGame, ABC):
 
         # in Briscola, the winner plays next...
         self.active_player = winning_player
+        if self.active_player.is_person:
+            self.shown_player = self.active_player
 
         # and the person before the winner is the 'dealer'
         next_dealer_idx = winning_card_idx - 1 if winning_card_idx != 0 else -1
@@ -208,5 +213,8 @@ class BriscolaGame(CardGame, ABC):
             "pile": self.active_pile.to_dict(),
             "dealer": self.dealer.to_dict(),
             "active_player": self.active_player.to_dict(),
+            "shown_player": self.shown_player.to_dict(),
             "game_ongoing": self.game_ongoing,
+            "turn_order": [player.to_dict() for player in self.turn_order()],
+            "last_winner": self.last_winner.to_dict() if self.last_winner is not None else None,
         }

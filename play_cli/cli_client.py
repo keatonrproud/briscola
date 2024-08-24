@@ -98,6 +98,8 @@ class BriscolaCLI(BriscolaGame):
     def start_turn(self) -> None:
         for player in self.turn_order():
             self.active_player = player
+            if self.active_player.is_person:
+                self.shown_player = self.active_player
             logger.debug(f"{player} has {player.hand.cards}")
             if player.is_person:
                 played_card = self.choose_card(player=player)

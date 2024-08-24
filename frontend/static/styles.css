@@ -39,17 +39,6 @@ br {
     justify-content: center;
 }
 
-/* Confetti effect styling */
-.confetti {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 10;
-    overflow: hidden; /* Hide overflow to keep confetti effect in view */
-}
 
 /* Intro card styling */
 .intro-card {
@@ -379,6 +368,58 @@ br {
     user-select: none; /* Prevent text selection */
 }
 
+/* Apply animation to cards being played */
+#active-pile.cleared {
+    animation: pileMove 0.5s ease forwards; /* Apply the animation */
+}
+
+/* Define the keyframe animation for clearing the pile */
+@keyframes pileMoveUp {
+    0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) translateY(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) translateY(-30%);
+    }
+}
+
+/* Animation for clearing the pile upwards */
+#active-pile.cleared.move-up {
+    animation: pileMoveUpFadeOut 0.5s ease forwards; /* Apply the move-up animation */
+}
+
+/* Animation for clearing the pile downwards */
+#active-pile.cleared.move-down {
+    animation: pileMoveDownFadeOut 0.5s ease forwards; /* Apply the move-down animation */
+}
+
+/* Define the keyframe animation for moving the pile up */
+@keyframes pileMoveUpFadeOut {
+    0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) translateY(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) translateY(-30%); /* Move up */
+    }
+}
+
+/* Define the keyframe animation for moving the pile down */
+@keyframes pileMoveDownFadeOut {
+    0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) translateY(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) translateY(30%); /* Move down */
+    }
+}
+
+
 /* End Game Container */
 .end-game-container {
     display: flex;
@@ -529,7 +570,84 @@ br {
     user-select: none; /* Disable text selection */
 }
 
-/*!* Ensure the cards overlap more *!*/
-/*.face-down-cards .card:not(:first-child) {*/
-/*    margin-left: -60px; !* Adjust for more overlap *!*/
-/*}*/
+.game-mode-selector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15%;
+}
+
+.mode-label {
+    font-size: 2rem;
+    transition: opacity 0.3s ease;
+    padding: 0 15px;
+}
+
+.left-label {
+    opacity: 1;
+    user-select: none;
+    cursor: pointer;
+}
+
+.right-label {
+    opacity: 0.5;
+    user-select: none;
+    cursor: pointer;
+}
+
+.toggle {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+.toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #4CAF50;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #2196F3;
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+#game-mode-toggle:checked ~ .right-label {
+    opacity: 1;
+}
+
+#game-mode-toggle:checked ~ .left-label {
+    opacity: 0.5;
+}

@@ -33,8 +33,7 @@ class Deck(Pile, Generic[CARD, PLAYER]):
 
     def deal(self, players: list[PLAYER], cards_in_hand: int) -> list[list[CARD]]:
         for player in players:
-            hand: list[CARD] = self.draw_cards(draw_count=cards_in_hand)
-            player.hand.cards = hand
+            player.hand.cards = self.draw_cards(draw_count=cards_in_hand)
 
         return [player.hand.cards for player in players]
 

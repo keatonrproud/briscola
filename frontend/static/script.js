@@ -10,7 +10,7 @@ function setCardImage(cardDiv, card) {
     }
 }
 
-function updateCards(playerCards, oppCards) {
+function updateCards(playerCards, oppCards, cardsPlayable) {
     const playerCardsContainer = document.getElementById('player-cards');
     playerCardsContainer.innerHTML = '';  // Clear existing cards
 
@@ -18,10 +18,12 @@ function updateCards(playerCards, oppCards) {
         const cardDiv = document.createElement('div');
 
         // Add click event listener to each card
-        cardDiv.addEventListener('click', () => {
-            const cardIndex = Array.from(playerCardsContainer.children).indexOf(cardDiv);
-            playHumanCard(cardIndex, cardDiv); // Pass the position of the current card
-        });
+        if (cardsPlayable) {
+            cardDiv.addEventListener('click', () => {
+                const cardIndex = Array.from(playerCardsContainer.children).indexOf(cardDiv);
+                playHumanCard(cardIndex, cardDiv); // Pass the position of the current card
+            });
+        }
 
         cardDiv.className = 'card';
         playerCardsContainer.appendChild(cardDiv);
@@ -40,9 +42,13 @@ function updateCards(playerCards, oppCards) {
     });
 }
 
-function updateTurnInfo(playerNum, color) {
+function updateTurnInfo(player) {
     const turnInfo = document.getElementById('turn-info');
-    turnInfo.textContent = `${color} Player ${playerNum}'s Turn`;
+    if (player.is_person) {
+        turnInfo.textContent = `${player.color} Player ${player.player_num}'s Turn`;
+    } else {
+        turnInfo.textContent = `${player.color} Computer's Turn`;
+    }
 }
 
 function updateBriscolaCard(card, num_cards_in_deck) {
@@ -52,7 +58,6 @@ function updateBriscolaCard(card, num_cards_in_deck) {
         if (card) {
             if (num_cards_in_deck > 0) {
                 setCardImage(briscolaCard, card);
-                console.log('Card data:', card);
             } else {
                 briscolaCard.querySelector('.symbol').textContent = card.suit.symbol;
                 briscolaCard.querySelector('.number').textContent = '';
@@ -71,7 +76,7 @@ function playHumanCard(cardIndex, cardDiv) {
     cardDiv.classList.add('played'); // Add the class to trigger animation
 
     setTimeout(() => {
-    fetch('/api/play_human_card', {
+    fetch('/api/play_active_card', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -79,9 +84,23 @@ function playHumanCard(cardIndex, cardDiv) {
         body: JSON.stringify({ card_index: cardIndex }) // Send card index as JSON
     })
     .then(response => response.json())
-    .then(data => {
+    .then(async data =>  {
         // Handle the updated game state
-        updateGameState(data); // Update the UI based on new game state
+
+        console.log(data.pile.cards.length);
+        if (data.pile.cards.length === 0) {
+            setTimeout(async () => {await updateGameState(data);}, 1500)
+            } // Update the UI based on new game state
+        else {updateGameState(data);}
+
+        if (data.pile.cards.length === data.players.length) {
+            setTimeout(() => {
+                endPlay();
+                }, 1500
+            )
+        } else {
+            setTimeout(() => {endPlay();}, 500)
+        }
     })
     .catch(error => console.error('Error:', error));
     }, 500)
@@ -101,7 +120,7 @@ async function playComputerCard(cardIndex, cardDiv) {
     // TODO add animation for computer card
     // cardDiv.classList.add('played'); // Add the class to trigger animation
 
-    fetch('/api/play_computer_card', {
+    fetch('/api/play_active_card', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -116,20 +135,17 @@ async function playComputerCard(cardIndex, cardDiv) {
 }
 
 
-async function endComputerTurn() {
-    fetch('/api/end_computer_turn', {})
+function endPlay() {
+    fetch('/api/end_play', {})
     .then(response => response.json())
     .then(data => {
-        // Handle the updated game state
-        setTimeout(() => {
-            updateGameState(data); // Update the UI based on new game state
-        }, 1500)
-    })
+        updateGameState(data);
+    }) // Update the UI based on new game state
     .catch(error => console.error('Error:', error));
 
 }
 
-async function playComputerTurn() {
+async function playComputerTurn(data) {
     // get their choice
     const computerChoice = await getComputerChoice();
 
@@ -138,10 +154,9 @@ async function playComputerTurn() {
     const oppCardDiv = Array.from(oppCardsContainer.children).indexOf(computerChoice);
 
     setTimeout(async () => {
-        console.log('playing computer card');
         await playComputerCard(computerChoice, oppCardDiv);
-        console.log('done computer card');
-        setTimeout(async () => {await endComputerTurn();}, 1500)
+        setTimeout(() => {
+        endPlay();}, 1500)
     }, 1500)
 }
 
@@ -192,46 +207,56 @@ function updateDeck(cards) {
     }
 }
 
-function updateActivePile(cards) {
+function updateActivePile(cards, activePlayer, shownPlayer) {
     const activePileContainer = document.getElementById('active-pile');
-    activePileContainer.innerHTML = '';  // Clear existing cards
 
-    cards.forEach(card => {
-        const cardDiv = document.createElement('div');
-        cardDiv.className = 'card';
-        activePileContainer.appendChild(cardDiv);
+    if (!activePileContainer) {
+        console.error('Active pile element not found');
+        return;
+    }
 
-        setCardImage(cardDiv, card);
-    });
+    // Reset the transformation styles before adding any new ones
+    activePileContainer.style.transition = 'none'; // Disable transitions to reset styles
+    activePileContainer.style.transform = 'translate(-50%, -50%) translateY(0)'; // Center element without shifting
+    activePileContainer.style.opacity = '1'; // Ensure it's fully visible to start
+
+    if (cards.length === 0) {
+
+        const animationDirection = (activePlayer.player_num === shownPlayer.player_num) ? 'down' : 'up';
+
+        activePileContainer.classList.add('cleared', `move-${animationDirection}`);
+
+        // Use a timeout to remove the class after the animation ends
+        setTimeout(() => {
+            activePileContainer.classList.remove('cleared', `move-${animationDirection}`);
+            activePileContainer.innerHTML = ''; // Clear existing cards after animation
+        }, 1000); // Match the duration of the animation (0.5s)
+
+        cards.forEach(card => {
+            const cardDiv = document.createElement('div');
+            cardDiv.className = 'card';
+            activePileContainer.appendChild(cardDiv);
+
+            setCardImage(cardDiv, card);
+        });
+
+    } else {
+        activePileContainer.innerHTML = ''; // Clear existing cards immediately
+        cards.forEach(card => {
+            const cardDiv = document.createElement('div');
+            cardDiv.className = 'card';
+            activePileContainer.appendChild(cardDiv);
+
+            setCardImage(cardDiv, card);
+        });}
+
 }
+
 
 function endGame() {
     window.location.href = '/end_game';
 }
 
-function animateActivePile(data) {
-    if (!data.last_winner) {
-        return
-    }
-
-    const activePile = document.getElementById('active-pile');
-
-    activePile.style.transition = 'transform 1s ease, opacity 1s ease';
-    activePile.style.opacity = '0'; // Fade out
-
-    if (data.last_winner.player_num === playerNum) {
-        activePile.style.transform = `translateY(10%)`; // Shift down 10% of the screen height
-    } else {
-        activePile.style.transform = 'translateY(-10%)'; // Shift down 10% of the screen height
-    }
-
-    setTimeout(() => {
-        activePile.style.transition = 'none';
-        activePile.style.transform = '';
-        activePile.style.opacity = '';
-    }, 1000); // Match the duration of the transition
-
-}
 
 // Call this function after fetching game data
 function updateGameState(data, continue_play= true) {
@@ -239,16 +264,11 @@ function updateGameState(data, continue_play= true) {
         .then(response => response.json())
         .then(async data => {
 
-            console.log(data);
-
             // Extract data for the active player
             const activePlayer = data.active_player;
             const playerNum = activePlayer.player_num; // Example: Player 1
-            const color = activePlayer.color; // Example: 🟦
 
-            if (activePlayer.is_person) {
-                updateTurnInfo(playerNum, color); // Update the turn info
-            }
+            updateTurnInfo(activePlayer); // Update the turn info
 
             if (activePlayer.score - pastScores[playerNum] > 11) {
                 const scoreboard = document.getElementById('scoreboard');
@@ -262,18 +282,23 @@ function updateGameState(data, continue_play= true) {
             updateBriscolaCard(data.briscola.card, data.deck.current_cards.length); // Update the Briscola card
             updateScoreboard(data.players); // Update scoreboard
             updateDeck(data.deck.current_cards); // Update the deck
-            updateActivePile(data.pile.cards); // Update active player
-            animateActivePile(data); // shift towards the winner, if there was one
 
-            const oppPlayer = data.players.find(other_player => other_player.player_num !== activePlayer.player_num);
 
-            if (activePlayer.is_person) {
-                updateCards(activePlayer.hand.cards, oppPlayer.hand.cards); // View setup as normal
-            } else {
-                updateCards(oppPlayer.hand.cards, activePlayer.hand.cards); // View setup from the person's point of view
-                if (continue_play) {
-                    await playComputerTurn();
-                    }
+            let shownPlayer = data.shown_player;
+            if (data.local && data.active_player.is_person) {
+                shownPlayer = data.active_player;
+            }
+
+            updateActivePile(data.pile.cards, activePlayer, shownPlayer); // Update active pile
+
+
+            const oppPlayer = data.players.find(other_player => other_player.player_num !== shownPlayer.player_num);
+            const cardsPlayable = shownPlayer.player_num === data.active_player.player_num;
+
+            updateCards(shownPlayer.hand.cards, oppPlayer.hand.cards, cardsPlayable);
+
+            if (!data.active_player.is_person && continue_play) {
+                await playComputerTurn(data);
             }
 
             if (!data.game_ongoing) {

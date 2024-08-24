@@ -32,6 +32,8 @@ class BriscolaWeb(BriscolaGame):
         return 2
 
     def active_player_play_card_idx(self, card_idx: int) -> None:
+        logger.debug(self.active_player)
+        logger.debug(f"{self.active_player.hand.cards} w/ idx to play is: {card_idx}")
         card_to_play = self.active_player.hand.cards[card_idx]
         self.play_card(self.active_player, card_to_play)
 
