@@ -114,11 +114,13 @@ br {
     padding: 10px 20px; /* Button padding */
     font-size: 18px; /* Button font size */
     cursor: pointer; /* Pointer cursor on hover */
+    margin-top: 10%; /* Space between the slider and the toggle */
     border: none; /* Remove default button border */
     border-radius: 5px; /* Rounded corners */
     background-color: #007bff; /* Button background color */
     color: #fff; /* Button text color */
     transition: background-color 0.3s ease; /* Smooth background color transition */
+    user-select: none;
 }
 
 /* Button hover effect */
@@ -587,7 +589,7 @@ br {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 15%;
+    margin-bottom: 0;
 }
 
 .mode-label {
@@ -663,4 +665,32 @@ input:checked + .slider:before {
 
 #game-mode-toggle:checked ~ .left-label {
     opacity: 0.5;
+}
+
+
+/* Difficulty Slider Styles */
+.difficulty-slider-container {
+    margin-top: 5%;
+    margin-bottom: 0; /* Space between the slider and the toggle */
+    text-align: center; /* Center-align the slider and label */
+    opacity: 1; /* Hidden by default */
+    transition: opacity 0.5s ease; /* Smooth transition for fading in and out */
+    user-select: none;
+}
+
+.difficulty-slider-container.invisible {
+    display: block; /* Show when the slider container should be visible */
+    opacity: 0; /* Fully visible */
+}
+
+.difficulty-slider {
+    width: 50%; /* Full width */
+    cursor: pointer;
+}
+
+.difficulty-label {
+    font-size: 30px; /* Label font size */
+    position: relative; /* For positioning the tooltip */
+    pointer-events: none;
+    user-select: none;
 }

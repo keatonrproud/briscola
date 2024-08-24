@@ -14,6 +14,7 @@
             <h1 class="title">Welcome to Briscola!</h1>
             <br>
 
+            <!-- Game Mode Selector -->
             <div class="game-mode-selector">
                 <span class="mode-label left-label" aria-label="Computer">💻</span>
                 <label class="toggle">
@@ -22,66 +23,90 @@
                 </label>
                 <span class="mode-label right-label" aria-label="Local">👥</span>
             </div>
+
+            <!-- Difficulty Slider -->
+            <div class="difficulty-slider-container">
+                <label for="difficulty-slider" class="difficulty-label" title="Computer Difficulty">🔥</label>
+                <input type="range" id="difficulty-slider" class="difficulty-slider" min="1" max="10000" value="10000">
+            </div>
+
             <button class="button" id="start-game-btn">Start Game</button>
+
+
         </div>
+
+
     </div>
 
     <script>
-            document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', () => {
             const startGameButton = document.getElementById('start-game-btn');
             const gameModeToggle = document.getElementById('game-mode-toggle');
             const leftLabel = document.querySelector('.left-label');
             const rightLabel = document.querySelector('.right-label');
-
-            if (startGameButton && gameModeToggle) {
-            startGameButton.addEventListener('click', async () => {
-            const gameMode = gameModeToggle.checked ? 'local' : 'computer';
-
-            try {
-            const response = await fetch('/api/reset_state', {
-            method: 'POST',
-            headers: {
-            'Content-Type': 'application/json'
-        },
-            body: JSON.stringify({gameMode: gameMode})
-        });
-
-            if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-
-            const data = await response.json();
-            window.location.href = '/turn';
-        } catch (error) {
-            console.error('Error:', error);
-            // Optionally: provide user feedback or retry logic here
-        }
-        });
-        }
+            const difficultySlider = document.getElementById('difficulty-slider');
+            const difficultyValue = document.getElementById('difficulty-value');
+            const difficultySliderContainer = document.querySelector('.difficulty-slider-container');
 
             function updateLabels() {
-            if (gameModeToggle.checked) {
-            leftLabel.style.opacity = '0.5';
-            rightLabel.style.opacity = '1';
-        } else {
-            leftLabel.style.opacity = '1';
-            rightLabel.style.opacity = '0.5';
-        }
-        }
+                if (gameModeToggle.checked) {
+                    leftLabel.style.opacity = '0.5';
+                    rightLabel.style.opacity = '1';
+                    difficultySliderContainer.classList.add('invisible');
+                } else {
+                    leftLabel.style.opacity = '1';
+                    rightLabel.style.opacity = '0.5';
+                    difficultySliderContainer.classList.remove('invisible');
+                }
+            }
 
-            // Add event listeners to emoji icons to toggle the checkbox
+            // Ensure the toggle label clicks work to change the game mode
             leftLabel.addEventListener('click', () => {
-            gameModeToggle.checked = false;
-            updateLabels();
-        });
+                gameModeToggle.checked = false;
+                updateLabels();
+            });
 
             rightLabel.addEventListener('click', () => {
-            gameModeToggle.checked = true;
-            updateLabels();
-        });
+                gameModeToggle.checked = true;
+                updateLabels();
+            });
+
+
 
             gameModeToggle.addEventListener('change', updateLabels);
             updateLabels(); // Initial call to set the correct state on page load
+
+            // Update the difficulty value display
+            difficultySlider.addEventListener('input', () => {
+                difficultyValue.textContent = difficultySlider.value;
+            });
+
+            if (startGameButton && gameModeToggle) {
+                startGameButton.addEventListener('click', async () => {
+                    const gameMode = gameModeToggle.checked ? 'local' : 'computer';
+                    const difficulty = difficultySlider.value; // Get the difficulty value
+
+                    try {
+                        const response = await fetch('/api/reset_state', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ gameMode: gameMode, difficulty: difficulty })
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+
+                        const data = await response.json();
+                        window.location.href = '/turn';
+                    } catch (error) {
+                        console.error('Error:', error);
+                        // Optionally: provide user feedback or retry logic here
+                    }
+                });
+            }
         });
     </script>
 </body>

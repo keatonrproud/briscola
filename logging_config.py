@@ -1,6 +1,6 @@
 import logging
 
-_LOGGING_LEVEL = logging.DEBUG
+_LOGGING_LEVEL = logging.CRITICAL
 
 
 class CustomFormatter(logging.Formatter):

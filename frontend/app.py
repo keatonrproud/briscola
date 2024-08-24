@@ -23,18 +23,23 @@ def reset_state() -> Response:
     if (res := request.json) is None:
         return jsonify({"error": "Invalid request"})
 
-    if (game_mode := res.get("gameMode")) is None:
+    if (game_mode := res.get("gameMode")) is None or (difficulty := res.get("difficulty")) is None:
         return jsonify({"error": "Missing gameMode"})
+
+    difficulty = int(difficulty) // 1000
 
     try:
         global game
         print(f"Resetting game state to {game_mode} mode.")
         if game_mode == "local":
             game = BriscolaWeb()
-            print(game.active_pile)
         elif game_mode == "computer":
-            game = BriscolaWeb(computer_count=1, computer_logic_override=(basic_choice,))
-            print(game.active_pile)
+            game = BriscolaWeb(
+                computer_count=1,
+                computer_logic_override=(basic_choice,),
+                computer_skill_level=difficulty,
+            )
+            print(game.computer_skill_level)
         else:
             return jsonify({"error": "Invalid gameMode"})
 
@@ -49,11 +54,6 @@ def reset_state() -> Response:
 def get_state() -> Response:
     return jsonify(game.to_dict() | {"local": "true"})
 
-
-# TODO difficulty setting w/ slider
-
-# TODO option at start for local or vs computer
-#  need to change the shown player if it's local
 
 # TODO multiplayer?
 

@@ -87,6 +87,7 @@ class BriscolaGame(CardGame, ABC):
 
         # (1 - skill_level) * 10 is the percent chance of computer choosing a card randomly
         if choice(range(9)) >= self.computer_skill_level:
+            logger.debug(f"Making a random choice due to computer skill level.")
             return random_choice(cards)
 
         if len(self.players) > 2:
