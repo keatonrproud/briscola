@@ -1,9 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
 :root {
   --face-up-card-width: 146px;
   --face-up-card-height: 250px;
 }
-
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
 
 body {
     font-family: 'Poppins', sans-serif;
@@ -73,28 +73,6 @@ br {
     line-height: 1.4;
 }
 
-/* Button styling */
-.button {
-    background-color: #007bff;
-    color: #fff;
-    border: none;
-    border-radius: 12px;
-    padding: 15px 30px;
-    font-size: 1.5rem;
-    cursor: pointer;
-    text-transform: uppercase;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-}
-
-.button:hover {
-    background-color: #0056b3;
-    transform: translateY(-2px); /* Lift button on hover */
-}
-
-.button:active {
-    transform: translateY(1px); /* Button press effect */
-}
 
 
 /* Animation for zooming in the intro card */
@@ -593,19 +571,21 @@ br {
 }
 
 .mode-label {
-    font-size: 2rem;
     transition: opacity 0.3s ease;
     padding: 0 15px;
 }
 
 .left-label {
     opacity: 1;
+    font-size: 3rem;
     user-select: none;
     cursor: pointer;
 }
 
 .right-label {
     opacity: 0.5;
+    font-size: 4rem;
+    margin-bottom: 3%;
     user-select: none;
     cursor: pointer;
 }
@@ -630,7 +610,7 @@ br {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #4CAF50;
+    background-color: #2196F3;
     transition: .4s;
     border-radius: 34px;
 }
@@ -648,11 +628,11 @@ br {
 }
 
 input:checked + .slider {
-    background-color: #2196F3;
+    background-color: #4CAF50;
 }
 
 input:focus + .slider {
-    box-shadow: 0 0 1px #2196F3;
+    box-shadow: 0 0 1px #4CAF50;
 }
 
 input:checked + .slider:before {
@@ -673,8 +653,8 @@ input:checked + .slider:before {
     margin-top: 5%;
     margin-bottom: 0; /* Space between the slider and the toggle */
     text-align: center; /* Center-align the slider and label */
-    opacity: 1; /* Hidden by default */
-    transition: opacity 0.5s ease; /* Smooth transition for fading in and out */
+    opacity: 1;
+    transition: opacity 0.3s ease; /* Smooth transition for fading in and out */
     user-select: none;
 }
 
@@ -693,4 +673,53 @@ input:checked + .slider:before {
     position: relative; /* For positioning the tooltip */
     pointer-events: none;
     user-select: none;
+}
+
+/* Join Room Button */
+#join-room-btn {
+    background-color: #28a745; /* Green color */
+    color: #fff; /* Text color */
+    border: none;
+    border-radius: 5px; /* Rounded corners */
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 10px;
+    width: 50%;
+    display: inline-block;
+}
+
+.room-section {
+    margin-bottom: 0; /* Space between the slider and the toggle */
+    text-align: center; /* Center-align the slider and label */
+    transition: opacity 0.3s ease; /* Smooth transition for fading in and out */
+    user-select: none;
+}
+.room-section.invisible {
+    display: block; /* Show when the slider container should be visible */
+    opacity: 0; /* Fully visible */
+}
+
+#join-room-btn:hover {
+    background-color: #218838; /* Darker green on hover */
+}
+
+/* Leave Room Button */
+#leave-room-btn {
+    background-color: #ff7f7f; /* Pastel red color */
+    color: #fff; /* Text color */
+    border: none;
+    border-radius: 5px; /* Rounded corners */
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 10px;
+    display: none;
+    height: 10%;
+    width: 50%;
+    transition: opacity 0.5s ease; /* Smooth transition for fading in and out */
+}
+
+#leave-room-btn:hover {
+    background-color: #ff3d2f; /* Darker pastel red on hover */
 }

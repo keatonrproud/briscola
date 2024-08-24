@@ -87,7 +87,6 @@ function playHumanCard(cardIndex, cardDiv) {
     .then(async data =>  {
         // Handle the updated game state
 
-        console.log(data.pile.cards.length);
         if (data.pile.cards.length === 0) {
             setTimeout(async () => {await updateGameState(data);}, 1500)
             } // Update the UI based on new game state
@@ -285,7 +284,7 @@ function updateGameState(data, continue_play= true) {
 
 
             let shownPlayer = data.shown_player;
-            if (data.local && data.active_player.is_person) {
+            if (data.player && data.active_player.is_person) {
                 shownPlayer = data.active_player;
             }
 

@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="/static/styles.css">
     <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
     <script src="/static/script.js" defer></script>
+    <script src="/static/js/websocket.js" defer></script>
 </head>
 <body>
     <div class="container">
@@ -30,6 +31,11 @@
                 <input type="range" id="difficulty-slider" class="difficulty-slider" min="1" max="10000" value="10000">
             </div>
 
+            <div class="room-section invisible">
+                <button id="join-room-btn" class="button">Join Online Room (0/2)</button>
+                <button id="leave-room-btn" class="button" style="display: none;">Leave Online Room</button>
+            </div>
+
             <button class="button" id="start-game-btn">Start Game</button>
 
 
@@ -40,6 +46,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            const socket = io();
             const startGameButton = document.getElementById('start-game-btn');
             const gameModeToggle = document.getElementById('game-mode-toggle');
             const leftLabel = document.querySelector('.left-label');
@@ -47,16 +54,22 @@
             const difficultySlider = document.getElementById('difficulty-slider');
             const difficultyValue = document.getElementById('difficulty-value');
             const difficultySliderContainer = document.querySelector('.difficulty-slider-container');
+            const roomSection = document.querySelector('.room-section');
+            const joinRoomBtn = document.getElementById('join-room-btn');
+            const leaveRoomBtn = document.getElementById('leave-room-btn');
 
             function updateLabels() {
                 if (gameModeToggle.checked) {
                     leftLabel.style.opacity = '0.5';
                     rightLabel.style.opacity = '1';
                     difficultySliderContainer.classList.add('invisible');
+                    roomSection.classList.remove('invisible');
                 } else {
                     leftLabel.style.opacity = '1';
                     rightLabel.style.opacity = '0.5';
                     difficultySliderContainer.classList.remove('invisible');
+                    roomSection.classList.add('invisible');
+                    startGameButton.disabled = false;
                 }
             }
 
@@ -71,43 +84,131 @@
                 updateLabels();
             });
 
-
-
             gameModeToggle.addEventListener('change', updateLabels);
             updateLabels(); // Initial call to set the correct state on page load
+
+                // Function to update the Start Game button text
+            function updateStartGameButtonText(userCount) {
+                if (gameModeToggle.checked && leaveRoomBtn.style.display !== "none" && userCount < 2) {
+                    startGameButton.textContent = "Waiting for another player...";
+                } else {
+                    startGameButton.textContent = "Start Game";
+                }
+            }
+
+            // Join room button click handler
+            joinRoomBtn.addEventListener('click', async () => {
+                try {
+                    if (!socket.connected) {
+                        console.log('Socket not connected yet, waiting...');
+                        await new Promise((resolve) => socket.on('connect', resolve));
+                    }
+                    socket.emit('join_game', { room: 'public_room' });
+                    joinRoomBtn.style.display = 'none'; // Hide the join room button
+                    leaveRoomBtn.style.display = 'inline-block'; // Show the leave room button
+
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            });
+
+            // Join room button click handler
+            leaveRoomBtn.addEventListener('click', () => {
+                socket.emit('leave_game', { room: 'public_room' });
+                joinRoomBtn.style.display = 'inline-block';
+                leaveRoomBtn.style.display = 'none';
+            });
+
+            socket.on('game_state', (data) => {
+                if (data.error) {
+                    console.error('Error:', data.error);
+                } else {
+                    window.location.href = '/turn';
+                }
+            });
+
+            socket.on('disconnect', () => {
+            console.log('Socket disconnected, attempting to reconnect...');
+            socket.connect();
+            });
+
+            socket.on('connect_error', (error) => {
+                console.error('Connection error:', error);
+            });
+
+            socket.on('connect_timeout', (timeout) => {
+                console.warn('Connection timeout:', timeout);
+            });
+
+            socket.on('reconnect_attempt', () => {
+                console.log('Attempting to reconnect...');
+            });
+
+
+            // Listen for the game state response
+            socket.on('game_state', (data) => {
+                if (data.error) {
+                    console.error('Error:', data.error);
+                } else {
+                    window.location.href = '/turn';
+                }
+            });
+
+            startGameButton.addEventListener('click', async () => {
+                console.log('clicked');
+                const gameMode = gameModeToggle.checked ? 'player' : 'computer';
+                const difficulty = difficultySlider.value; // Get the difficulty value
+
+                try {
+                    if (!socket.connected) {
+                        console.log('Socket not connected yet, waiting...');
+                        await new Promise((resolve) => socket.on('connect', resolve));
+                    }
+
+                    socket.emit('reset_state', { gameMode: gameMode, difficulty: difficulty });
+
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+
+
+            function updateRoomBtns(userCount) {
+                joinRoomBtn.textContent = `Join Online Room (${userCount}/2)`;
+                leaveRoomBtn.textContent = `Leave Online Room (${userCount}/2)`;
+                updateStartGameButtonText(userCount);
+                startGameButton.disabled = userCount < 2 && gameModeToggle.checked;
+            }
+
+            // Listen for room update events
+            socket.on('room_update', (data) => {
+                const { users } = data;
+                updateRoomBtns(users.length);
+            });
 
             // Update the difficulty value display
             difficultySlider.addEventListener('input', () => {
                 difficultyValue.textContent = difficultySlider.value;
             });
 
-            if (startGameButton && gameModeToggle) {
-                startGameButton.addEventListener('click', async () => {
-                    const gameMode = gameModeToggle.checked ? 'local' : 'computer';
-                    const difficulty = difficultySlider.value; // Get the difficulty value
-
-                    try {
-                        const response = await fetch('/api/reset_state', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({ gameMode: gameMode, difficulty: difficulty })
-                        });
-
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
-                        }
-
-                        const data = await response.json();
-                        window.location.href = '/turn';
-                    } catch (error) {
-                        console.error('Error:', error);
-                        // Optionally: provide user feedback or retry logic here
+            // Optional: Fetch initial room users on page load
+            fetch('/api/get_room_users?room=public_room')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        console.error('Room not found:', data.error);
+                        // Optionally: handle this case by showing an error message or retrying
+                    } else {
+                        updateRoomBtns(data.users.length);
                     }
+                })
+                .catch(error => {
+                    console.error('Fetch error:', error);
                 });
-            }
+
         });
+        })
     </script>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+
 </body>
 </html>

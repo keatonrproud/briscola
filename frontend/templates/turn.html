@@ -6,6 +6,7 @@
     <title>Briscola</title>
     <link rel="stylesheet" href="/static/styles.css"> <!-- Link to the external CSS file -->
     <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+    <script src="/static/js/websocket.js" defer></script>
 </head>
 <body>
 
@@ -49,6 +50,20 @@
         document.addEventListener('DOMContentLoaded', updateGameState);
 
         document.addEventListener('DOMContentLoaded', () => {
+            const socket = io();
+
+            socket.emit("get_state");
+
+            // Listen for the game state response
+            socket.on('game_state', (data) => {
+                if (data.error) {
+                    console.error('Error:', data.error);
+                } else {
+                    console.log(data);
+                    window.location.href = '/turn';
+                }
+            });
+
             const scoreboardToggle = document.getElementById('scoreboard-toggle');
             const scoreboard = document.getElementById('scoreboard');
 
@@ -65,6 +80,7 @@
 
 
     </script>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
 
 </body>
 </html>
