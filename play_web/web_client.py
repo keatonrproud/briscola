@@ -7,6 +7,7 @@ logger = build_logger(__name__)
 
 
 class BriscolaWeb(BriscolaGame):
+    userid_playernum_map: dict[str, int] = {}
 
     def __init__(
         self,
@@ -14,12 +15,14 @@ class BriscolaWeb(BriscolaGame):
         computer_logic_override: tuple[Callable, ...] = (),
         computer_skill_level: int = 10,
         first_dealer: int | None = -1,
+        fixed_shown_player: bool = False,
     ):
         super().__init__(
             computer_count=computer_count,
             computer_logic_override=computer_logic_override,
             computer_skill_level=computer_skill_level,
             first_dealer=first_dealer,
+            fixed_shown_player=fixed_shown_player,
         )
 
     @staticmethod

@@ -41,7 +41,9 @@ class BriscolaGame(CardGame, ABC):
         computer_logic_override: tuple[Callable, ...] = (),
         computer_skill_level: int = 10,
         first_dealer: int | None = -1,
+        fixed_shown_player: bool = False,
     ):
+        self.fixed_shown_player = fixed_shown_player
         self.computer_logic_override = computer_logic_override
         self.computer_skill_level = computer_skill_level
         super().__init__(
@@ -87,7 +89,7 @@ class BriscolaGame(CardGame, ABC):
 
         # (1 - skill_level) * 10 is the percent chance of computer choosing a card randomly
         if choice(range(9)) >= self.computer_skill_level:
-            logger.debug(f"Making a random choice due to computer skill level.")
+            logger.debug("Making a random choice due to computer skill level.")
             return random_choice(cards)
 
         if len(self.players) > 2:
@@ -174,7 +176,7 @@ class BriscolaGame(CardGame, ABC):
 
         # in Briscola, the winner plays next...
         self.active_player = winning_player
-        if self.active_player.is_person:
+        if self.active_player.is_person and not self.fixed_shown_player:
             self.shown_player = self.active_player
 
         # and the person before the winner is the 'dealer'
@@ -218,4 +220,5 @@ class BriscolaGame(CardGame, ABC):
             "game_ongoing": self.game_ongoing,
             "turn_order": [player.to_dict() for player in self.turn_order()],
             "last_winner": self.last_winner.to_dict() if self.last_winner is not None else None,
+            "fixed_shown_player": self.fixed_shown_player,
         }

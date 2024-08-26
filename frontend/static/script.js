@@ -1,3 +1,5 @@
+import { socket } from '/static/js/websocket.js'; // Import socket instance
+export { updateGameState };
 
 function setCardImage(cardDiv, card) {
     if (card && card.number && card.suit) {
@@ -8,6 +10,10 @@ function setCardImage(cardDiv, card) {
     } else {
         console.error('Card data is invalid:', card);
     }
+}
+
+function getGameState(continue_play=false) {
+    socket.emit("get_state", {continue_play: continue_play});
 }
 
 function updateCards(playerCards, oppCards, cardsPlayable) {
@@ -44,6 +50,7 @@ function updateCards(playerCards, oppCards, cardsPlayable) {
 
 function updateTurnInfo(player) {
     const turnInfo = document.getElementById('turn-info');
+
     if (player.is_person) {
         turnInfo.textContent = `${player.color} Player ${player.player_num}'s Turn`;
     } else {
@@ -71,41 +78,55 @@ function updateBriscolaCard(card, num_cards_in_deck) {
     }
 }
 
+function setUpHumanCardPlayedListener() {
+    if (!socket.__humanCardPlayedSetUp) {
 
-function playHumanCard(cardIndex, cardDiv) {
-    cardDiv.classList.add('played'); // Add the class to trigger animation
+        // Listen for the response from the server
+        socket.on('active_card_played', async (data) => {
+            if (!data.active_player.is_person) {
+                return;
+            }
+            // Handle the updated game state
+            if (data.pile.cards.length === 0) {
+                setTimeout(async () => { await getGameState(); }, 1500);
+            } else {
+                await getGameState();
+            }
 
-    setTimeout(() => {
-    fetch('/api/play_active_card', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ card_index: cardIndex }) // Send card index as JSON
-    })
-    .then(response => response.json())
-    .then(async data =>  {
-        // Handle the updated game state
+            if (data.pile.cards.length === data.players.length) {
+                setTimeout(() => {
+                    console.log("END1");
+                    endPlay();
+                }, 1500);
+            } else {
+                setTimeout(() => {
+                    console.log("END2");
+                    endPlay(); }, 500);
+            }
+        });
 
-        if (data.pile.cards.length === 0) {
-            setTimeout(async () => {await updateGameState(data);}, 1500)
-            } // Update the UI based on new game state
-        else {updateGameState(data);}
 
-        if (data.pile.cards.length === data.players.length) {
-            setTimeout(() => {
-                endPlay();
-                }, 1500
-            )
-        } else {
-            setTimeout(() => {endPlay();}, 500)
-        }
-    })
-    .catch(error => console.error('Error:', error));
-    }, 500)
+        socket.__humanCardPlayedSetUp = true;
+    }
+
 }
 
+async function playHumanCard(cardIndex, cardDiv) {
+    cardDiv.classList.add('played'); // Add the class to trigger animation
+
+    console.log('playing human card');
+
+    setTimeout(() => {
+        // Emit event to the server with the card index
+        setUpHumanCardPlayedListener();
+        socket.emit('play_active_card', { card_index: cardIndex });
+
+    }, 500);
+}
+
+
 async function getComputerChoice() {
+    console.log('getting computer choice');
     try {
         const response = await fetch('/api/get_computer_choice');
         const data = await response.json();
@@ -114,37 +135,33 @@ async function getComputerChoice() {
         console.error('Error:', error);
     }
 }
-async function playComputerCard(cardIndex, cardDiv) {
 
-    // TODO add animation for computer card
-    // cardDiv.classList.add('played'); // Add the class to trigger animation
+function setUpComputerCardPlayedListener() {
+    if (!socket.__computerCardPlayedSetUp) {
+        socket.on('active_card_played', (data) => {
+            if (!data.active_player.is_person) {
+                console.log('getting play computer card state')
+                getGameState();
+            }
+        });
 
-    fetch('/api/play_active_card', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ card_index: cardIndex }) // Send card index as JSON
-    })
-    .then(response => response.json())
-    .then(data => {
-        updateGameState(data, continue_play=false); // Update the UI based on new game state
-    })
-    .catch(error => console.error('Error:', error));
+        socket.__computerCardPlayedSetUp = true;
+    }
+
 }
 
+async function playComputerCard(cardIndex) {
+
+    setUpComputerCardPlayedListener();
+    socket.emit('play_active_card', {card_index: cardIndex});
+
+}
 
 function endPlay() {
-    fetch('/api/end_play', {})
-    .then(response => response.json())
-    .then(data => {
-        updateGameState(data);
-    }) // Update the UI based on new game state
-    .catch(error => console.error('Error:', error));
-
+    socket.emit("end_play");
 }
 
-async function playComputerTurn(data) {
+async function playComputerTurn(slow=false) {
     // get their choice
     const computerChoice = await getComputerChoice();
 
@@ -154,9 +171,13 @@ async function playComputerTurn(data) {
 
     setTimeout(async () => {
         await playComputerCard(computerChoice, oppCardDiv);
-        setTimeout(() => {
-        endPlay();}, 1500)
-    }, 1500)
+
+        // if slow, it's to give time to see the cards before getting pulled away
+        // when not slow, it's because a player's turn is next
+        if (slow) {
+            setTimeout(() => {endPlay();}, 1500)
+        } else {setTimeout(() => {endPlay();}, 500);}
+    }, 1000)
 }
 
 
@@ -257,53 +278,58 @@ function endGame() {
 }
 
 
-// Call this function after fetching game data
-function updateGameState(data, continue_play= true) {
-    fetch('/api/get_state') // Adjust endpoint as necessary
-        .then(response => response.json())
-        .then(async data => {
+async function updateGameState(data) {
+    // Extract data for the active player
+    const state = data.game_state;
 
-            // Extract data for the active player
-            const activePlayer = data.active_player;
-            const playerNum = activePlayer.player_num; // Example: Player 1
+    console.log(state);
 
-            updateTurnInfo(activePlayer); // Update the turn info
+    const activePlayer = state.active_player;
+    const playerNum = activePlayer.player_num; // Example: Player 1
 
-            if (activePlayer.score - pastScores[playerNum] > 11) {
-                const scoreboard = document.getElementById('scoreboard');
-                const rect = scoreboard.getBoundingClientRect();
-                const x = rect.left + rect.width / 2; // Horizontal center of the scoreboard
-                const y = rect.top; // Top of the scoreboard
+    updateTurnInfo(activePlayer); // Update the turn info
 
-                showConfetti(xOrigin = x / window.innerWidth, yOrigin = y / window.innerHeight);
-            }
+    if (activePlayer.score - pastScores[playerNum] > 11) {
+        const scoreboard = document.getElementById('scoreboard');
+        const rect = scoreboard.getBoundingClientRect();
+        const x = rect.left + rect.width / 2; // Horizontal center of the scoreboard
+        const y = rect.top; // Top of the scoreboard
 
-            updateBriscolaCard(data.briscola.card, data.deck.current_cards.length); // Update the Briscola card
-            updateScoreboard(data.players); // Update scoreboard
-            updateDeck(data.deck.current_cards); // Update the deck
+        showConfetti(x / window.innerWidth,  y / window.innerHeight);
+    }
 
-
-            let shownPlayer = data.shown_player;
-            if (data.player && data.active_player.is_person) {
-                shownPlayer = data.active_player;
-            }
-
-            updateActivePile(data.pile.cards, activePlayer, shownPlayer); // Update active pile
+    updateBriscolaCard(state.briscola.card, state.deck.current_cards.length); // Update the Briscola card
+    updateScoreboard(state.players); // Update scoreboard
+    updateDeck(state.deck.current_cards); // Update the deck
 
 
-            const oppPlayer = data.players.find(other_player => other_player.player_num !== shownPlayer.player_num);
-            const cardsPlayable = shownPlayer.player_num === data.active_player.player_num;
+    let shownPlayer = state.shown_player;
+    // is shown player is not fixed, and the active player is a person
+    if (!state.fixed_shown_player && state.table_settings.computer_count === 0 && activePlayer.is_person) {
+        shownPlayer = activePlayer;
+    }
 
-            updateCards(shownPlayer.hand.cards, oppPlayer.hand.cards, cardsPlayable);
+    updateActivePile(state.pile.cards, activePlayer, shownPlayer); // Update active pile
 
-            if (!data.active_player.is_person && continue_play) {
-                await playComputerTurn(data);
-            }
+    const oppPlayer = state.players.find(other_player => other_player.player_num !== shownPlayer.player_num);
+    const cardsPlayable = shownPlayer.player_num === activePlayer.player_num;
 
-            if (!data.game_ongoing) {
-                endGame();
-            }
+    updateCards(shownPlayer.hand.cards, oppPlayer.hand.cards, cardsPlayable);
 
-        })
-        .catch(error => console.error('Error:', error));
+    console.log('==========');
+    console.log(state);
+    const activePlayerIsFirst = state.turn_order[0].player_num === activePlayer.player_num;
+    const noComputerCardPlayed = (state.pile.cards.length === 0 && activePlayerIsFirst) || (activePlayer.hand.cards.length === 3 && state.pile.cards.length < state.players.length);
+    if (!activePlayer.is_person && noComputerCardPlayed){
+        console.log('Playing Computer turn');
+        await playComputerTurn(state.turn_order[state.turn_order.length-1].player_num === activePlayer.player_num);
+    }
+
+    if (!state.game_ongoing) {
+        endGame();
+    }
+
+
+
+
 }

@@ -24,4 +24,8 @@ class TableSettings:
         )
 
     def to_dict(self) -> dict:
-        return {"player_count": self.player_count, "turn_direction": self.turn_direction.value}
+        return {
+            "player_count": self.player_count,
+            "turn_direction": self.turn_direction.value,
+            "computer_count": self.computer_count,
+        }

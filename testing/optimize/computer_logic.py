@@ -8,8 +8,6 @@ from play_cli.cli_client import BriscolaCLI
 
 logger = build_logger(__name__)
 
-# TODO make the logic/choice a ComputerLogic object
-
 N_TEST_GAMES = 1_000
 
 

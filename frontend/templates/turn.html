@@ -6,7 +6,10 @@
     <title>Briscola</title>
     <link rel="stylesheet" href="/static/styles.css"> <!-- Link to the external CSS file -->
     <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
-    <script src="/static/js/websocket.js" defer></script>
+    <script type="module" src="/static/script.js" defer></script> <!-- Link to the external JavaScript file -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js" defer></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
 </head>
 <body>
 
@@ -43,26 +46,45 @@
             </div>
         </div>
     </div>
+    <script type = "module">
+        import { socket } from '/static/js/websocket.js';
+        import { updateGameState } from '/static/script.js';
 
-    <script src="/static/script.js"></script> <!-- Link to the external JavaScript file -->
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', updateGameState);
+        const userId = localStorage.getItem('user_id');
+        socket.emit("update_user_id", { user_id: userId})
+
+        function setUpGameStateListener() {
+            // Listen for the game state response
+            if (!socket.__gameStateListenerSetUp) {
+                socket.on('game_state', async (data) => {
+                    if (data.error) {
+                        console.error('Error:', data.error);
+                    } else {
+                        await updateGameState(data);
+                    }
+                });
+
+                socket.__gameStateListenerSetUp = true;
+            }
+        }
+
+        function setUpEndPlayListener() {
+            if (!socket.__endPlayListenerSetUp) {
+                socket.on("end_play", async (data) => {
+                await updateGameState(data);
+            })
+
+                socket.__endPlayListenerSetUp = true;
+
+            }
+        }
+
+        setUpGameStateListener();
+        setUpEndPlayListener();
 
         document.addEventListener('DOMContentLoaded', () => {
-            const socket = io();
 
             socket.emit("get_state");
-
-            // Listen for the game state response
-            socket.on('game_state', (data) => {
-                if (data.error) {
-                    console.error('Error:', data.error);
-                } else {
-                    console.log(data);
-                    window.location.href = '/turn';
-                }
-            });
 
             const scoreboardToggle = document.getElementById('scoreboard-toggle');
             const scoreboard = document.getElementById('scoreboard');
@@ -80,7 +102,6 @@
 
 
     </script>
-    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
 
 </body>
 </html>
