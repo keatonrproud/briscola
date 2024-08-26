@@ -154,6 +154,7 @@
                 if (data.error) {
                     console.error('Error:', data.error);
                 } else {
+                    console.log('received game state, should go to /turn');
                     window.location.href = '/turn';
                 }
             });

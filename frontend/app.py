@@ -83,7 +83,7 @@ def get_game_and_oid_from_request_sid(request_sid) -> tuple[str, BriscolaWeb]:
 
 @socketio.on("reset_state")
 def reset_state(data):
-    logger.info("Resetting the state...")
+    print("Resetting the state...")
     game_mode = data.get("gameMode")
     difficulty = data.get("difficulty")
     user_id = get_oid(request.sid)
@@ -132,7 +132,7 @@ def reset_state(data):
 
         emit_game_state(room_game, additional_data={"room": in_room})
 
-        logger.info("State reset, and game state sent successfully.")
+        print("State reset, and game state sent successfully.")
 
     except Exception as e:
         emit("error", {"message": str(e)})
@@ -151,18 +151,18 @@ def emit_game_state(
 
 @socketio.on("get_state")
 def handle_get_state(data=None):
-    logger.info("Getting state...")
+    print("Getting state...")
     oid, oid_game = get_game_and_oid_from_request_sid(request_sid=request.sid)
     continue_play = data.get("continue_play") if data is not None else False
 
     emit_game_state(oid_game, continue_play=continue_play)
 
-    logger.info("Game state sent succesfully.")
+    print("Game state sent succesfully.")
 
 
 @socketio.on("play_active_card")
 def handle_play_active_card(data):
-    logger.info("Playing active card...")
+    print("Playing active card...")
     if data is None:
         emit("response", {"error": "Invalid request"})
         return
@@ -180,7 +180,7 @@ def handle_play_active_card(data):
     # TODO KPRO this needs to just be sent to the room?
     emit("active_card_played", game.to_dict(), room=request.sid)
 
-    logger.info("Active card played successfully.")
+    print("Active card played successfully.")
 
 
 @app.route("/api/get_computer_choice", methods=["GET"])
@@ -259,7 +259,7 @@ def get_room_users():
 
 @socketio.on("join_game")
 def handle_join_game(data):
-    logger.info("Joining game...")
+    print("Joining game...")
     room = data.get("room")
     oid = get_oid(request.sid)
 
@@ -269,7 +269,7 @@ def handle_join_game(data):
 
     emit("room_update", {"room": room, "users": list(ROOM_USERS[room])}, broadcast=True)
 
-    logger.info("Join game successful.")
+    print("Join game successful.")
 
 
 def remove_user_from_room(user_id, room) -> None:
