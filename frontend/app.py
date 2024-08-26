@@ -49,18 +49,22 @@ def get_oid(request_sid) -> str:
 
 
 def get_game_from_oid(oid) -> BriscolaWeb:
+    print("get game from oid")
+    print(oid, USER_LOCAL_GAME)
     if oid in USER_LOCAL_GAME:
         game = USER_LOCAL_GAME[oid]
     else:
         room = USER_ROOM[oid]
 
+        print(room)
+
         # if the user is playing in a muliplayer room
         if room:
             game = ROOM_GAME[room]
-            game.shown_player = game.userid_playernum_map[oid]
         else:
             game = USER_LOCAL_GAME[oid]
 
+    print("========")
     return game
 
 
@@ -75,8 +79,6 @@ def reset_state(data):
     difficulty = data.get("difficulty")
     user_id = get_oid(request.sid)
     room = USER_ROOM.get(user_id, None)
-
-    print("here")
 
     if game_mode is None or difficulty is None:
         emit("error", {"message": "Missing data"})
@@ -96,7 +98,6 @@ def reset_state(data):
                             ROOM_USERS[room], range(len(room_game.players))
                         )
                     }
-                    print(room_game.userid_playernum_map)
                     in_room = True
                 else:
                     emit(
@@ -132,7 +133,7 @@ def emit_game_state(
     emit(
         "game_state",
         {"game_state": game.to_dict(), "continue_play": continue_play} | additional_data,
-        room=game.fixed_shown_player,
+        room=game.fixed_shown_player if not game.fixed_shown_player else "public_room",
     )
 
 
@@ -286,6 +287,8 @@ def update_user_id(data):
     old_id = data.get("user_id")
     new_id = request.sid
 
+    print("OLD: ", old_id, ", NEW: ", new_id)
+    print(USER_SOCKET)
     if new_id in USER_SOCKET.keys():
         USER_SOCKET[new_id] = USER_SOCKET[old_id]
         del USER_SOCKET[old_id]

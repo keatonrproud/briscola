@@ -51,6 +51,7 @@
         import { updateGameState } from '/static/script.js';
 
         const userId = localStorage.getItem('user_id');
+        console.log(userId);
         socket.emit("update_user_id", { user_id: userId})
 
         function setUpGameStateListener() {
