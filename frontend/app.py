@@ -10,7 +10,7 @@ from play_web.web_client import BriscolaWeb
 load_dotenv()
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = os.enviporon.get("SECRET_KEY")
+app.config["SECRET_KEY"] = os.envioron.get("SECRET_KEY")
 socketio = SocketIO(app, cors_allowed_origins="*")  # Use proper CORS settings in production
 
 game = BriscolaWeb(computer_count=1, computer_logic_override=(basic_choice,))
