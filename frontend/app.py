@@ -2,7 +2,7 @@ import os
 
 from dotenv import load_dotenv
 from flask import Flask, jsonify, render_template, request
-from flask_socketio import SocketIO, emit, join_room, leave_room, rooms
+from flask_socketio import SocketIO, emit, join_room, leave_room
 
 from backend.computer_logic.basic import basic_choice
 from logging_config import build_logger
@@ -15,6 +15,7 @@ load_dotenv()
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY")
 socketio = SocketIO(app, cors_allowed_origins="*")  # Use proper CORS settings in production
+wsgi = socketio.wsgi_server
 
 game = BriscolaWeb(computer_count=1, computer_logic_override=(basic_choice,))
 
