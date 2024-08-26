@@ -48,14 +48,20 @@ function updateCards(playerCards, oppCards, cardsPlayable) {
     });
 }
 
-function updateTurnInfo(player) {
+function updateTurnInfo(player, shownPlayer) {
     const turnInfo = document.getElementById('turn-info');
 
-    if (player.is_person) {
-        turnInfo.textContent = `${player.color} Player ${player.player_num}'s Turn`;
-    } else {
-        turnInfo.textContent = `${player.color} Computer's Turn`;
+    let text = ""
+    if (player.player_num === shownPlayer.player_num) {
+        text = `${player.color} Your Turn`
     }
+    else if (player.is_person) {
+        text = `${player.color} Player ${player.player_num}'s Turn`;
+    } else {
+        text = `${player.color} Computer's Turn`;
+    }
+
+    turnInfo.textContent = text
 }
 
 function updateBriscolaCard(card, num_cards_in_deck) {
@@ -215,7 +221,7 @@ function updateDeck(cards) {
     var cardNum = cards.length;
 
     // less by 1 because the Briscola card is already shown
-    for (let i = 0; i < cardNum-1; i++) {
+    for (let i = 0; i < cardNum; i++) {
         const cardDiv = document.createElement('div');
         cardDiv.className = 'deck-card';
         cardDiv.innerHTML = `
@@ -287,8 +293,6 @@ async function updateGameState(data) {
     const activePlayer = state.active_player;
     const playerNum = activePlayer.player_num; // Example: Player 1
 
-    updateTurnInfo(activePlayer); // Update the turn info
-
     if (activePlayer.score - pastScores[playerNum] > 11) {
         const scoreboard = document.getElementById('scoreboard');
         const rect = scoreboard.getBoundingClientRect();
@@ -307,7 +311,21 @@ async function updateGameState(data) {
     // is shown player is not fixed, and the active player is a person
     if (!state.fixed_shown_player && state.table_settings.computer_count === 0 && activePlayer.is_person) {
         shownPlayer = activePlayer;
+    } else if (state.fixed_shown_player) {
+        try {
+            const response = await fetch('/api/convert_socketid_to_oid', {method: 'POST', headers: {
+            'Content-Type': 'application/json'},body: JSON.stringify({ socket_id: socket.id })})
+            const res = await response.json();
+            console.log(res.oid);
+            console.log(state.userid_playernum_map);
+            console.log(state.players);
+            shownPlayer = state.players[state.userid_playernum_map[res.oid]];
+        } catch (error) {
+            console.error('Error:', error);
+        }
     }
+
+    updateTurnInfo(activePlayer, shownPlayer); // Update the turn info
 
     updateActivePile(state.pile.cards, activePlayer, shownPlayer); // Update active pile
 

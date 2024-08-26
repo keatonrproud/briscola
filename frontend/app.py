@@ -1,10 +1,8 @@
-import json
 import os
-from typing import Iterable
 
 from dotenv import load_dotenv
 from flask import Flask, jsonify, render_template, request
-from flask_socketio import SocketIO, emit, join_room, leave_room
+from flask_socketio import SocketIO, emit, join_room, leave_room, rooms
 
 from backend.computer_logic.basic import basic_choice
 from play_web.web_client import BriscolaWeb
@@ -19,18 +17,29 @@ game = BriscolaWeb(computer_count=1, computer_logic_override=(basic_choice,))
 
 # Store connections and rooms
 USER_ROOM: dict[str, str] = {}  # {user_id: room_name}
+OLD_USER_ROOM: dict[str, str] = (
+    {}
+)  # {user_id: room_name}    used to retain room membership after disconnect
 ROOM_USERS: dict[str, set[str]] = {"public_room": set()}  # {room_name: {user_ids}}
 ROOM_GAME: dict[str, BriscolaWeb] = {}  # {room_name: game_instance}
 USER_LOCAL_GAME: dict[str, BriscolaWeb] = {}  # {user_id: game_instance}
 USER_SOCKET: dict[str, str] = {}  # {user_string: current_socket_string}
 
 # TODO (0/2) room #s not auto updating from other clients?
+
 # TODO how to have multiple rooms at once, where they aren't all called public_room?
 #  related to default being public_room above in ROOM_USERS def
 
 # TODO exit game button?
 
-# TODO back button causes socket error?
+# TODO instead of Player 1, 2, etc, you should say Your Turn if you're the shown person
+
+# TODO change screen config for smaller screen sizes (1/2 screen, mobile)
+
+# TODO handle if a player disconnects from the game
+#  -- should popup that they left, and then if they don't reconnect then exit the game
+
+# TODO select play card deck
 
 
 @app.route("/")
@@ -49,14 +58,10 @@ def get_oid(request_sid) -> str:
 
 
 def get_game_from_oid(oid) -> BriscolaWeb:
-    print("get game from oid")
-    print(oid, USER_LOCAL_GAME)
     if oid in USER_LOCAL_GAME:
         game = USER_LOCAL_GAME[oid]
     else:
         room = USER_ROOM[oid]
-
-        print(room)
 
         # if the user is playing in a muliplayer room
         if room:
@@ -64,7 +69,6 @@ def get_game_from_oid(oid) -> BriscolaWeb:
         else:
             game = USER_LOCAL_GAME[oid]
 
-    print("========")
     return game
 
 
@@ -130,10 +134,13 @@ def reset_state(data):
 def emit_game_state(
     game: BriscolaWeb, continue_play: bool = False, additional_data: dict = dict()
 ) -> None:
+    print("---- emit game state ----")
+    print(f"{USER_ROOM=}")
     emit(
         "game_state",
         {"game_state": game.to_dict(), "continue_play": continue_play} | additional_data,
-        room=game.fixed_shown_player if not game.fixed_shown_player else "public_room",
+        to="public_room",
+        include_self=True,
     )
 
 
@@ -142,6 +149,9 @@ def handle_get_state(data=None):
     oid, oid_game = get_game_and_oid_from_request_sid(request_sid=request.sid)
     continue_play = data.get("continue_play") if data is not None else False
 
+    print(oid, request.sid)
+    print(f"{rooms(sid=oid)=}")
+    print(f"{rooms(sid=request.sid)=}")
     emit_game_state(oid_game, continue_play=continue_play)
 
 
@@ -162,7 +172,7 @@ def handle_play_active_card(data):
     game.active_player_play_card_idx(card_idx=card_idx)
 
     # TODO KPRO this needs to just be sent to the room?
-    emit("active_card_played", game.to_dict(), room=room)
+    emit("active_card_played", game.to_dict(), room=request.sid)
 
 
 @app.route("/api/get_computer_choice", methods=["GET"])
@@ -176,8 +186,6 @@ def end_play() -> None:
     room = USER_ROOM[oid]
 
     game.end_play()
-
-    print("ending play")
 
     emit("end_play", {"game_state": game.to_dict()}, room=room)
 
@@ -206,6 +214,7 @@ def add_user_to_room(oid, room) -> None:
         ROOM_USERS[room] = set()
 
     USER_ROOM[oid] = room
+    print(f"{oid=}")
     print("add_user_to_room", USER_ROOM)
     ROOM_USERS[room] = ROOM_USERS[room] | {oid}
 
@@ -226,17 +235,12 @@ def handle_connect():
 
 @socketio.on("disconnect")
 def handle_disconnect():
-    return
-
-    # TODO fix disconnecting when changing pages?
-
     oid = get_oid(request.sid)
+    OLD_USER_ROOM[oid] = USER_ROOM[oid]
     room = USER_ROOM.pop(oid, None)
 
     if room and room in ROOM_USERS:
         ROOM_USERS[room].remove(oid)
-        if not ROOM_USERS[room]:
-            del ROOM_USERS[room]
         leave_room(room)
         emit("room_update", {"room": room, "users": list(ROOM_USERS[room])}, broadcast=True)
 
@@ -255,7 +259,10 @@ def handle_join_game(data):
     oid = get_oid(request.sid)
 
     # TODO is this putting the wrong info in the room (since request.sid is not what we use, but oid)?
-    join_room(room)
+    print(f"{room=}")
+    print(f"{oid=}")
+    join_room(room, sid=oid)
+    print(rooms(oid))
     add_user_to_room(oid, room)
 
     emit("room_update", {"room": room, "users": list(ROOM_USERS[room])}, broadcast=True)
@@ -274,7 +281,7 @@ def handle_leave_game(data):
     room = data.get("room")
     oid = get_oid(request.sid)
 
-    leave_room(room)
+    leave_room(room, sid=oid)
 
     if room:
         remove_user_from_room(oid, room)
@@ -287,13 +294,33 @@ def update_user_id(data):
     old_id = data.get("user_id")
     new_id = request.sid
 
-    print("OLD: ", old_id, ", NEW: ", new_id)
-    print(USER_SOCKET)
     if new_id in USER_SOCKET.keys():
         USER_SOCKET[new_id] = USER_SOCKET[old_id]
         del USER_SOCKET[old_id]
 
+    if old_id in OLD_USER_ROOM.keys():
+        USER_ROOM[old_id] = OLD_USER_ROOM[old_id]
+        join_room(room=OLD_USER_ROOM[old_id], sid=new_id)
+        if new_id in USER_ROOM:
+            del USER_ROOM[new_id]
+
     return jsonify({"status": "success"})
+
+
+@app.route("/api/convert_socketid_to_oid", methods=["POST"])
+def convert_socketid_to_oid():
+    data = request.get_json()
+
+    if not data or "socket_id" not in data:
+        return jsonify({"error": "Invalid input"}), 400
+
+    socket_id = data.get("socket_id")
+    oid = get_oid(socket_id)
+
+    if oid is None:
+        return jsonify({"error": "OID not found"}), 404
+
+    return jsonify({"oid": get_oid(socket_id)})
 
 
 if __name__ == "__main__":

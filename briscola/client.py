@@ -179,6 +179,9 @@ class BriscolaGame(CardGame, ABC):
         if self.active_player.is_person and not self.fixed_shown_player:
             self.shown_player = self.active_player
 
+        print("----- get winning cards -----")
+        print(f"{self.active_player=}")
+
         # and the person before the winner is the 'dealer'
         next_dealer_idx = winning_card_idx - 1 if winning_card_idx != 0 else -1
         self.dealer = self.turn_order()[next_dealer_idx]
