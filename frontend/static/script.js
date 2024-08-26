@@ -101,12 +101,10 @@ function setUpHumanCardPlayedListener() {
 
             if (data.pile.cards.length === data.players.length) {
                 setTimeout(() => {
-                    console.log("END1");
                     endPlay();
                 }, 1500);
             } else {
                 setTimeout(() => {
-                    console.log("END2");
                     endPlay(); }, 500);
             }
         });
@@ -120,8 +118,6 @@ function setUpHumanCardPlayedListener() {
 async function playHumanCard(cardIndex, cardDiv) {
     cardDiv.classList.add('played'); // Add the class to trigger animation
 
-    console.log('playing human card');
-
     setTimeout(() => {
         // Emit event to the server with the card index
         setUpHumanCardPlayedListener();
@@ -132,7 +128,6 @@ async function playHumanCard(cardIndex, cardDiv) {
 
 
 async function getComputerChoice() {
-    console.log('getting computer choice');
     try {
         const response = await fetch('/api/get_computer_choice');
         const data = await response.json();
@@ -146,7 +141,6 @@ function setUpComputerCardPlayedListener() {
     if (!socket.__computerCardPlayedSetUp) {
         socket.on('active_card_played', (data) => {
             if (!data.active_player.is_person) {
-                console.log('getting play computer card state')
                 getGameState();
             }
         });
@@ -288,8 +282,6 @@ async function updateGameState(data) {
     // Extract data for the active player
     const state = data.game_state;
 
-    console.log(state);
-
     const activePlayer = state.active_player;
     const playerNum = activePlayer.player_num; // Example: Player 1
 
@@ -316,9 +308,6 @@ async function updateGameState(data) {
             const response = await fetch('/api/convert_socketid_to_oid', {method: 'POST', headers: {
             'Content-Type': 'application/json'},body: JSON.stringify({ socket_id: socket.id })})
             const res = await response.json();
-            console.log(res.oid);
-            console.log(state.userid_playernum_map);
-            console.log(state.players);
             shownPlayer = state.players[state.userid_playernum_map[res.oid]];
         } catch (error) {
             console.error('Error:', error);
@@ -334,12 +323,9 @@ async function updateGameState(data) {
 
     updateCards(shownPlayer.hand.cards, oppPlayer.hand.cards, cardsPlayable);
 
-    console.log('==========');
-    console.log(state);
     const activePlayerIsFirst = state.turn_order[0].player_num === activePlayer.player_num;
     const noComputerCardPlayed = (state.pile.cards.length === 0 && activePlayerIsFirst) || (activePlayer.hand.cards.length === 3 && state.pile.cards.length < state.players.length);
     if (!activePlayer.is_person && noComputerCardPlayed){
-        console.log('Playing Computer turn');
         await playComputerTurn(state.turn_order[state.turn_order.length-1].player_num === activePlayer.player_num);
     }
 

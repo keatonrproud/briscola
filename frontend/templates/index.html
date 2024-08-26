@@ -153,13 +153,11 @@
                 if (data.error) {
                     console.error('Error:', data.error);
                 } else {
-                    console.log('going to game');
                     window.location.href = '/turn';
                 }
             });
 
             startGameButton.addEventListener('click', async () => {
-                console.log('clicked');
                 const gameMode = gameModeToggle.checked ? 'player' : 'computer';
                 const difficulty = difficultySlider.value; // Get the difficulty value
 
@@ -168,7 +166,6 @@
                         console.log('Socket not connected yet, waiting...');
                         await new Promise((resolve) => socket.on('connect', resolve));
                     }
-                    console.log('emitting');
                     socket.emit('reset_state', {gameMode: gameMode, difficulty: difficulty});
 
                 } catch (error) {

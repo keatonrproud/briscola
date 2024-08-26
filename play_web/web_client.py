@@ -45,10 +45,6 @@ class BriscolaWeb(BriscolaGame):
         self.end_play()
 
     def end_play(self) -> None:
-        print("------- end play --------")
-        print(f"{self.active_player=}")
-        print(f"{self.turn_order()=}")
-        print(f"{self.dealer=}")
         if self.active_player == self.turn_order()[-1]:
             self.end_turn()
         else:
@@ -57,7 +53,6 @@ class BriscolaWeb(BriscolaGame):
                 current_player_idx + 1 if current_player_idx + 1 != len(self.turn_order()) else 0
             )
             self.active_player = self.turn_order()[next_player_idx]
-        print(f"{self.active_player=}")
 
     def to_dict(self) -> dict:
         return super().to_dict() | {"userid_playernum_map": self.userid_playernum_map}

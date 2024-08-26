@@ -134,8 +134,6 @@ def reset_state(data):
 def emit_game_state(
     game: BriscolaWeb, continue_play: bool = False, additional_data: dict = dict()
 ) -> None:
-    print("---- emit game state ----")
-    print(f"{USER_ROOM=}")
     emit(
         "game_state",
         {"game_state": game.to_dict(), "continue_play": continue_play} | additional_data,
@@ -149,9 +147,6 @@ def handle_get_state(data=None):
     oid, oid_game = get_game_and_oid_from_request_sid(request_sid=request.sid)
     continue_play = data.get("continue_play") if data is not None else False
 
-    print(oid, request.sid)
-    print(f"{rooms(sid=oid)=}")
-    print(f"{rooms(sid=request.sid)=}")
     emit_game_state(oid_game, continue_play=continue_play)
 
 
@@ -214,8 +209,6 @@ def add_user_to_room(oid, room) -> None:
         ROOM_USERS[room] = set()
 
     USER_ROOM[oid] = room
-    print(f"{oid=}")
-    print("add_user_to_room", USER_ROOM)
     ROOM_USERS[room] = ROOM_USERS[room] | {oid}
 
 
@@ -226,8 +219,6 @@ def handle_connect():
 
     USER_ROOM[user_id] = None
     USER_SOCKET[user_id] = user_id
-
-    print("handle_connect", USER_ROOM)
 
     emit("update_user_count", {"count": len(USER_ROOM.keys())}, broadcast=True)
     print(f"User connected: {user_id}, Total users: {len(USER_ROOM.keys())}")
@@ -259,10 +250,7 @@ def handle_join_game(data):
     oid = get_oid(request.sid)
 
     # TODO is this putting the wrong info in the room (since request.sid is not what we use, but oid)?
-    print(f"{room=}")
-    print(f"{oid=}")
     join_room(room, sid=oid)
-    print(rooms(oid))
     add_user_to_room(oid, room)
 
     emit("room_update", {"room": room, "users": list(ROOM_USERS[room])}, broadcast=True)
