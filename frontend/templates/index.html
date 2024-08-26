@@ -162,12 +162,15 @@
                 const gameMode = gameModeToggle.checked ? 'player' : 'computer';
                 const difficulty = difficultySlider.value; // Get the difficulty value
 
+                console.log('start game clicked');
+
                 try {
                     if (!socket.connected) {
                         console.log('Socket not connected yet, waiting...');
                         await new Promise((resolve) => socket.on('connect', resolve));
                     }
                     socket.emit('reset_state', {gameMode: gameMode, difficulty: difficulty});
+                    console.log('reset state logged');
 
                 } catch (error) {
                     console.error('Error:', error);
