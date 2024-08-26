@@ -132,6 +132,7 @@
                         console.log('Socket not connected yet, waiting...');
                         await new Promise((resolve) => socket.on('connect', resolve));
                     }
+                    console.log('sending join game');
                     socket.emit('join_game', { room: 'public_room' });
                     joinRoomBtn.style.display = 'none'; // Hide the join room button
                     leaveRoomBtn.style.display = 'inline-block'; // Show the leave room button
