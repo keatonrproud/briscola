@@ -144,7 +144,7 @@ def emit_game_state(
     emit(
         "game_state",
         {"game_state": game.to_dict(), "continue_play": continue_play} | additional_data,
-        to="public_room",
+        to="public_room" if game.fixed_shown_player else False,
         include_self=True,
     )
 
