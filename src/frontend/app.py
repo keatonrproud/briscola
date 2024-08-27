@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from flask import Flask, jsonify, render_template, request
 from flask_socketio import SocketIO, emit, join_room, leave_room
 
-from backend.computer_logic.basic import basic_choice
+from src.backend.computer_logic.basic import basic_choice
 from config import build_logger
 from play.web import BriscolaWeb
 
@@ -32,12 +32,12 @@ USER_SOCKET: dict[str, str] = {}  # {user_string: current_socket_string}
 
 @app.route("/")
 def index() -> str:
-    return render_template("index.html")
+    return render_template("templates/index.html")
 
 
 @app.route("/turn")
 def turn() -> str:
-    return render_template("turn.html")
+    return render_template("templates/turn.html")
 
 
 def get_oid(request_sid) -> str:
@@ -185,7 +185,7 @@ def end_game() -> str:
         else:
             winner_message = f"{tied_players[0]} wins with {max_score} points!"
 
-    return render_template("end_game.html", winner_message=winner_message)
+    return render_template("templates/end_game.html", winner_message=winner_message)
 
 
 def add_user_to_room(oid, room) -> None:

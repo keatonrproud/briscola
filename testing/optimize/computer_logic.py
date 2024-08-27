@@ -1,8 +1,8 @@
 from pprint import pprint
 from typing import Callable
 
-from backend.computer_logic.basic import basic_choice
-from backend.computer_logic.random_ import random_choice
+from src.backend import basic_choice
+from src.backend import random_choice
 from config import build_logger
 from play.cli.cli_client import BriscolaCLI
 
