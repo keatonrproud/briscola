@@ -1,5 +1,5 @@
-from briscola.card import BriscolaCard
-from card_game.table.pile import Pile
+from card_games.briscola.card import BriscolaCard
+from card_games.general.table.pile import Pile
 
 
 class BriscolaPile(Pile[BriscolaCard]):

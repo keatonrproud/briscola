@@ -2,10 +2,10 @@ from subprocess import call
 from time import sleep
 from typing import Callable
 
-from briscola.card import BriscolaCard
-from briscola.client import BriscolaGame, BriscolaTurnWinner
-from briscola.player import BriscolaPlayer
-from logging_config import build_logger
+from card_games.briscola.card import BriscolaCard
+from card_games.briscola.client import BriscolaGame, BriscolaTurnWinner
+from card_games.briscola.player import BriscolaPlayer
+from config.logging_config import build_logger
 
 logger = build_logger(__name__)
 

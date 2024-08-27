@@ -1,7 +1,7 @@
 from random import shuffle
 from typing import Generic
 
-from card_game.table.pile import Pile
+from card_games.general.table.pile import Pile
 from generics.card import CARD
 from generics.player import PLAYER
 

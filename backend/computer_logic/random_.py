@@ -1,6 +1,6 @@
 from random import choice
 
-from briscola.card import BriscolaCard
+from card_games.briscola.card import BriscolaCard
 
 
 def random_choice(cards: list[BriscolaCard]) -> int:

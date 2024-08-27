@@ -1,21 +1,21 @@
-from abc import ABC, abstractmethod
+from abc import ABC
 from dataclasses import dataclass
 from functools import cached_property
 from random import choice
 from typing import Callable, Final
 
 from backend.computer_logic.random_ import random_choice
-from briscola.card import BriscolaCard
-from briscola.deck import BriscolaDeck
-from briscola.pile import BriscolaPile
-from briscola.player import BriscolaPlayer
-from card_game.cards.card import Card
-from card_game.cards.suits import Suit
-from card_game.game_client import CardGame
-from card_game.table.player import PlayerColor
-from card_game.table.table_settings import Direction
-from logging_config import build_logger
-from settings.game_settings import CARDS_IN_HAND, PLAY_DIRECTION
+from card_games.briscola.card import BriscolaCard
+from card_games.briscola.deck import BriscolaDeck
+from card_games.briscola.game_settings import CARDS_IN_HAND, PLAY_DIRECTION
+from card_games.briscola.pile import BriscolaPile
+from card_games.briscola.player import BriscolaPlayer
+from card_games.general.cards.card import Card
+from card_games.general.cards.suits import Suit
+from card_games.general.game_client import CardGame
+from card_games.general.table.player import PlayerColor
+from card_games.general.table.table_settings import Direction
+from config.logging_config import build_logger
 
 logger = build_logger(__name__)
 

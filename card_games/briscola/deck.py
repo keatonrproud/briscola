@@ -1,8 +1,8 @@
 from typing import Generator
 
-from briscola.card import BriscolaCard
-from briscola.card_settings import CARD_INFOS, SUITS, BriscolaCardNumber
-from card_game.cards.deck import Deck
+from card_games.briscola.card import BriscolaCard
+from card_games.briscola.card_settings import CARD_INFOS, SUITS, BriscolaCardNumber
+from card_games.general.cards.deck import Deck
 
 
 def generate_cards() -> Generator[BriscolaCard, None, None]:

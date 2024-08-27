@@ -1,9 +1,8 @@
-from collections import namedtuple
 from dataclasses import dataclass
 from enum import auto
 
-from card_game.cards.numbers import CardNumber
-from card_game.cards.suits import CLUB, COIN, CUP, SWORD
+from card_games.general.cards.numbers import CardNumber
+from card_games.general.cards.suits import CLUB, COIN, CUP, SWORD
 
 SUITS = (COIN, CLUB, CUP, SWORD)
 

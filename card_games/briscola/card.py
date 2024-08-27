@@ -1,8 +1,8 @@
 from typing import Any
 
-from briscola.card_settings import BriscolaCardInfo, BriscolaCardNumber
-from card_game.cards.card import Card
-from card_game.cards.suits import Suit
+from card_games.briscola.card_settings import BriscolaCardInfo, BriscolaCardNumber
+from card_games.general.cards.card import Card
+from card_games.general.cards.suits import Suit
 
 
 class BriscolaCard(Card):

@@ -1,9 +1,9 @@
 from random import choice
 
-from briscola.card import BriscolaCard
-from briscola.card_settings import BriscolaCardNumber
-from card_game.cards.suits import Suit
-from card_game.table.pile import Pile
+from card_games.briscola.card import BriscolaCard
+from card_games.briscola.card_settings import BriscolaCardNumber
+from card_games.general.cards.suits import Suit
+from card_games.general.table.pile import Pile
 
 
 def basic_choice(briscola: Suit, active_pile: Pile, cards: list[BriscolaCard]) -> int:

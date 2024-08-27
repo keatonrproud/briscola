@@ -2,11 +2,11 @@ from abc import ABC, abstractmethod
 from functools import cached_property
 from typing import Generic
 
-from card_game.table.table_settings import Direction, TableSettings
+from card_games.general.table.table_settings import Direction, TableSettings
+from config.logging_config import build_logger
 from generics.card import CARD
 from generics.deck import DECK
 from generics.player import PLAYER
-from logging_config import build_logger
 
 logger = build_logger(__name__)
 

@@ -1,5 +1,5 @@
-from briscola.card import BriscolaCard
-from card_game.cards.hand import Hand
+from card_games.briscola.card import BriscolaCard
+from card_games.general.cards.hand import Hand
 
 
 class BriscolaHand(Hand):

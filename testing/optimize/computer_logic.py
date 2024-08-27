@@ -3,8 +3,8 @@ from typing import Callable
 
 from backend.computer_logic.basic import basic_choice
 from backend.computer_logic.random_ import random_choice
-from logging_config import build_logger
-from play_cli.cli_client import BriscolaCLI
+from config import build_logger
+from play.cli.cli_client import BriscolaCLI
 
 logger = build_logger(__name__)
 

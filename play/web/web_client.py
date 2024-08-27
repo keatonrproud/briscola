@@ -1,7 +1,7 @@
 from typing import Callable
 
-from briscola.client import BriscolaGame
-from logging_config import build_logger
+from card_games.briscola.client import BriscolaGame
+from config.logging_config import build_logger
 
 logger = build_logger(__name__)
 

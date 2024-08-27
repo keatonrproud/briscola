@@ -1,4 +1,4 @@
-from card_game.table.table_settings import Direction
+from card_games.general.table.table_settings import Direction
 
 PLAY_DIRECTION = Direction.COUNTER_CLOCKWISE
 

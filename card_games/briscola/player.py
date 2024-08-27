@@ -1,8 +1,8 @@
 from random import choice
 from typing import Callable, Optional
 
-from briscola.hand import BriscolaHand
-from card_game.table.player import Player, PlayerColor
+from card_games.briscola.hand import BriscolaHand
+from card_games.general.table.player import Player, PlayerColor
 
 
 class BriscolaPlayer(Player):

@@ -1,8 +1,8 @@
 from enum import Enum
 from random import choice
 
-from card_game.cards.card import Card
-from card_game.cards.hand import Hand
+from card_games.general.cards.card import Card
+from card_games.general.cards.hand import Hand
 
 
 class PlayerColor(Enum):
