@@ -1,6 +1,5 @@
 const socket = io();
 const PORT = 10000;
-console.log(`server has started on port ${PORT}`);
 
 export { socket };
 

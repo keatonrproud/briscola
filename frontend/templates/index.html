@@ -132,7 +132,6 @@
                         console.log('Socket not connected yet, waiting...');
                         await new Promise((resolve) => socket.on('connect', resolve));
                     }
-                    console.log('sending join game');
                     socket.emit('join_game', { room: 'public_room' });
                     joinRoomBtn.style.display = 'none'; // Hide the join room button
                     leaveRoomBtn.style.display = 'inline-block'; // Show the leave room button
@@ -154,7 +153,6 @@
                 if (data.error) {
                     console.error('Error:', data.error);
                 } else {
-                    console.log('received game state, should go to /turn');
                     window.location.href = '/turn';
                 }
             });
@@ -163,16 +161,13 @@
                 const gameMode = gameModeToggle.checked ? 'player' : 'computer';
                 const difficulty = difficultySlider.value; // Get the difficulty value
 
-                console.log('start game clicked');
-
                 try {
                     if (!socket.connected) {
                         console.log('Socket not connected yet, waiting...');
                         await new Promise((resolve) => socket.on('connect', resolve));
                     }
-                    socket.emit('reset_state', {gameMode: gameMode, difficulty: difficulty});
-                    console.log('reset state logged');
-
+                    socket.emit('reset_state', {gameMode: gameMode, difficulty: difficulty}
+                    );
                 } catch (error) {
                     console.error('Error:', error);
                 }
@@ -182,6 +177,46 @@
                 const { users } = data;
                 updateRoomBtns(users.length);
             });
+
+                const cardNumbers = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'soldier', 'horse', 'king'];
+                const suits = ['sword', 'club', 'coin', 'cup'];
+                const images = [];
+                let imagesLoaded = 0;
+                const totalImages = cardNumbers.length * suits.length;
+
+                // Function to preload a single image
+                function preloadImage(url) {
+                    return new Promise((resolve, reject) => {
+                        const img = new Image();
+                        img.src = url;
+                        img.onload = () => {
+                            images.push(img);
+                            imagesLoaded++;
+                            resolve();
+                        };
+                        img.onerror = reject;
+                    });
+                }
+
+                // Function to preload all images
+                function preloadAllImages() {
+                    const promises = [];
+                    for (const number of cardNumbers) {
+                        for (const suit of suits) {
+                            const url = `https://s3.eu-north-1.amazonaws.com/briscola.pro/piacentine/piacentine/${number}_${suit}.png`;
+                            promises.push(preloadImage(url));
+                        }
+                    }
+                    return Promise.all(promises);
+                }
+
+                    preloadAllImages().then(() => {
+                        console.log("All images preloaded successfully!");
+                    }).catch(err => {
+                        console.error("An error occurred while preloading images:", err);
+                    });
+
+
 
 
         })

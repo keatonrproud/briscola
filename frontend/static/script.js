@@ -4,7 +4,6 @@ export { updateGameState };
 function setCardImage(cardDiv, card) {
     if (card && card.number && card.suit) {
         let cardUrl = `https://s3.eu-north-1.amazonaws.com/briscola.pro/piacentine/piacentine/${card.number.name}_${card.suit.name}.png`;
-        console.log(cardUrl.toLowerCase());
         cardDiv.style.backgroundImage = `url(${cardUrl.toLowerCase()})`;
         cardDiv.style.backgroundSize = 'contain';
         cardDiv.style.backgroundRepeat = 'no-repeat';
@@ -284,22 +283,13 @@ async function updateGameState(data) {
     // Extract data for the active player
     const state = data.game_state;
 
-    const activePlayer = state.active_player;
-    const playerNum = activePlayer.player_num; // Example: Player 1
-
-    if (activePlayer.score - pastScores[playerNum] > 11) {
-        const scoreboard = document.getElementById('scoreboard');
-        const rect = scoreboard.getBoundingClientRect();
-        const x = rect.left + rect.width / 2; // Horizontal center of the scoreboard
-        const y = rect.top; // Top of the scoreboard
-
-        showConfetti(x / window.innerWidth,  y / window.innerHeight);
-    }
-
     updateBriscolaCard(state.briscola.card, state.deck.current_cards.length); // Update the Briscola card
     updateScoreboard(state.players); // Update scoreboard
     updateDeck(state.deck.current_cards); // Update the deck
 
+
+    const activePlayer = state.active_player;
+    const playerNum = activePlayer.player_num; // Example: Player 1
 
     let shownPlayer = state.shown_player;
     // is shown player is not fixed, and the active player is a person
@@ -316,14 +306,23 @@ async function updateGameState(data) {
         }
     }
 
-    updateTurnInfo(activePlayer, shownPlayer); // Update the turn info
-
-    updateActivePile(state.pile.cards, activePlayer, shownPlayer); // Update active pile
-
     const oppPlayer = state.players.find(other_player => other_player.player_num !== shownPlayer.player_num);
     const cardsPlayable = shownPlayer.player_num === activePlayer.player_num;
 
     updateCards(shownPlayer.hand.cards, oppPlayer.hand.cards, cardsPlayable);
+
+    updateTurnInfo(activePlayer, shownPlayer); // Update the turn info
+    updateActivePile(state.pile.cards, activePlayer, shownPlayer); // Update active pile
+
+
+    if (activePlayer.score - pastScores[playerNum] > 11) {
+        const scoreboard = document.getElementById('scoreboard');
+        const rect = scoreboard.getBoundingClientRect();
+        const x = rect.left + rect.width / 2; // Horizontal center of the scoreboard
+        const y = rect.top; // Top of the scoreboard
+
+        showConfetti(x / window.innerWidth,  y / window.innerHeight);
+    }
 
     const activePlayerIsFirst = state.turn_order[0].player_num === activePlayer.player_num;
     const noComputerCardPlayed = (state.pile.cards.length === 0 && activePlayerIsFirst) || (activePlayer.hand.cards.length === 3 && state.pile.cards.length < state.players.length);

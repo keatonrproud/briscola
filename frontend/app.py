@@ -29,22 +29,6 @@ ROOM_GAME: dict[str, BriscolaWeb] = {}  # {room_name: game_instance}
 USER_LOCAL_GAME: dict[str, BriscolaWeb] = {}  # {user_id: game_instance}
 USER_SOCKET: dict[str, str] = {}  # {user_string: current_socket_string}
 
-# TODO (0/2) room #s not auto updating from other clients?
-
-# TODO how to have multiple rooms at once, where they aren't all called public_room?
-#  related to default being public_room above in ROOM_USERS def
-
-# TODO exit game button?
-
-# TODO instead of Player 1, 2, etc, you should say Your Turn if you're the shown person
-
-# TODO change screen config for smaller screen sizes (1/2 screen, mobile)
-
-# TODO handle if a player disconnects from the game
-#  -- should popup that they left, and then if they don't reconnect then exit the game
-
-# TODO select play card deck
-
 
 @app.route("/")
 def index() -> str:
@@ -53,7 +37,6 @@ def index() -> str:
 
 @app.route("/turn")
 def turn() -> str:
-    # TODO if user is not in a game, return them home
     return render_template("turn.html")
 
 
@@ -83,7 +66,6 @@ def get_game_and_oid_from_request_sid(request_sid) -> tuple[str, BriscolaWeb]:
 
 @socketio.on("reset_state")
 def reset_state(data):
-    print("Resetting the state...")
     game_mode = data.get("gameMode")
     difficulty = data.get("difficulty")
     user_id = get_oid(request.sid)
@@ -132,8 +114,6 @@ def reset_state(data):
 
         emit_game_state(room_game, additional_data={"room": in_room})
 
-        print("State reset, and game state sent successfully.")
-
     except Exception as e:
         emit("error", {"message": str(e)})
 
@@ -151,18 +131,14 @@ def emit_game_state(
 
 @socketio.on("get_state")
 def handle_get_state(data=None):
-    print("Getting state...")
     oid, oid_game = get_game_and_oid_from_request_sid(request_sid=request.sid)
     continue_play = data.get("continue_play") if data is not None else False
 
     emit_game_state(oid_game, continue_play=continue_play)
 
-    print("Game state sent succesfully.")
-
 
 @socketio.on("play_active_card")
 def handle_play_active_card(data):
-    print("Playing active card...")
     if data is None:
         emit("response", {"error": "Invalid request"})
         return
@@ -177,10 +153,7 @@ def handle_play_active_card(data):
 
     game.active_player_play_card_idx(card_idx=card_idx)
 
-    # TODO KPRO this needs to just be sent to the room?
     emit("active_card_played", game.to_dict(), room=request.sid)
-
-    print("Active card played successfully.")
 
 
 @app.route("/api/get_computer_choice", methods=["GET"])
@@ -200,8 +173,6 @@ def end_play() -> None:
 
 @app.route("/end_game")
 def end_game() -> str:
-    # TODO if user is not in a game, return them home
-
     max_score = max(player.score for player in game.players)
     winner = next((player for player in game.players if player.score > game.win_condition), None)
 
@@ -259,17 +230,13 @@ def get_room_users():
 
 @socketio.on("join_game")
 def handle_join_game(data):
-    print("Joining game...")
     room = data.get("room")
     oid = get_oid(request.sid)
 
-    # TODO is this putting the wrong info in the room (since request.sid is not what we use, but oid)?
-    join_room(room, sid=oid)
+    join_room(room, sid=request.sid)
     add_user_to_room(oid, room)
 
     emit("room_update", {"room": room, "users": list(ROOM_USERS[room])}, broadcast=True)
-
-    print("Join game successful.")
 
 
 def remove_user_from_room(user_id, room) -> None:
