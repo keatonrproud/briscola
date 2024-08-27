@@ -7,8 +7,8 @@
     <link rel="stylesheet" href="/static/styles.css">
     <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" defer></script>
-    <script type="module" src="/static/script.js" defer></script>
     <script type="module" src="/static/js/websocket.js"></script>
+    <script type="module" src="/static/script.js" defer></script>
 </head>
 <body>
     <div class="container">
@@ -42,8 +42,11 @@
 
         </div>
 
-
     </div>
+    <div class="repo-text-container">
+        <span id="repo-text" class="h3 hidden-message"><a href="https://www.github.com/keatonrproud/briscola" target="_blank">Source Code</a></span>
+    </div>
+
     <script type="module">
             import { socket } from '/static/js/websocket.js';
 
@@ -203,7 +206,7 @@
                     const promises = [];
                     for (const number of cardNumbers) {
                         for (const suit of suits) {
-                            const url = `https://s3.eu-north-1.amazonaws.com/briscola.pro/piacentine/piacentine/${number}_${suit}.png`;
+                            const url = `https://s3.eu-north-1.amazonaws.com/briscola.pro/piacentine/piacentine/${number}_${suit}.png`.toLowerCase();
                             promises.push(preloadImage(url));
                         }
                     }

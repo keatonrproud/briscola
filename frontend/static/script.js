@@ -3,7 +3,7 @@ export { updateGameState };
 
 function setCardImage(cardDiv, card) {
     if (card && card.number && card.suit) {
-        let cardUrl = `https://s3.eu-north-1.amazonaws.com/briscola.pro/piacentine/piacentine/${card.number.name}_${card.suit.name}.png`;
+        let cardUrl = `/static/piacentine/${card.number.name}_${card.suit.name}.png`;
         cardDiv.style.backgroundImage = `url(${cardUrl.toLowerCase()})`;
         cardDiv.style.backgroundSize = 'contain';
         cardDiv.style.backgroundRepeat = 'no-repeat';

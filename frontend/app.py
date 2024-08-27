@@ -16,7 +16,6 @@ load_dotenv()
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY")
 socketio = SocketIO(app, cors_allowed_origins="*")  # Use proper CORS settings in production
-wsgi = socketio.wsgi_server
 
 game = BriscolaWeb(computer_count=1, computer_logic_override=(basic_choice,))
 
@@ -33,12 +32,12 @@ USER_SOCKET: dict[str, str] = {}  # {user_string: current_socket_string}
 
 @app.route("/")
 def index() -> str:
-    return render_template("templates/index.html")
+    return render_template("index.html")
 
 
 @app.route("/turn")
 def turn() -> str:
-    return render_template("templates/turn.html")
+    return render_template("turn.html")
 
 
 def get_oid(request_sid) -> str:
@@ -185,7 +184,7 @@ def end_game() -> str:
         else:
             winner_message = f"{tied_players[0]} wins with {max_score} points!"
 
-    return render_template("templates/end_game.html", winner_message=winner_message)
+    return render_template("end_game.html", winner_message=winner_message)
 
 
 def add_user_to_room(oid, room) -> None:

@@ -723,3 +723,38 @@ input:checked + .slider:before {
 #leave-room-btn:hover {
     background-color: #ff3d2f; /* Darker pastel red on hover */
 }
+
+.hidden-message {
+    color: #fff;
+    cursor: pointer;
+}
+
+.repo-text-container {
+    background-color: transparent;
+}
+
+/* Exit Button Container */
+#exit-btn-container {
+    position: fixed; /* Fix the position to the bottom right corner */
+    bottom: 20px;
+    left: 20px;
+    width: 5%; /* Set a fixed width */
+    border-radius: 10px; /* Rounded corners */
+}
+
+#exit-btn {
+    background-color: #3399cc; /* Darker background color */
+    color: #fff; /* Text color */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    border: none;
+    font-family: Arial, sans-serif; /* Consistent font */
+    border-radius: 10px;
+    padding: 15px; /* Padding around the content */
+    cursor: pointer; /* Pointer cursor to indicate clickability */
+    font-size: 18px;
+    text-align: center;
+}
+
+#exit-btn:hover {
+    background-color: #3399ff; /* Darker background color */
+}
