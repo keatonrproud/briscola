@@ -2,8 +2,8 @@ from random import shuffle
 from typing import Generic
 
 from card_games.general.table.pile import Pile
-from generics.card import CARD
-from generics.player import PLAYER
+from card_games.general.generics.card import CARD
+from card_games.general.generics.player import PLAYER
 
 
 class UnlimitedHandSizeException(Exception):

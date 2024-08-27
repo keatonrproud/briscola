@@ -1,6 +1,6 @@
 from typing import Generic
 
-from generics.card import CARD
+from card_games.general.generics.card import CARD
 
 
 class Hand(Generic[CARD]):

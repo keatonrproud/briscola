@@ -4,9 +4,9 @@ from typing import Generic
 
 from card_games.general.table.table_settings import Direction, TableSettings
 from config.logging_config import build_logger
-from generics.card import CARD
-from generics.deck import DECK
-from generics.player import PLAYER
+from card_games.general.generics.card import CARD
+from card_games.general.generics.deck import DECK
+from card_games.general.generics.player import PLAYER
 
 logger = build_logger(__name__)
 
@@ -18,6 +18,7 @@ class CardGame(Generic[DECK, PLAYER, CARD], ABC):
         self.deck = deck
         self.computer_count = computer_count
         self.dealer = self.players[-1] if first_dealer is None else self.players[first_dealer]
+        self.first_dealer = first_dealer
         first_player_idx = (
             first_dealer + 1
             if first_dealer is not None and 0 <= first_dealer < len(self.players) - 1

@@ -2,11 +2,12 @@ import os
 
 from dotenv import load_dotenv
 from flask import Flask, jsonify, render_template, request
+
 from flask_socketio import SocketIO, emit, join_room, leave_room
 
 from src.backend.computer_logic.basic import basic_choice
-from config import build_logger
-from play.web import BriscolaWeb
+from config.logging_config import build_logger
+from play.web.client import BriscolaWeb
 
 logger = build_logger(__name__)
 
@@ -149,7 +150,6 @@ def handle_play_active_card(data):
         return
 
     oid, game = get_game_and_oid_from_request_sid(request_sid=request.sid)
-    room = USER_ROOM[oid]
 
     game.active_player_play_card_idx(card_idx=card_idx)
 

@@ -4,7 +4,7 @@ from functools import cached_property
 from random import choice
 from typing import Callable, Final
 
-from src.backend import random_choice
+from src.backend.computer_logic.random_ import random_choice
 from card_games.briscola.card import BriscolaCard
 from card_games.briscola.deck import BriscolaDeck
 from card_games.briscola.game_settings import CARDS_IN_HAND, PLAY_DIRECTION
@@ -116,11 +116,14 @@ class BriscolaGame(CardGame, ABC):
         self.briscola, self.briscola_card = None, None
         self.deck = BriscolaDeck()
 
-        self.__init__(
-            computer_count=self.computer_count,
-            computer_logic_override=self.computer_logic_override,
-            computer_skill_level=self.computer_skill_level,
+        super().__init__(
+            deck=self.deck,
+            first_dealer=self.first_dealer,
+            computer_count=self.computer_count
         )
+
+        self.clear_pile()
+        self.deal_hands(cards_in_hand=CARDS_IN_HAND, change_dealers=False)
 
     @cached_property
     def players(self) -> list[BriscolaPlayer]:
