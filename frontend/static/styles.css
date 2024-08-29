@@ -173,6 +173,17 @@ br {
     font-size: 24px;
 }
 
+#loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: white; /* Or any color of your choice */
+    z-index: 9999; /* Ensure it covers all content */
+    opacity: 0.000001; /* Optional: make it slightly transparent */
+}
+
 /* Turn info styling */
 #turn-info {
     position: fixed; /* Fixed position relative to the viewport */
@@ -731,13 +742,23 @@ input:checked + .slider:before {
 
 .repo-text-container {
     background-color: transparent;
+    padding-bottom: 1%;
+}
+
+.repo-text-container a {
+    color: rgba(255, 255, 255, 0.25); /* White with 70% opacity */
+    text-decoration: none;
+}
+
+.repo-text-container a:hover {
+    color: rgba(255, 255, 255, 1); /* Fully opaque on hover */
 }
 
 /* Exit Button Container */
 #exit-btn-container {
     position: fixed; /* Fix the position to the bottom right corner */
     bottom: 20px;
-    left: 20px;
+    left: 0;
     width: 5%; /* Set a fixed width */
     border-radius: 10px; /* Rounded corners */
 }

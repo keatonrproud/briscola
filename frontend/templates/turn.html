@@ -6,57 +6,61 @@
     <title>Briscola</title>
     <link rel="stylesheet" href="/static/styles.css"> <!-- Link to the external CSS file -->
     <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
-    <script type="module" src="/static/script.js" defer></script> <!-- Link to the external JavaScript file -->
+    <script type="module" src="/static/script.js"></script> <!-- Link to the external JavaScript file -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js" defer></script>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 
 </head>
 <body>
 
-   <!-- Opp Cards -->
-    <div id="opp-cards" class="face-down-cards"></div>
+       <!-- Opp Cards -->
+        <div id="opp-cards" class="face-down-cards"></div>
 
-    <!-- Active Pile Section -->
-    <div id="active-pile" class="active-pile"></div>
+        <!-- Active Pile Section -->
+        <div id="active-pile" class="active-pile"></div>
 
-    <!-- Briscola Card Display -->
-    <div id="briscola-container">
-        <div id="briscola-card" class="card">
-            <div class="symbol"></div>
-            <div class="number"></div>
+        <!-- Briscola Card Display -->
+        <div id="briscola-container">
+            <div id="briscola-card" class="card">
+                <div class="symbol"></div>
+                <div class="number"></div>
+            </div>
+            <div id="briscola-title">Briscola</div>
         </div>
-        <div id="briscola-title">Briscola</div>
-    </div>
 
-    <!-- Full deck of cards will be inserted here -->
-    <div id="deck-container"></div>
+        <!-- Full deck of cards will be inserted here -->
+        <div id="deck-container"></div>
 
-   <!-- Player Cards -->
-    <div id="player-cards" class="cards"></div>
+       <!-- Player Cards -->
+        <div id="player-cards" class="cards"></div>
 
-    <!-- Turn Information -->
-    <div id="turn-info"></div>
+        <!-- Turn Information -->
+        <div id="turn-info"></div>
 
-        <!-- Scoreboard -->
-    <div id="scoreboard-container">
-        <button id="scoreboard-toggle">Scoreboard</button>
-        <div id="scoreboard">
-            <div id="scores">
-                <!-- Scores will be inserted here -->
+            <!-- Scoreboard -->
+        <div id="scoreboard-container">
+            <button id="scoreboard-toggle">Scoreboard</button>
+            <div id="scoreboard">
+                <div id="scores">
+                    <!-- Scores will be inserted here -->
+                </div>
             </div>
         </div>
-    </div>
 
-    <div id="exit-btn-container">
-       <button id="exit-btn">Leave</button>
-    </div>
+        <div id="exit-btn-container">
+           <button id="exit-btn">🔙</button>
+        </div>
+
 
     <script type = "module">
         import { socket } from '/static/js/websocket.js';
-        import { updateGameState } from '/static/script.js';
 
         const userId = localStorage.getItem('user_id');
-        socket.emit("update_user_id", { user_id: userId})
+        socket.emit("update_user_id", { user_id: userId});
+
+        import { updateGameState } from '/static/script.js';
+        import { checkIfInGame } from '/static/script.js';
+
 
         function setUpGameStateListener() {
             // Listen for the game state response
@@ -65,6 +69,7 @@
                     if (data.error) {
                         console.error('Error:', data.error);
                     } else {
+                        console.log('got state');
                         await updateGameState(data);
                     }
                 });
@@ -76,23 +81,37 @@
         function setUpEndPlayListener() {
             if (!socket.__endPlayListenerSetUp) {
                 socket.on("end_play", async (data) => {
-                await updateGameState(data);
-            })
+                    await updateGameState(data);
+                })
 
                 socket.__endPlayListenerSetUp = true;
 
             }
         }
 
+        function setUpRoomClosedListener() {
+            if (!socket.__setUpRoomClosedListener) {
+                socket.on("room_closed", async () => {
+                    window.location.href = '/';
+                })
+
+                socket.__setUpRoomClosedListener = true;
+
+            }
+        }
+
         setUpGameStateListener();
         setUpEndPlayListener();
+        setUpRoomClosedListener();
 
+        checkIfInGame();
         document.addEventListener('DOMContentLoaded', () => {
 
             socket.emit("get_state");
 
             const scoreboardToggle = document.getElementById('scoreboard-toggle');
             const scoreboard = document.getElementById('scoreboard');
+            const exitBtn = document.getElementById('exit-btn')
 
             scoreboardToggle.addEventListener('click', () => {
                 if (scoreboard.style.maxHeight) {
@@ -103,6 +122,12 @@
                     scoreboard.style.maxHeight = scoreboard.scrollHeight + 'px';
                 }
             });
+
+            exitBtn.addEventListener('click', () => {
+                console.log('leaving game');
+                socket.emit("leave_game");
+            });
+
         })
 
 

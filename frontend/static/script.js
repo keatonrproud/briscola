@@ -1,9 +1,9 @@
 import { socket } from '/static/js/websocket.js'; // Import socket instance
-export { updateGameState };
+export { updateGameState, checkIfInGame };
 
 function setCardImage(cardDiv, card) {
     if (card && card.number && card.suit) {
-        let cardUrl = `/static/piacentine/${card.number.name}_${card.suit.name}.png`;
+        let cardUrl = `https://s3.eu-north-1.amazonaws.com/briscola.pro/piacentine/piacentine/${card.number.name}_${card.suit.name}.png`.toLowerCase();
         cardDiv.style.backgroundImage = `url(${cardUrl.toLowerCase()})`;
         cardDiv.style.backgroundSize = 'contain';
         cardDiv.style.backgroundRepeat = 'no-repeat';
@@ -24,18 +24,25 @@ function updateCards(playerCards, oppCards, cardsPlayable) {
     playerCards.forEach((card) => {
         const cardDiv = document.createElement('div');
 
-        // Add click event listener to each card
-        if (cardsPlayable) {
-            cardDiv.addEventListener('click', () => {
-                const cardIndex = Array.from(playerCardsContainer.children).indexOf(cardDiv);
-                playHumanCard(cardIndex, cardDiv); // Pass the position of the current card
-            });
+        setCardImage(cardDiv, card);
+
+        // Named function for the event listener
+        function handleCardClick(event) {
+            const cardIndex = Array.from(playerCardsContainer.children).indexOf(cardDiv);
+            playHumanCard(cardIndex, cardDiv); // Pass the position of the current card
         }
+
+        // Add click event listener to each card IF they are allowed to be played
+        if (cardsPlayable) {
+            cardDiv.addEventListener('click', handleCardClick);
+
+            // Store reference to the event handler function for potential removal
+            cardDiv.handleCardClick = handleCardClick;
+        }
+
 
         cardDiv.className = 'card';
         playerCardsContainer.appendChild(cardDiv);
-
-        setCardImage(cardDiv, card);
     });
 
     const oppCardsContainer = document.getElementById('opp-cards');
@@ -85,6 +92,25 @@ function updateBriscolaCard(card, num_cards_in_deck) {
     }
 }
 
+
+function setUpInGameResultListener() {
+
+    if (!socket.__inGameResultSetUp) {
+        // Listen for the response from the server
+        socket.on('in_game_check_result', async (data) => {
+            if (!data.in_game) {
+                window.location.href = '/';
+                }
+            }
+        )
+        socket.__inGameResultSetUp = true;
+    }}
+
+function checkIfInGame() {
+    setUpInGameResultListener();
+    socket.emit("check_if_in_game");
+}
+
 function setUpHumanCardPlayedListener() {
     if (!socket.__humanCardPlayedSetUp) {
 
@@ -95,7 +121,7 @@ function setUpHumanCardPlayedListener() {
             }
             // Handle the updated game state
             if (data.pile.cards.length === 0) {
-                setTimeout(async () => { await getGameState(); }, 1500);
+                setTimeout(async () => { await getGameState(); }, 500);
             } else {
                 await getGameState();
             }
@@ -104,10 +130,7 @@ function setUpHumanCardPlayedListener() {
                 setTimeout(() => {
                     endPlay();
                 }, 1500);
-            } else {
-                setTimeout(() => {
-                    endPlay(); }, 500);
-            }
+            } else {endPlay();}
         });
 
 
@@ -117,6 +140,15 @@ function setUpHumanCardPlayedListener() {
 }
 
 async function playHumanCard(cardIndex, cardDiv) {
+
+    // set all other cards to be unplayable
+    const playerCardsContainer = document.getElementById('player-cards');
+    Array.from(playerCardsContainer.children).forEach(cardDiv => {
+        cardDiv.removeEventListener('click', cardDiv.handleCardClick);
+        delete cardDiv.handleCardClick;
+    })
+
+
     cardDiv.classList.add('played'); // Add the class to trigger animation
 
     setTimeout(() => {

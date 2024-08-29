@@ -44,7 +44,7 @@
 
     </div>
     <div class="repo-text-container">
-        <span id="repo-text" class="h3 hidden-message"><a href="https://www.github.com/keatonrproud/briscola" target="_blank">Source Code</a></span>
+        <span id="repo-text" class="h3 hidden-message"><a href="https://www.github.com/keatonrproud/briscola" target="_blank">Contributions + Source Code</a></span>
     </div>
 
     <script type="module">
@@ -146,7 +146,7 @@
 
             // Join room button click handler
             leaveRoomBtn.addEventListener('click', () => {
-                socket.emit('leave_game', { room: 'public_room' });
+                socket.emit('leave_room', { room: 'public_room' });
                 joinRoomBtn.style.display = 'inline-block';
                 leaveRoomBtn.style.display = 'none';
             });
@@ -169,7 +169,7 @@
                         console.log('Socket not connected yet, waiting...');
                         await new Promise((resolve) => socket.on('connect', resolve));
                     }
-                    socket.emit('reset_state', {gameMode: gameMode, difficulty: difficulty}
+                    socket.emit('start_game', {gameMode: gameMode, difficulty: difficulty}
                     );
                 } catch (error) {
                     console.error('Error:', error);
@@ -181,44 +181,46 @@
                 updateRoomBtns(users.length);
             });
 
-                const cardNumbers = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'soldier', 'horse', 'king'];
-                const suits = ['sword', 'club', 'coin', 'cup'];
-                const images = [];
-                let imagesLoaded = 0;
-                const totalImages = cardNumbers.length * suits.length;
+            const cardNumbers = ['ace', 'two', 'three', 'four', 'five', 'six', 'seven', 'soldier', 'horse', 'king'];
+            const suits = ['sword', 'club', 'coin', 'cup'];
+            const images = [];
+            let imagesLoaded = 0;
 
-                // Function to preload a single image
-                function preloadImage(url) {
-                    return new Promise((resolve, reject) => {
-                        const img = new Image();
-                        img.src = url;
-                        img.onload = () => {
-                            images.push(img);
-                            imagesLoaded++;
-                            resolve();
-                        };
-                        img.onerror = reject;
-                    });
-                }
+            // Function to preload a single image
+            function preloadImage(url) {
+                return new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.src = url;
+                    img.onload = () => {
+                        images.push(img);
+                        imagesLoaded++;
+                        resolve();
+                    };
+                    img.onerror = (err) => {
+                        console.error(`Failed to load image: ${url}`, err); // Log errors
+                        reject(err);
+                    };
+                });
+            }
 
-                // Function to preload all images
-                function preloadAllImages() {
-                    const promises = [];
-                    for (const number of cardNumbers) {
-                        for (const suit of suits) {
-                            const url = `https://s3.eu-north-1.amazonaws.com/briscola.pro/piacentine/piacentine/${number}_${suit}.png`.toLowerCase();
-                            promises.push(preloadImage(url));
-                        }
+            // Function to preload all images
+            function preloadAllImages() {
+                const promises = [];
+                for (const number of cardNumbers) {
+                    for (const suit of suits) {
+                        const url = `https://s3.eu-north-1.amazonaws.com/briscola.pro/piacentine/piacentine/${number}_${suit}.png`.toLowerCase();
+                        console.log(`Preloading image: ${url}`); // Log image URLs being preloaded
+                        promises.push(preloadImage(url));
                     }
-                    return Promise.all(promises);
                 }
+                return Promise.all(promises);
+            }
 
-                    preloadAllImages().then(() => {
-                        console.log("All images preloaded successfully!");
-                    }).catch(err => {
-                        console.error("An error occurred while preloading images:", err);
-                    });
-
+            // Preload all images and handle potential errors
+            preloadAllImages()
+                .catch(err => {
+                    console.error('An error occurred while preloading images:', err);
+                });
 
 
 

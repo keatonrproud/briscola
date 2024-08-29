@@ -3,7 +3,7 @@ import os
 from dotenv import load_dotenv
 from flask import Flask, jsonify, render_template, request
 
-from flask_socketio import SocketIO, emit, join_room, leave_room
+from flask_socketio import SocketIO, emit, join_room, leave_room, close_room
 
 from src.backend.computer_logic.basic import basic_choice
 from config.logging_config import build_logger
@@ -20,12 +20,12 @@ socketio = SocketIO(app, cors_allowed_origins="*")  # Use proper CORS settings i
 game = BriscolaWeb(computer_count=1, computer_logic_override=(basic_choice,))
 
 # Store connections and rooms
-USER_ROOM: dict[str, str] = {}  # {user_id: room_name}
-OLD_USER_ROOM: dict[str, str] = (
+USER_GAME_ROOM: dict[str, str] = {}  # {user_id: room_name}
+OLD_USER_GAME_ROOM: dict[str, str] = (
     {}
 )  # {user_id: room_name}    used to retain room membership after disconnect
 ROOM_USERS: dict[str, set[str]] = {"public_room": set()}  # {room_name: {user_ids}}
-ROOM_GAME: dict[str, BriscolaWeb] = {}  # {room_name: game_instance}
+ROOM_ONLINE_GAME: dict[str, BriscolaWeb] = {}  # {room_name: game_instance}
 USER_LOCAL_GAME: dict[str, BriscolaWeb] = {}  # {user_id: game_instance}
 USER_SOCKET: dict[str, str] = {}  # {user_string: current_socket_string}
 
@@ -39,20 +39,27 @@ def index() -> str:
 def turn() -> str:
     return render_template("turn.html")
 
-
 def get_oid(request_sid) -> str:
     return USER_SOCKET.get(request_sid, None)
 
+
+@socketio.on("check_if_in_game")
+def handle_check_if_in_game():
+    oid = get_oid(request.sid) or request.sid
+
+    in_game = USER_GAME_ROOM.get(oid, None) is not None or oid in USER_LOCAL_GAME or request.sid in USER_LOCAL_GAME
+
+    emit("in_game_check_result", {"in_game": in_game})
 
 def get_game_from_oid(oid) -> BriscolaWeb:
     if oid in USER_LOCAL_GAME:
         game = USER_LOCAL_GAME[oid]
     else:
-        room = USER_ROOM[oid]
+        room = USER_GAME_ROOM[oid]
 
         # if the user is playing in a muliplayer room
         if room:
-            game = ROOM_GAME[room]
+            game = ROOM_ONLINE_GAME[room]
         else:
             game = USER_LOCAL_GAME[oid]
 
@@ -64,12 +71,12 @@ def get_game_and_oid_from_request_sid(request_sid) -> tuple[str, BriscolaWeb]:
     return oid, get_game_from_oid(oid)
 
 
-@socketio.on("reset_state")
-def reset_state(data):
+@socketio.on("start_game")
+def handle_start_game(data):
     game_mode = data.get("gameMode")
     difficulty = data.get("difficulty")
-    user_id = get_oid(request.sid)
-    room = USER_ROOM.get(user_id, None)
+    oid = get_oid(request.sid)
+    room = USER_GAME_ROOM.get(oid, None)
 
     if game_mode is None or difficulty is None:
         emit("error", {"message": "Missing data"})
@@ -82,7 +89,7 @@ def reset_state(data):
             if room and len(ROOM_USERS[room]) == 2:
                 if room in ROOM_USERS and len(ROOM_USERS[room]) == 2:
                     # Initialize the game instance for this room
-                    room_game = ROOM_GAME[room] = BriscolaWeb(fixed_shown_player=True)
+                    room_game = ROOM_ONLINE_GAME[room] = BriscolaWeb(fixed_shown_player=True)
                     room_game.userid_playernum_map = {
                         user_id: player_num
                         for user_id, player_num in zip(
@@ -97,12 +104,12 @@ def reset_state(data):
                     )
                     return
             else:
-                room_game = USER_LOCAL_GAME[user_id] = BriscolaWeb()
+                room_game = USER_LOCAL_GAME[oid] = BriscolaWeb()
                 in_room = False
 
         elif game_mode == "computer":
             # Set up a game against the computer with a specified difficulty
-            room_game = USER_LOCAL_GAME[user_id] = BriscolaWeb(
+            room_game = USER_LOCAL_GAME[oid] = BriscolaWeb(
                 computer_count=1,
                 computer_logic_override=(basic_choice,),
                 computer_skill_level=difficulty,
@@ -132,6 +139,7 @@ def emit_game_state(
 @socketio.on("get_state")
 def handle_get_state(data=None):
     oid, oid_game = get_game_and_oid_from_request_sid(request_sid=request.sid)
+
     continue_play = data.get("continue_play") if data is not None else False
 
     emit_game_state(oid_game, continue_play=continue_play)
@@ -163,7 +171,7 @@ def get_computer_choice() -> jsonify:
 @socketio.on("end_play")
 def end_play() -> None:
     oid, game = get_game_and_oid_from_request_sid(request.sid)
-    room = USER_ROOM[oid]
+    room = USER_GAME_ROOM[oid]
 
     game.end_play()
 
@@ -191,7 +199,7 @@ def add_user_to_room(oid, room) -> None:
     if room not in ROOM_USERS:
         ROOM_USERS[room] = set()
 
-    USER_ROOM[oid] = room
+    USER_GAME_ROOM[oid] = room
     ROOM_USERS[room] = ROOM_USERS[room] | {oid}
 
 
@@ -200,18 +208,18 @@ def handle_connect():
     """The first time a user connects, they're assigned their 'permanent' oid as their first socket.id"""
     user_id = request.sid
 
-    USER_ROOM[user_id] = None
+    USER_GAME_ROOM[user_id] = None
     USER_SOCKET[user_id] = user_id
 
-    emit("update_user_count", {"count": len(USER_ROOM.keys())}, broadcast=True)
-    print(f"User connected: {user_id}, Total users: {len(USER_ROOM.keys())}")
+    emit("update_user_count", {"count": len(USER_GAME_ROOM.keys())}, broadcast=True)
+    print(f"User connected: {user_id}, Total users: {len(USER_GAME_ROOM.keys())}")
 
 
 @socketio.on("disconnect")
 def handle_disconnect():
     oid = get_oid(request.sid)
-    OLD_USER_ROOM[oid] = USER_ROOM[oid]
-    room = USER_ROOM.pop(oid, None)
+    OLD_USER_GAME_ROOM[oid] = USER_GAME_ROOM[oid]
+    room = USER_GAME_ROOM.pop(oid, None)
 
     if room and room in ROOM_USERS:
         ROOM_USERS[room].remove(oid)
@@ -240,14 +248,14 @@ def handle_join_game(data):
 
 def remove_user_from_room(user_id, room) -> None:
     ROOM_USERS[room].remove(user_id)
-    if user_id in USER_ROOM:
-        del USER_ROOM[user_id]
+    if user_id in USER_GAME_ROOM:
+        del USER_GAME_ROOM[user_id]
 
-    print("remove_user_from_room", USER_ROOM)
+    print("remove_user_from_room", USER_GAME_ROOM)
 
 
-@socketio.on("leave_game")
-def handle_leave_game(data):
+@socketio.on("leave_room")
+def handle_leave_room(data):
     room = data.get("room")
     oid = get_oid(request.sid)
 
@@ -259,6 +267,17 @@ def handle_leave_game(data):
     emit("room_update", {"room": room, "users": list(ROOM_USERS[room])}, broadcast=True)
 
 
+@socketio.on("leave_game")
+def handle_leave_game():
+    oid = get_oid(request.sid)
+
+    # if user is in an online room
+    if room := USER_GAME_ROOM.get(oid, None):
+        emit("room_closed", to=room)
+        close_room(room)
+    else:
+        emit("room_closed", to=request.sid)
+
 @socketio.on("update_user_id")
 def update_user_id(data):
     old_id = data.get("user_id")
@@ -268,11 +287,11 @@ def update_user_id(data):
         USER_SOCKET[new_id] = USER_SOCKET[old_id]
         del USER_SOCKET[old_id]
 
-    if old_id in OLD_USER_ROOM.keys():
-        USER_ROOM[old_id] = OLD_USER_ROOM[old_id]
-        join_room(room=OLD_USER_ROOM[old_id], sid=new_id)
-        if new_id in USER_ROOM:
-            del USER_ROOM[new_id]
+    if old_id in OLD_USER_GAME_ROOM.keys():
+        USER_GAME_ROOM[old_id] = OLD_USER_GAME_ROOM[old_id]
+        join_room(room=OLD_USER_GAME_ROOM[old_id], sid=new_id)
+        if new_id in USER_GAME_ROOM:
+            del USER_GAME_ROOM[new_id]
 
     return jsonify({"status": "success"})
 

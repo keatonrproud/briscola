@@ -6,8 +6,13 @@
     <title>Briscola</title>
     <link rel="stylesheet" href="/static/styles.css">
     <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
-    <script src="/static/js/websocket.js" defer></script>
+    <script type="module" src="/static/js/websocket.js" defer></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script type="module" src="/static/script.js" defer></script>
+    <script type="module">
+        import { checkIfInGame } from '/static/script.js';
+        checkIfInGame();
+    </script>
 </head>
 <body>
     <div class="container">
@@ -21,6 +26,5 @@
             <button class="button" onclick="window.location.href='/'">Return Home</button>
         </div>
     </div>
-<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 </body>
 </html>

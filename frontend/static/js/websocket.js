@@ -1,7 +1,7 @@
+export { socket };
+
 const socket = io();
 const PORT = 10000;
-
-export { socket };
 
 // Ensure this script runs after the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', () => {
