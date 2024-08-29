@@ -5,7 +5,7 @@ from flask import Flask, jsonify, render_template, request
 
 from flask_socketio import SocketIO, emit, join_room, leave_room, close_room
 
-from backend import basic_choice
+from backend.computer_logic.basic import basic_choice
 from config.logging_config import build_logger
 from play.web.client import BriscolaWeb
 
@@ -27,7 +27,7 @@ OLD_USER_GAME_ROOM: dict[str, str] = (
 ROOM_USERS: dict[str, set[str]] = {"public_room": set()}  # {room_name: {user_ids}}
 ROOM_ONLINE_GAME: dict[str, BriscolaWeb] = {}  # {room_name: game_instance}
 USER_LOCAL_GAME: dict[str, BriscolaWeb] = {}  # {user_id: game_instance}
-USER_SOCKET: dict[str, str] = {}  # {user_string: current_socket_string}
+USER_SOCKET: dict[str, str | None] = {}  # {user_string: current_socket_string}
 
 
 @app.route("/")
