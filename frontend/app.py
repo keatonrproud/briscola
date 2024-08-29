@@ -5,7 +5,7 @@ from flask import Flask, jsonify, render_template, request
 
 from flask_socketio import SocketIO, emit, join_room, leave_room, close_room
 
-from src.backend.computer_logic.basic import basic_choice
+from backend import basic_choice
 from config.logging_config import build_logger
 from play.web.client import BriscolaWeb
 

@@ -1,4 +1,4 @@
-from src.backend.computer_logic.basic import basic_choice
+from backend import basic_choice
 from play.cli.client import BriscolaCLI
 
 if __name__ == "__main__":
