@@ -209,7 +209,6 @@
                 for (const number of cardNumbers) {
                     for (const suit of suits) {
                         const url = `https://s3.eu-north-1.amazonaws.com/briscola.pro/piacentine/piacentine/${number}_${suit}.png`.toLowerCase();
-                        console.log(`Preloading image: ${url}`); // Log image URLs being preloaded
                         promises.push(preloadImage(url));
                     }
                 }

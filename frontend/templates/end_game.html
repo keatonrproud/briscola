@@ -10,8 +10,25 @@
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script type="module" src="/static/script.js" defer></script>
     <script type="module">
+        import { socket } from '/static/js/websocket.js';
+        const userId = localStorage.getItem('user_id');
+        socket.emit("update_user_id", { user_id: userId});
+
         import { checkIfInGame } from '/static/script.js';
         checkIfInGame();
+
+        // Event listener for the 'end_game_response' event from the server
+        socket.on('end_game_response', function(data) {
+            console.log('end game message received');
+            const messageElement = document.querySelector('.message');
+            messageElement.textContent = data.winner_message;
+
+            // Optionally, show a confetti animation
+            document.querySelector('.confetti').style.display = 'block';
+        });
+
+        socket.emit('end_game');
+
     </script>
 </head>
 <body>

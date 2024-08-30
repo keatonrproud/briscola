@@ -178,8 +178,15 @@ def end_play() -> None:
     emit("end_play", {"game_state": game.to_dict()}, room=room)
 
 
-@app.route("/end_game")
-def end_game() -> str:
+@socketio.on('end_game')
+def end_game():
+    oid, game = get_game_and_oid_from_request_sid(request.sid)
+
+    online_room = USER_GAME_ROOM.get(oid, None)
+    user = request.sid
+
+    target = online_room or user
+
     max_score = max(player.score for player in game.players)
     winner = next((player for player in game.players if player.score > game.win_condition), None)
 
@@ -192,7 +199,12 @@ def end_game() -> str:
         else:
             winner_message = f"{tied_players[0]} wins with {max_score} points!"
 
-    return render_template("end_game.html", winner_message=winner_message)
+    # Emit the winner message to all clients
+    emit('end_game_response', {'winner_message': winner_message}, to=target)
+
+@app.route('/end_game')
+def end_game_page():
+    return render_template("end_game.html")
 
 
 def add_user_to_room(oid, room) -> None:
