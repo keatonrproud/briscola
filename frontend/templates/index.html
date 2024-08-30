@@ -37,7 +37,7 @@
                 <button id="leave-room-btn" class="button" style="display: none;">Leave</button>
             </div>
 
-            <button class="button" id="start-game-btn">Start Game</button>
+            <button class="button" id="start-game-btn">Start Local Game</button>
 
 
         </div>
@@ -123,8 +123,12 @@
                     startGameButton.textContent = "Waiting for another player...";
                     startGameButton.disabled = true;
                 } else {
-                    startGameButton.textContent = "Start Game";
                     startGameButton.disabled = false;
+                    if (leaveRoomBtn.style.display !== "none") {
+                        startGameButton.textContent = "Start Online Game";
+                    } else {
+                        startGameButton.textContent = "Start Local Game";
+                    }
                 }
             }
 
@@ -215,12 +219,13 @@
                 return Promise.all(promises);
             }
 
-            // Preload all images and handle potential errors
-            preloadAllImages()
-                .catch(err => {
-                    console.error('An error occurred while preloading images:', err);
-                });
-
+            // only preload images when online and pulling images via AWS, otherwise we use local images
+            if (navigator.onLine) {
+                preloadAllImages()
+                    .catch(err => {
+                        console.error('An error occurred while preloading images:', err);
+                    });
+            }
 
 
         })

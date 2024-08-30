@@ -69,7 +69,6 @@
                     if (data.error) {
                         console.error('Error:', data.error);
                     } else {
-                        console.log('got state');
                         await updateGameState(data);
                     }
                 });
@@ -124,7 +123,6 @@
             });
 
             exitBtn.addEventListener('click', () => {
-                console.log('leaving game');
                 socket.emit("leave_game");
             });
 

@@ -1,7 +1,10 @@
 import os
-
 from dotenv import load_dotenv
 from flask import Flask, jsonify, render_template, request
+
+import http.client
+import sched
+import time
 
 from flask_socketio import SocketIO, emit, join_room, leave_room, close_room
 
@@ -323,6 +326,31 @@ def convert_socketid_to_oid():
 
     return jsonify({"oid": get_oid(socket_id)})
 
+
+@app.route('/keep-alive')
+def keep_alive():
+    """Used to keep the server from sleeping on Render."""
+    return 'Keep-alive ping received', 200
+
+# Function to ping the keep-alive endpoint
+def ping_server():
+    with http.client.HTTPSConnection('briscola-qbbv.onrender.com') as conn:
+        conn.request("GET", "/keep-alive")
+        response = conn.getresponse()
+        if response.status == 200:
+            print('Ping successful.')
+        else:
+            print(f'Ping failed with status code {response.status}')
+
+scheduler = sched.scheduler(time.monotonic, time.sleep)
+PING_INTERVAL = 30  # 30 seconds
+
+def schedule_ping():
+    scheduler.enter(PING_INTERVAL, 1, ping_server)
+    scheduler.enter(PING_INTERVAL, 1, schedule_ping)
+
+schedule_ping()
+scheduler.run()
 
 if __name__ == "__main__":
     socketio.run(app, debug=True)

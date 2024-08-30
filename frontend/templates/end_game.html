@@ -19,12 +19,8 @@
 
         // Event listener for the 'end_game_response' event from the server
         socket.on('end_game_response', function(data) {
-            console.log('end game message received');
             const messageElement = document.querySelector('.message');
             messageElement.textContent = data.winner_message;
-
-            // Optionally, show a confetti animation
-            document.querySelector('.confetti').style.display = 'block';
         });
 
         socket.emit('end_game');
@@ -33,9 +29,6 @@
 </head>
 <body>
     <div class="container">
-        <!-- Confetti element, animated via JavaScript -->
-        <div class="confetti"></div>
-
         <!-- Main content area for game over message and button -->
         <div class="game-over-card">
             <p class="message">{{ winner_message }}</p>

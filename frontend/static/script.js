@@ -1,9 +1,18 @@
 import { socket } from '/static/js/websocket.js'; // Import socket instance
 export { updateGameState, checkIfInGame };
 
+function getCardPath() {
+    return navigator.onLine
+    ? 'https://s3.eu-north-1.amazonaws.com/briscola.pro/piacentine/piacentine'
+        : '/static/piacentine';
+}
+
 function setCardImage(cardDiv, card) {
     if (card && card.number && card.suit) {
-        let cardUrl = `https://s3.eu-north-1.amazonaws.com/briscola.pro/piacentine/piacentine/${card.number.name}_${card.suit.name}.png`.toLowerCase();
+
+        let cardFileName = `${card.number.name}_${card.suit.name}.png`.toLowerCase();
+        let cardUrl = `${getCardPath()}/${cardFileName}`;
+
         cardDiv.style.backgroundImage = `url(${cardUrl.toLowerCase()})`;
         cardDiv.style.backgroundSize = 'contain';
         cardDiv.style.backgroundRepeat = 'no-repeat';
@@ -310,18 +319,30 @@ function endGame() {
     window.location.href = '/end_game';
 }
 
+function blastConfettiForBigScore() {
+    const scoreboard = document.getElementById('scoreboard');
+    const rect = scoreboard.getBoundingClientRect();
+    const x = rect.left + rect.width / 2; // Horizontal center of the scoreboard
+    const y = rect.top; // Top of the scoreboard
+
+    showConfetti(x / window.innerWidth,  y / window.innerHeight);
+}
 
 async function updateGameState(data) {
     // Extract data for the active player
     const state = data.game_state;
 
+    const activePlayer = state.active_player;
+    const playerNum = activePlayer.player_num; // Example: Player 1
+
+    if (activePlayer.score - pastScores[playerNum] > 11) {
+        blastConfettiForBigScore()
+    }
+
     updateBriscolaCard(state.briscola.card, state.deck.current_cards.length); // Update the Briscola card
     updateScoreboard(state.players); // Update scoreboard
     updateDeck(state.deck.current_cards); // Update the deck
 
-
-    const activePlayer = state.active_player;
-    const playerNum = activePlayer.player_num; // Example: Player 1
 
     let shownPlayer = state.shown_player;
     // is shown player is not fixed, and the active player is a person
@@ -347,15 +368,6 @@ async function updateGameState(data) {
     updateActivePile(state.pile.cards, activePlayer, shownPlayer); // Update active pile
 
 
-    if (activePlayer.score - pastScores[playerNum] > 11) {
-        const scoreboard = document.getElementById('scoreboard');
-        const rect = scoreboard.getBoundingClientRect();
-        const x = rect.left + rect.width / 2; // Horizontal center of the scoreboard
-        const y = rect.top; // Top of the scoreboard
-
-        showConfetti(x / window.innerWidth,  y / window.innerHeight);
-    }
-
     const activePlayerIsFirst = state.turn_order[0].player_num === activePlayer.player_num;
     const noComputerCardPlayed = (state.pile.cards.length === 0 && activePlayerIsFirst) || (activePlayer.hand.cards.length === 3 && state.pile.cards.length < state.players.length);
     if (!activePlayer.is_person && noComputerCardPlayed){
@@ -365,8 +377,20 @@ async function updateGameState(data) {
     if (!state.game_ongoing) {
         endGame();
     }
-
-
-
-
 }
+
+function pingServer() {
+    fetch('/keep-alive')
+        .then(response => {
+            if (response.ok) {
+            } else {
+                console.error('Ping failed:', response.statusText);
+            }
+        })
+        .catch(error => {
+            console.error('Error during ping:', error);
+        });
+}
+
+// Ping the server every 5 minutes (300000 milliseconds)
+setInterval(pingServer, 700000);
