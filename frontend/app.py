@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 from flask import Flask, jsonify, render_template, request
+from threading import Thread
 
 import http.client
 import sched
@@ -334,6 +335,7 @@ def keep_alive():
 
 # Function to ping the keep-alive endpoint
 def ping_server():
+    print('ping attempt')
     with http.client.HTTPSConnection('briscola-qbbv.onrender.com') as conn:
         conn.request("GET", "/keep-alive")
         response = conn.getresponse()
@@ -349,8 +351,13 @@ def schedule_ping():
     scheduler.enter(PING_INTERVAL, 1, ping_server)
     scheduler.enter(PING_INTERVAL, 1, schedule_ping)
 
-schedule_ping()
-scheduler.run()
+def start_scheduler():
+    schedule_ping()
+    scheduler.run()
+
+scheduler_thread = Thread(target=start_scheduler)
+scheduler_thread.daemon = True
+scheduler_thread.start()
 
 if __name__ == "__main__":
     socketio.run(app, debug=True)
