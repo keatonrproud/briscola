@@ -351,7 +351,7 @@ def ping_server():
 
 
 scheduler = sched.scheduler(time.monotonic, time.sleep)
-PING_INTERVAL = 30  # 30 seconds
+PING_INTERVAL = 12 * 60  # 12 minutes
 
 def schedule_ping():
     scheduler.enter(PING_INTERVAL, 1, ping_server)
