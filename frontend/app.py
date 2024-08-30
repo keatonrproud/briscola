@@ -336,13 +336,19 @@ def keep_alive():
 # Function to ping the keep-alive endpoint
 def ping_server():
     print('ping attempt')
-    with http.client.HTTPSConnection('briscola-qbbv.onrender.com') as conn:
-        conn.request("GET", "/keep-alive")
+    conn = http.client.HTTPSConnection('briscola-qbbv.onrender.com')
+    try:
+        conn.request("GET", '/keep-alive')
         response = conn.getresponse()
         if response.status == 200:
             print('Ping successful.')
         else:
             print(f'Ping failed with status code {response.status}')
+    except Exception as e:
+        print(f'Error during ping: {e}')
+    finally:
+        conn.close()
+
 
 scheduler = sched.scheduler(time.monotonic, time.sleep)
 PING_INTERVAL = 30  # 30 seconds
