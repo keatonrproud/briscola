@@ -1,15 +1,12 @@
 import os
 from dotenv import load_dotenv
 from flask import Flask, jsonify, render_template, request
-from threading import Thread
 
-import http.client
-import sched
-import time
+from other.scheduled.keep_alive import keep_alive
 
 from flask_socketio import SocketIO, emit, join_room, leave_room, close_room
 
-from backend.computer_logic.basic import basic_choice
+from other.computer_logic.basic import basic_choice
 from config.logging_config import build_logger
 from play.web.client import BriscolaWeb
 
@@ -19,7 +16,7 @@ load_dotenv()
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY")
-socketio = SocketIO(app, cors_allowed_origins="*")  # Use proper CORS settings in production
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 game = BriscolaWeb(computer_count=1, computer_logic_override=(basic_choice,))
 
@@ -33,6 +30,8 @@ ROOM_ONLINE_GAME: dict[str, BriscolaWeb] = {}  # {room_name: game_instance}
 USER_LOCAL_GAME: dict[str, BriscolaWeb] = {}  # {user_id: game_instance}
 USER_SOCKET: dict[str, str | None] = {}  # {user_string: current_socket_string}
 
+# used to ping the keep-alive endpoint at some interval to avoid Render's 15min sleep
+keep_alive()
 
 @app.route("/")
 def index() -> str:
@@ -333,37 +332,6 @@ def keep_alive():
     """Used to keep the server from sleeping on Render."""
     return 'Keep-alive ping received', 200
 
-# Function to ping the keep-alive endpoint
-def ping_server():
-    print('ping attempt')
-    conn = http.client.HTTPSConnection('briscola-qbbv.onrender.com')
-    try:
-        conn.request("GET", '/keep-alive')
-        response = conn.getresponse()
-        if response.status == 200:
-            print('Ping successful.')
-        else:
-            print(f'Ping failed with status code {response.status}')
-    except Exception as e:
-        print(f'Error during ping: {e}')
-    finally:
-        conn.close()
-
-
-scheduler = sched.scheduler(time.monotonic, time.sleep)
-PING_INTERVAL = 12 * 60  # 12 minutes
-
-def schedule_ping():
-    scheduler.enter(PING_INTERVAL, 1, ping_server)
-    scheduler.enter(PING_INTERVAL, 1, schedule_ping)
-
-def start_scheduler():
-    schedule_ping()
-    scheduler.run()
-
-scheduler_thread = Thread(target=start_scheduler)
-scheduler_thread.daemon = True
-scheduler_thread.start()
 
 if __name__ == "__main__":
     socketio.run(app, debug=True)

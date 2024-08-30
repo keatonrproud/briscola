@@ -4,7 +4,7 @@ from functools import cached_property
 from random import choice
 from typing import Callable, Final
 
-from backend.computer_logic.random_ import random_choice
+from other.computer_logic.random_ import random_choice
 from card_games.briscola.card import BriscolaCard
 from card_games.briscola.deck import BriscolaDeck
 from card_games.briscola.game_settings import CARDS_IN_HAND, PLAY_DIRECTION
