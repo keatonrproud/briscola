@@ -115,6 +115,11 @@ br {
     flex-wrap: wrap; /* Allows wrapping for smaller screens */
 }
 
+.game-mode-selector:focus, .game-mode-selector:active, .mode-label:focus, .mode-label:active, .toggle:focus, .toggle:active {
+    background-color: transparent;
+    outline: none;
+}
+
 .mode-label {
     transition: opacity 0.3s ease;
     padding: 0 15px;
