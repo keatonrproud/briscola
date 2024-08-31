@@ -36,7 +36,7 @@ Play vs a friend (local or online!) or the computer at www.briscola.pro ⚔️
   - [ ] Appearance
     - [ ] First card played by Human in game doesn't show?
     - [ ] Fix card image alignment
-    - [ ] Briscola card under the deck?
+    - [x] Briscola card under the deck?
     - [ ] Choice of card set (Piacentine, etc)
     - [x] Short loading screen before match shows up to avoid empty cards, objects, etc
     - [x] Friendly for small screens, ie mobile

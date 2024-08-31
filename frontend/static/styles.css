@@ -254,7 +254,7 @@ input:checked + .slider:before {
     cursor: pointer;
     font-size: 16px;
     margin-top: 10px;
-    width: 50%;
+    width: 55%;
     display: inline-block;
 }
 
@@ -285,7 +285,7 @@ input:checked + .slider:before {
     margin-top: 10px;
     display: none;
     height: 10%;
-    width: 50%;
+    width: 55%;
     transition: opacity 0.5s ease; /* Smooth transition for fading in and out */
 }
 
@@ -597,25 +597,17 @@ a:focus, a:active {
 /* Briscola card container styling */
 #briscola-container {
     position: absolute;
-    left: 10%; /* Move to the left side */
-    top: 50%; /* Center vertically */
-    transform: translateY(-50%); /* Adjust to truly center */
-    padding: 10px;
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    width: 100vw;
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: right;
     font-family: Arial, sans-serif;
     font-size: 24px;
     user-select: none; /* Disables text selection */
     pointer-events: none; /* Disables clicking on text and images */
-}
-
-/* Title styling */
-#briscola-title {
-    font-size: 16px;
-    font-weight: bold;
-    color: #ffffff; /* Matching color */
+    top: 25%;
+    right: 10rem;
 }
 
 /* Symbol and number styling for the Briscola card */
@@ -630,40 +622,31 @@ a:focus, a:active {
 
 /* Modern card container */
 #briscola-card {
+    transform: rotate(90deg); /* Adjust to truly center */
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: var(--face-up-card-width); /* Adjust width as needed */
-    height: var(--face-up-card-height); /* Adjust height as needed */
+    width: 7rem; /* Adjust width as needed */
+    height: 12rem; /* Adjust height as needed */
     border: 2px solid #007bff; /* Modern blue border */
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
-
 }
 
 @media (max-width: 600px) {
-    #briscola-title {
-        font-size: 10px;
-    }
-
     #briscola-card {
         width: 5rem;
         height: 8.5rem;
+        margin-right: 6rem;
     }
-
-    #briscola-container {
-        left: 0; /* Move to the left side */
-        top: 40%; /* Center vertically */
-    }
-
 }
 
 
 /* Deck container /* Deck container styling */
 #deck-container {
     position: absolute;
-    top: 40%; /* Position below the Briscola card */
+    top: 40%;
     right: 20px;
     width: 120px; /* Adjust width as needed */
     height: auto;
@@ -707,11 +690,18 @@ a:focus, a:active {
 /* Player cards container at the bottom */
 #player-cards {
     position: absolute;
+    bottom: 15%;
     justify-content: center;
     align-content: flex-end;
-    margin: auto 0 auto 0;
+    white-space: nowrap;
     padding: 0;
     width: 100vw;
+}
+
+@media (max-width: 600px) {
+    #player-cards {
+        max-height: 50%;
+    }
 }
 
 /* Keyframes for moving up and fading out */
@@ -734,8 +724,8 @@ a:focus, a:active {
 /* Active Pile Section */
 #active-pile {
     position: absolute;
-    top: 30%; /* Center vertically */
-    left: 50%; /* Center horizontally */
+    top: 35%;
+    left: 50%;
     width: 90%;
     height: 20%;
     display: flex;
@@ -782,6 +772,11 @@ a:focus, a:active {
 @media (max-width: 600px) {
     #active-pile .container {
         padding: 0;
+    }
+
+    /* closer to vertical center on mobile as deck can't be beside the active pile */
+    #active-pile {
+        top: 40%;
     }
 }
 
