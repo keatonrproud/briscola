@@ -22,6 +22,7 @@ class Player:
         in_game: bool = True,
         color: PlayerColor = choice(list(PlayerColor)),
         is_person: bool = True,
+        unique_player_type = False
     ):
         self.player_num = player_num
         self.hand = hand if hand is not None else Hand(cards=[])
@@ -30,10 +31,14 @@ class Player:
         self.in_game = in_game
         self.color = color
         self.is_person = is_person
+        self.unique_player_type = unique_player_type
 
     def __repr__(self) -> str:
         player_type = "Player" if self.is_person else "Computer"
-        return f"{self.color.value} {player_type} {self.player_num}"
+        repr = f"{self.color.value} {player_type}"
+        if not self.unique_player_type:
+            repr += f" {self.player_num}"
+        return repr
 
     def to_dict(self) -> dict:
         return {
@@ -44,4 +49,5 @@ class Player:
             "in_game": self.in_game,
             "color": self.color.value,
             "is_person": self.is_person,
+            "repr": self.__repr__()
         }

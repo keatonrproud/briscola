@@ -132,15 +132,26 @@ class BriscolaGame(CardGame, ABC):
             BriscolaPlayer(player_num=num + 1, color=colors[num])
             for num in range(self.table_settings.player_count)
         ]
+
+        # set players as computers working from the end of the player list
         for computer_idx in range(0, self.computer_count):
             computer = players[-(computer_idx + 1)]
             computer.is_person = False
 
+        # if there is only one human player, set it as a unique type to make its __repr__ avoid player_num
+        if self.table_settings.player_count - self.computer_count == 1:
+            players[0].unique_player_type = True
+
         if self.computer_count > 0:
+            # if there is only one computer, set it as a unique type to make its __repr__ avoid player_num
+            if self.computer_count == 1:
+                computer = next(player for player in players if not player.is_person)
+                computer.unique_player_type = True
+
             assert (
                 len(self.computer_logic_override) > 0
             ), "You must include at least one computer logic override for your computers."
-            self.set_computer_logic(computers=players[-self.computer_count :])
+            self.set_computer_logic(computers=players[-self.computer_count:])
 
         return players
 

@@ -65,17 +65,18 @@ function updateCards(playerCards, oppCards, cardsPlayable) {
     });
 }
 
-function updateTurnInfo(player, shownPlayer) {
+function updateTurnInfo(player, shownPlayer, gameState) {
     const turnInfo = document.getElementById('turn-info');
 
-    let text = ""
-    if (player.player_num === shownPlayer.player_num) {
+    let text = "";
+    let onlineGame = gameState.fixed_shown_player;
+    let singleHuman = gameState.table_settings.player_count - gameState.table_settings.computer_count === 1;
+
+    // if the active player is the shown one, and the game is either online or there's only one human, show Your Turn
+    if (player.player_num === shownPlayer.player_num && (onlineGame || singleHuman)) {
         text = `${player.color} Your Turn`
-    }
-    else if (player.is_person) {
-        text = `${player.color} Player ${player.player_num}`;
     } else {
-        text = `${player.color} Computer`;
+        text = player.repr;
     }
 
     turnInfo.textContent = text
@@ -242,7 +243,7 @@ function updateScoreboard(players) {
         const scoreDiv = document.createElement('div');
         scoreDiv.className = 'score';
         scoreDiv.innerHTML = `
-            <span>Player ${player.player_num}:</span>
+            <span>${player.repr}:</span>
             <span>${player.score}</span>
         `;
         scoresContainer.appendChild(scoreDiv);
@@ -365,7 +366,7 @@ async function updateGameState(data) {
 
     updateCards(shownPlayer.hand.cards, oppPlayer.hand.cards, cardsPlayable);
 
-    updateTurnInfo(activePlayer, shownPlayer); // Update the turn info
+    updateTurnInfo(activePlayer, shownPlayer, state); // Update the turn info
     updateActivePile(state.pile.cards, activePlayer, shownPlayer); // Update active pile
 
 

@@ -56,17 +56,17 @@ def handle_check_if_in_game():
 
 def get_game_from_oid(oid) -> BriscolaWeb:
     if oid in USER_LOCAL_GAME:
-        game = USER_LOCAL_GAME[oid]
+        oid_game = USER_LOCAL_GAME[oid]
     else:
         room = USER_GAME_ROOM[oid]
 
         # if the user is playing in a muliplayer room
         if room:
-            game = ROOM_ONLINE_GAME[room]
+            oid_game = ROOM_ONLINE_GAME[room]
         else:
-            game = USER_LOCAL_GAME[oid]
+            oid_game = USER_LOCAL_GAME[oid]
 
-    return game
+    return oid_game
 
 
 def get_game_and_oid_from_request_sid(request_sid) -> tuple[str, BriscolaWeb]:
@@ -193,7 +193,6 @@ def end_game():
     max_score = max(player.score for player in game.players)
     winner = next((player for player in game.players if player.score > game.win_condition), None)
 
-
     if winner:
         message = f"{winner} wins!"
     else:
@@ -206,10 +205,10 @@ def end_game():
     sorted_players = sorted(game.players, key=lambda player: player.score, reverse=True)
 
     # must use \r\n for line break to work in textContent attribute of html
-    message += "\r\n\r\n\r\n" + "\r\n".join(f"{player}:          {player.score}pts" for player in sorted_players)
+    scores = [[str(player), f"{player.score}pts"] for player in sorted_players]
 
     # Emit the winner message to all clients
-    emit('end_game_response', {'message': message}, to=target)
+    emit('end_game_response', {'message': message, 'scores': scores}, to=target)
 
 @app.route('/end_game')
 def end_game_page():

@@ -21,6 +21,23 @@
         socket.on('end_game_response', function(data) {
             const messageElement = document.querySelector('.message');
             messageElement.textContent = data.message;
+
+            const finalScores = document.querySelector('.final-scores')
+            const scoresInfo = data.scores;
+            scoresInfo.forEach((score) => {
+
+                    const scoreEntry = document.createElement('div');
+                    scoreEntry.className = 'player-score-info';
+
+                    score.forEach((playerInfo) => {
+                        const playerInfoSpan = document.createElement('span');
+                        playerInfoSpan.textContent = playerInfo;
+
+                        scoreEntry.appendChild(playerInfoSpan);
+                    })
+
+                finalScores.appendChild(scoreEntry);
+            })
         });
 
         socket.emit('end_game');
@@ -28,13 +45,12 @@
     </script>
 </head>
 <body>
-    <div class="container">
-        <!-- Main content area for game over message and button -->
-        <div class="game-over-card">
-            <p class="message">{{ winner_message }}</p>
-            <div class="game-over-header"></div>
-            <button class="button" onclick="window.location.href='/'">Return Home</button>
-        </div>
+    <!-- Main content area for game over message and button -->
+    <div class="game-over-card">
+        <p class="message">{{ winner_message }}</p>
+        <div class="final-scores"></div>
+        <div class="game-over-header"></div>
+        <button class="button" onclick="window.location.href='/'">Return Home</button>
     </div>
 </body>
 </html>
