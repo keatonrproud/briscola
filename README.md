@@ -31,6 +31,9 @@ Play vs a friend (local or online!) or the computer at www.briscola.pro ⚔️
     - [ ] Fix card image alignment
     - [ ] Briscola card under the deck?
     - [ ] Friendly for small screens, ie mobile
+      - [ ] Home screen
+      - [ ] Turn screen
+      - [ ] End Game screen
     - [ ] Choice of card set (Piacentine, etc)
     - [ ] Short loading screen before match shows up to avoid empty cards, objects, etc
     - [x] Logic for offline use to load images locally
