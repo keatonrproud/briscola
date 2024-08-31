@@ -9,11 +9,17 @@
     <script type="module" src="/static/script.js"></script> <!-- Link to the external JavaScript file -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js" defer></script>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-
 </head>
 <body>
 
-       <!-- Opp Cards -->
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="loader"></div>
+    </div>
+
+    <!-- Main Content Wrapper -->
+    <div id="main-content">
+        <!-- Opp Cards -->
         <div id="opp-cards" class="face-down-cards"></div>
 
         <!-- Active Pile Section -->
@@ -31,19 +37,18 @@
         <!-- Full deck of cards will be inserted here -->
         <div id="deck-container"></div>
 
-       <!-- Player Cards -->
+        <!-- Player Cards -->
         <div id="player-cards" class="cards"></div>
 
         <div id="bottom-buttons">
-
             <div id="exit-btn-container">
-               <button id="exit-btn">🔙</button>
+                <button id="exit-btn">🔙</button>
             </div>
 
             <!-- Turn Information -->
             <div id="turn-info"></div>
 
-                <!-- Scoreboard -->
+            <!-- Scoreboard -->
             <div id="scoreboard-container">
                 <button id="scoreboard-toggle">Scoreboard</button>
                 <div id="scoreboard">
@@ -52,21 +57,18 @@
                     </div>
                 </div>
             </div>
-
         </div>
+    </div> <!-- End of main-content div -->
 
-    <script type = "module">
+    <script type="module">
         import { socket } from '/static/js/websocket.js';
-
-        const userId = localStorage.getItem('user_id');
-        socket.emit("update_user_id", { user_id: userId});
-
         import { updateGameState } from '/static/script.js';
         import { checkIfInGame } from '/static/script.js';
 
+        const userId = localStorage.getItem('user_id');
+        socket.emit("update_user_id", { user_id: userId });
 
         function setUpGameStateListener() {
-            // Listen for the game state response
             if (!socket.__gameStateListenerSetUp) {
                 socket.on('game_state', async (data) => {
                     if (data.error) {
@@ -87,7 +89,6 @@
                 })
 
                 socket.__endPlayListenerSetUp = true;
-
             }
         }
 
@@ -98,7 +99,6 @@
                 })
 
                 socket.__setUpRoomClosedListener = true;
-
             }
         }
 
@@ -107,20 +107,49 @@
         setUpRoomClosedListener();
 
         checkIfInGame();
+
+
+        // get random icon for loading spinner
+        const icons = ['🪵', '🗡️', '🏆', '🪙'];
+        function getRandomIcon() {
+            const randomIndex = Math.floor(Math.random() * icons.length);
+            return icons[randomIndex];
+        }
+
+        const randomIconElement = document.querySelector('.loader');
+        randomIconElement.textContent = getRandomIcon();
+
         document.addEventListener('DOMContentLoaded', () => {
+
+            setTimeout(() => {
+                const loadingScreen = document.getElementById('loading-screen');
+                const mainContent = document.getElementById('main-content');
+
+                // Start fading out the loading screen
+                loadingScreen.style.opacity = '0';
+
+                // Wait for the fade-out transition to complete
+                setTimeout(() => {
+                    mainContent.style.opacity = '1';
+
+                    // Hide the loading screen
+                    loadingScreen.style.display = 'none';
+
+                    // Show and fade in the main content
+                    mainContent.style.display = 'flex';
+                }, 300);
+            }, 500); // Delay before starting fade out
 
             socket.emit("get_state");
 
             const scoreboardToggle = document.getElementById('scoreboard-toggle');
             const scoreboard = document.getElementById('scoreboard');
-            const exitBtn = document.getElementById('exit-btn')
+            const exitBtn = document.getElementById('exit-btn');
 
             scoreboardToggle.addEventListener('click', () => {
                 if (scoreboard.style.maxHeight) {
-                    // Collapse the scoreboard
                     scoreboard.style.maxHeight = null;
                 } else {
-                    // Expand the scoreboard
                     scoreboard.style.maxHeight = scoreboard.scrollHeight + 'px';
                 }
             });
@@ -128,10 +157,7 @@
             exitBtn.addEventListener('click', () => {
                 socket.emit("leave_game");
             });
-
-        })
-
-
+        });
     </script>
 
 </body>

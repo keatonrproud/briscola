@@ -43,6 +43,7 @@ br {
     user-select: none; /* Disables text selection */
     pointer-events: none; /* Disables clicking on text and images */
 }
+
 /* Container for centering content */
 .container {
     position: relative;
@@ -349,6 +350,54 @@ a:focus, a:active {
     }
 }
 
+/* Loading Screen Styles */
+#loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: transparent; /* Background color to ensure visibility */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000; /* Ensure it is on top of other elements */
+    opacity: 1; /* Start fully visible */
+    transition: opacity 0.5s ease; /* Smooth transition for fading out */
+}
+
+/* Loader animation */
+.loader {
+    font-size: 10rem;
+    animation: spin 1s linear infinite; /* Spin animation */
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Main content styling */
+#main-content {
+    text-align: center;
+    display: flex;
+    height: 100vh; /* Full viewport height */
+    width: 100vw;
+    flex-direction: column;
+    background: transparent; /* Gradient background */
+    justify-content: center; /* Center content vertically */
+    align-items: center; /* Center content horizontally */
+    opacity: 0; /* Start fully transparent */
+    transition: opacity 0.5s ease; /* Smooth transition for fading in */
+}
+
+/* if dynamic viewport is supported by the browser, then use that as the height of the body */
+@supports (height: 100dvh) {
+    #main-content {
+        height: 100dvh;
+    }
+}
+
 /* Center the cards container vertically and horizontally */
 .cards {
     pointer-events: auto; /* Enables clicking on the card itself */
@@ -407,24 +456,13 @@ a:focus, a:active {
 
 /* Style for the suit symbol */
 .card .symbol {
-    font-size: 48px;
+    font-size: 60px;
     margin-bottom: 10px; /* Space between symbol and number */
 }
 
 /* Style for the card number */
 .card .number {
     font-size: 24px;
-}
-
-#loading-screen {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: white; /* Or any color of your choice */
-    z-index: 9999; /* Ensure it covers all content */
-    opacity: 0.000001; /* Optional: make it slightly transparent */
 }
 
 #bottom-buttons {
@@ -568,7 +606,7 @@ a:focus, a:active {
     align-items: center;
     justify-content: center;
     font-family: Arial, sans-serif;
-    font-size: 14px;
+    font-size: 24px;
     user-select: none; /* Disables text selection */
     pointer-events: none; /* Disables clicking on text and images */
 }
@@ -582,7 +620,7 @@ a:focus, a:active {
 
 /* Symbol and number styling for the Briscola card */
 #briscola-card .symbol {
-    font-size: 36px; /* Larger symbol */
+    font-size: 60px; /* Larger symbol */
     margin-bottom: 5px; /* Space between symbol and number */
 }
 
@@ -671,7 +709,7 @@ a:focus, a:active {
     position: absolute;
     justify-content: center;
     align-content: flex-end;
-    margin: auto 0 0 0;
+    margin: auto 0 auto 0;
     padding: 0;
     width: 100vw;
 }

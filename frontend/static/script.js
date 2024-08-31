@@ -89,6 +89,7 @@ function updateBriscolaCard(card, num_cards_in_deck) {
             if (num_cards_in_deck > 0) {
                 setCardImage(briscolaCard, card);
             } else {
+                briscolaCard.style.backgroundImage = '';
                 briscolaCard.querySelector('.symbol').textContent = card.suit.symbol;
                 briscolaCard.querySelector('.number').textContent = '';
             }
