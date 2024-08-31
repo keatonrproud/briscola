@@ -41,9 +41,9 @@ class BriscolaGame(CardGame, ABC):
         computer_logic_override: tuple[Callable, ...] = (),
         computer_skill_level: int = 10,
         first_dealer: int | None = -1,
-        fixed_shown_player: bool = False,
+        online: bool = False,
     ):
-        self.fixed_shown_player = fixed_shown_player
+        self.online = online
         self.computer_logic_override = computer_logic_override
         self.computer_skill_level = computer_skill_level
         super().__init__(
@@ -188,9 +188,9 @@ class BriscolaGame(CardGame, ABC):
         winning_card_idx = played_cards.index(winning_card)
         winning_player = self.turn_order()[winning_card_idx]
 
-        # in Briscola, the winner plays next...
+        # in Briscola, the winner plays next, but in online mode it's always the same shown user
         self.active_player = winning_player
-        if self.active_player.is_person and not self.fixed_shown_player:
+        if self.active_player.is_person and not self.online:
             self.shown_player = self.active_player
 
         # and the person before the winner is the 'dealer'
@@ -234,5 +234,5 @@ class BriscolaGame(CardGame, ABC):
             "game_ongoing": self.game_ongoing,
             "turn_order": [player.to_dict() for player in self.turn_order()],
             "last_winner": self.last_winner.to_dict() if self.last_winner is not None else None,
-            "fixed_shown_player": self.fixed_shown_player,
+            "online": self.online,
         }

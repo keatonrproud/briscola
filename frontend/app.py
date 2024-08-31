@@ -92,7 +92,7 @@ def handle_start_game(data):
             if room and len(ROOM_USERS[room]) == 2:
                 if room in ROOM_USERS and len(ROOM_USERS[room]) == 2:
                     # Initialize the game instance for this room
-                    room_game = ROOM_ONLINE_GAME[room] = BriscolaWeb(fixed_shown_player=True)
+                    room_game = ROOM_ONLINE_GAME[room] = BriscolaWeb(online=True)
                     room_game.userid_playernum_map = {
                         user_id: player_num
                         for user_id, player_num in zip(
@@ -134,7 +134,7 @@ def emit_game_state(
     emit(
         "game_state",
         {"game_state": game.to_dict(), "continue_play": continue_play} | additional_data,
-        to="public_room" if game.fixed_shown_player else False,
+        to="public_room" if game.online else False,
         include_self=True,
     )
 

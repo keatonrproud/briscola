@@ -10,22 +10,23 @@ Play vs a friend (local or online!) or the computer at www.briscola.pro ⚔️
 
 ### TODO List
 - [ ] Sockets
-  - [ ] Multiple rooms available, or implement logic for random selection within the room
+  - [ ] If users are in an online game, they shouldn't show in the userCount for users not in a game yet
+  - [ ] Handle disconnect functionality for online multiplayer / page refresh
+    - Attempt to reconnect with a warning popup, after ~X sec then end game and/or return home
   - [ ] Create method for removing players from the game + room (used for disconnects, exit game button, end of game, etc)
     - Remove them from the existing room
     - Return to the home page as default, or to `end_game` for a disconnect
   - [ ] Room count is accurate at all times and **accounts for disconnects**
-  - [ ] Handle disconnect functionality for online multiplayer / page refresh
-    - Attempt to reconnect with a warning popup, after ~X sec then end game and/or return home
-  - [ ] If users are in an online game, they shouldn't show in the userCount for users not in a game yet
+  - [ ] Multiple rooms available, or implement logic for random selection within the room
 
 - [ ] In-Game
   - [ ] Logic
-    - [ ] Currently, in H2H local second player can play while pile is being selected. Shouldn't be playable if pile.length === players.length
-    - [ ] Convert fixed_shown_player into something more about being online
     - [ ] Improve computer logic
-    - [ ] Refresh page causes the game to freeze / have issues... how to avoid this?
     - [ ] Can't force end_game -- should check some logic, and only if it's valid should it go to end_game, otherwise keep user where they are
+    - [ ] Currently, in H2H local second player can play while pile is being selected. Shouldn't be playable if pile.length === players.length
+    - [ ] Refresh page causes the game to freeze / have issues... how to avoid this?
+    - [x] Convert fixed_shown_player into something more about being online
+      - Converted to `online`, and set `fixed_shown_player` as a parameter for `cli`
     - [x] If H2H Local, should say player's name instead of always Your Turn
     - [x] If just two people (player vs computer) should say Player and Computer everywhere w/o the numbers
     - [x] Score should say Computer, if it's a Computer, instead of Player 2

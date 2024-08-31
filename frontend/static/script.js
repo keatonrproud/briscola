@@ -69,11 +69,10 @@ function updateTurnInfo(player, shownPlayer, gameState) {
     const turnInfo = document.getElementById('turn-info');
 
     let text = "";
-    let onlineGame = gameState.fixed_shown_player;
     let singleHuman = gameState.table_settings.player_count - gameState.table_settings.computer_count === 1;
 
     // if the active player is the shown one, and the game is either online or there's only one human, show Your Turn
-    if (player.player_num === shownPlayer.player_num && (onlineGame || singleHuman)) {
+    if (player.player_num === shownPlayer.player_num && (gameState.online || singleHuman)) {
         text = `${player.color} Your Turn`
     } else {
         text = player.repr;
@@ -348,9 +347,9 @@ async function updateGameState(data) {
 
     let shownPlayer = state.shown_player;
     // is shown player is not fixed, and the active player is a person
-    if (!state.fixed_shown_player && state.table_settings.computer_count === 0 && activePlayer.is_person) {
+    if (!state.online && state.table_settings.computer_count === 0 && activePlayer.is_person) {
         shownPlayer = activePlayer;
-    } else if (state.fixed_shown_player) {
+    } else if (state.online) {
         try {
             const response = await fetch('/api/convert_socketid_to_oid', {method: 'POST', headers: {
             'Content-Type': 'application/json'},body: JSON.stringify({ socket_id: socket.id })})
