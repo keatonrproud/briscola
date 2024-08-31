@@ -27,6 +27,7 @@ body {
     align-items: center; /* Center content horizontally */
 }
 
+/* if dynamic viewport is supported by the browser, then use that as the height of the body */
 @supports (height: 100dvh) {
     body {
         height: 100dvh;
