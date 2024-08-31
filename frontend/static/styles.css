@@ -307,6 +307,7 @@ a:focus, a:active {
     font-size: 18px; /* Button font size */
     cursor: pointer; /* Pointer cursor on hover */
     margin-top: 10%; /* Space between the slider and the toggle */
+    margin-bottom: 10%;
     border: none; /* Remove default button border */
     border-radius: 5px; /* Rounded corners */
     background-color: #007bff; /* Button background color */
