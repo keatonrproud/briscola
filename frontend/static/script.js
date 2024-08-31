@@ -75,7 +75,7 @@ function updateTurnInfo(player, shownPlayer) {
     else if (player.is_person) {
         text = `${player.color} Player ${player.player_num}'s Turn`;
     } else {
-        text = `${player.color} Computer's Turn`;
+        text = `${player.color} Computer Turn`;
     }
 
     turnInfo.textContent = text

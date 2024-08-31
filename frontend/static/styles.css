@@ -5,6 +5,13 @@
   --face-up-card-height: 250px;
 }
 
+@media (max-width: 600px) {
+    :root {
+      --face-up-card-width: 99px;
+      --face-up-card-height: 170px;
+    }
+}
+
 body {
     font-family: 'Poppins', sans-serif;
     margin: 0;
@@ -77,7 +84,7 @@ br {
 }
 
 /* Media queries for mobile responsiveness */
-@media (max-width: 768px) {
+@media (max-width: 600px) {
     .title {
         font-size: 2rem; /* Further reduce font size on smaller screens */
         margin-bottom: 5%; /* Adjust spacing for smaller screens */
@@ -328,7 +335,7 @@ a:focus, a:active {
 }
 
 
-@media (max-width: 768px) {
+@media (max-width: 600px) {
     #join-room-btn, #leave-room-btn {
         width: 75%;
     }
@@ -415,13 +422,13 @@ a:focus, a:active {
 /* Turn info styling */
 #turn-info {
     position: fixed; /* Fixed position relative to the viewport */
-    bottom: 20px; /* 20px from the bottom of the viewport */
+    bottom: 1rem; /* 20px from the bottom of the viewport */
     left: 50%; /* Center horizontally */
     transform: translateX(-50%); /* Offset to center the element */
     text-align: center;
-    font-size: 30px;
+    font-size: 2rem;
     margin: 0;
-    padding: 10px 20px;
+    padding: 0.5rem 1rem;
     background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent background */
     color: #fff; /* White text */
     border-radius: 8px; /* Rounded corners */
@@ -429,6 +436,13 @@ a:focus, a:active {
     z-index: 1000; /* Ensure it's above other elements */
     user-select: none; /* Disables text selection */
     pointer-events: none; /* Disables clicking on text and images */
+}
+
+@media (max-width: 600px) {
+    #turn-info {
+        font-size: 1.5rem;
+        transform: translateX(-65%); /* Offset to center the element */
+    }
 }
 
 /* Briscola card container styling */
@@ -479,12 +493,29 @@ a:focus, a:active {
 
 }
 
+@media (max-width: 600px) {
+    #briscola-title {
+        font-size: 10px;
+    }
+
+    #briscola-card {
+        width: 5rem;
+        height: 8.5rem;
+    }
+
+    #briscola-container {
+        left: 0; /* Move to the left side */
+        top: 30%; /* Center vertically */
+    }
+
+}
+
 
 /* Deck container /* Deck container styling */
 #deck-container {
     position: absolute;
-    top: 20%; /* Position below the Briscola card */
-    right: 20px; /* Align with the Briscola card */
+    top: 40%; /* Position below the Briscola card */
+    right: 20px;
     width: 120px; /* Adjust width as needed */
     height: auto;
     display: flex;
@@ -509,6 +540,21 @@ a:focus, a:active {
     pointer-events: none;
 }
 
+@media (max-width: 600px) {
+    #deck-container {
+        width: 90px;
+        height: 125px;
+        right: 0;
+        top: 35%;
+    }
+
+    .deck-card {
+        width: 55px;
+        height: 84px;
+        margin-top: -95px;
+    }
+}
+
 /* Player cards container at the bottom */
 #player-cards {
     display: flex;
@@ -521,9 +567,10 @@ a:focus, a:active {
 /* Scoreboard container */
 #scoreboard-container {
     position: fixed; /* Fix the position to the bottom right corner */
-    bottom: 20px;
-    right: 20px;
-    width: 250px; /* Set a fixed width */
+    bottom: 1rem;
+    right: 1rem;
+    width: 20%; /* Set a fixed width */
+    max-width: 300px;
     background-color: #007bff; /* Background color similar to button */
     color: #fff; /* Text color */
     border-radius: 10px; /* Rounded corners */
@@ -543,6 +590,7 @@ a:focus, a:active {
     cursor: pointer; /* Pointer cursor to indicate clickability */
     font-size: 18px;
     text-align: center;
+
 }
 
 #scoreboard {
@@ -553,6 +601,7 @@ a:focus, a:active {
 
 #scores {
     margin-top: 10px;
+    padding: 2px;
 }
 
 .score {
@@ -562,8 +611,22 @@ a:focus, a:active {
     font-size: 18px;
 }
 
-.score span {
-    font-weight: bold;
+
+@media (max-width: 600px) {
+  #scoreboard-container {
+      padding: 1%;
+      width: 8rem;
+  }
+
+    #scoreboard-toggle {
+        font-size: 1rem;
+        padding: 5%;
+    }
+
+    .score {
+        margin-bottom: 4px;
+        font-size: 1rem;
+    }
 }
 
 
@@ -651,43 +714,6 @@ a:focus, a:active {
     }
 }
 
-
-/* End Game Container */
-.end-game-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    background-color: #f8f9fa; /* Light grey background */
-}
-
-/* Winner or Tie Message */
-#winner-message {
-    font-size: 2.5rem;
-    color: #007bff; /* Primary color */
-    margin-bottom: 20px;
-    text-align: center;
-}
-
-/* Play Again Button */
-#play-again-btn {
-    background-color: #007bff; /* Primary button color */
-    color: #fff;
-    font-size: 1.2rem;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-/* Play Again Button Hover */
-#play-again-btn:hover {
-    background-color: #0056b3; /* Darker primary color on hover */
-}
-
-
 /* Container for centering content */
 .container {
     position: relative;
@@ -710,6 +736,11 @@ a:focus, a:active {
     overflow: hidden; /* Hide overflow to keep confetti effect in view */
 }
 
+@media (max-width: 600px) {
+    width: 60%;
+    height: 60%;
+}
+
 /* Game over card styling */
 .game-over-card {
     background: #ffffff;
@@ -724,11 +755,25 @@ a:focus, a:active {
     animation: zoomIn 0.6s ease-out forwards;
 }
 
+.game-over-card .message {
+    white-space: pre;
+}
+
 /* Header styling */
 .game-over-header {
     border-bottom: 2px solid #007bff;
     padding-bottom: 20px;
     margin-bottom: 20px;
+}
+
+@media (max-width: 600px) {
+    .game-over-card {
+        width: 100%;
+    }
+
+    .game-over-card .message {
+        font-size: 1.5rem;
+    }
 }
 
 /* Animation for zooming in the game over card */
@@ -778,7 +823,7 @@ a:focus, a:active {
 /* Face down cards for opponents */
 #opp-cards {
     position: absolute;
-    top: -40px; /* Move halfway off the top of the screen */
+    top: -30px; /* Move halfway off the top of the screen */
     left: 50%; /* Center horizontally */
     transform: translateX(-50%); /* Center the cards container */
     display: flex;
@@ -802,11 +847,17 @@ a:focus, a:active {
     user-select: none; /* Disable text selection */
 }
 
+@media (max-width: 600px) {
+    .face-down-cards {
+        width: 60px;
+        height: 90px;
+    }
+}
 /* Exit Button Container */
 #exit-btn-container {
     position: fixed; /* Fix the position to the bottom right corner */
-    bottom: 20px;
-    left: 0;
+    bottom: 1rem;
+    left: 1rem;
     width: 5%; /* Set a fixed width */
     border-radius: 10px; /* Rounded corners */
 }
@@ -826,4 +877,10 @@ a:focus, a:active {
 
 #exit-btn:hover {
     background-color: #3399ff; /* Darker background color */
+}
+
+@media (max-width: 600px) {
+    #exit-btn-container {
+        bottom: 1rem;
+    }
 }

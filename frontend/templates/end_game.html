@@ -20,7 +20,7 @@
         // Event listener for the 'end_game_response' event from the server
         socket.on('end_game_response', function(data) {
             const messageElement = document.querySelector('.message');
-            messageElement.textContent = data.winner_message;
+            messageElement.textContent = data.message;
         });
 
         socket.emit('end_game');

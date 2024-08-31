@@ -193,17 +193,23 @@ def end_game():
     max_score = max(player.score for player in game.players)
     winner = next((player for player in game.players if player.score > game.win_condition), None)
 
+
     if winner:
-        winner_message = f"{winner} wins with {winner.score} points!"
+        message = f"{winner} wins!"
     else:
         tied_players = [str(player) for player in game.players if player.score == max_score]
         if len(tied_players) > 1:
-            winner_message = f"The game ends in a tie with {' and '.join(tied_players)} having {max_score} points!"
+            message = f"The game ends in a tie!"
         else:
-            winner_message = f"{tied_players[0]} wins with {max_score} points!"
+            message = f"{tied_players[0]} wins!"
+
+    sorted_players = sorted(game.players, key=lambda player: player.score, reverse=True)
+
+    # must use \r\n for line break to work in textContent attribute of html
+    message += "\r\n\r\n\r\n" + "\r\n".join(f"{player}:          {player.score}pts" for player in sorted_players)
 
     # Emit the winner message to all clients
-    emit('end_game_response', {'winner_message': winner_message}, to=target)
+    emit('end_game_response', {'message': message}, to=target)
 
 @app.route('/end_game')
 def end_game_page():
