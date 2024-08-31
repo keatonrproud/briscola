@@ -27,6 +27,12 @@ body {
     align-items: center; /* Center content horizontally */
 }
 
+@supports (height: 100dvh) {
+    body {
+        height: 100dvh;
+    }
+}
+
 p {
     user-select: none; /* Disables text selection */
     pointer-events: none; /* Disables clicking on text and images */
