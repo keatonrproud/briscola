@@ -266,8 +266,6 @@ def remove_user_from_room(user_id, room) -> None:
     if user_id in USER_GAME_ROOM:
         del USER_GAME_ROOM[user_id]
 
-    print("remove_user_from_room", USER_GAME_ROOM)
-
 
 @socketio.on("leave_room")
 def handle_leave_room(data):

@@ -28,7 +28,6 @@ br {
     user-select: none; /* Disables text selection */
     pointer-events: none; /* Disables clicking on text and images */
 }
-
 /* Container for centering content */
 .container {
     position: relative;
@@ -37,26 +36,31 @@ br {
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    padding: 20px; /* Added padding for small screens */
+    box-sizing: border-box; /* Ensures padding doesn't affect width */
 }
-
 
 /* Intro card styling */
 .intro-card {
     background: #ffffff;
     border-radius: 20px;
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
-    padding: 40px;
+    padding: 20px; /* Reduced padding for better mobile fit */
     width: 100%;
     max-width: 600px;
     position: relative;
     z-index: 20;
     transform: scale(0.95);
     animation: zoomIn 0.6s ease-out forwards;
+    display: flex;
+    flex-direction: column; /* Arrange children vertically */
+    align-items: center; /* Center children horizontally */
+    justify-content: center; /* Center children vertically */
 }
 
 /* Title styling */
 .title {
-    font-size: 3rem;
+    font-size: 2.5rem; /* Reduced font size for mobile screens */
     font-weight: 700;
     color: #333;
     margin-bottom: 10%;
@@ -67,13 +71,30 @@ br {
 
 /* Description styling */
 .description {
-    font-size: 1.5rem;
+    font-size: 1.2rem; /* Slightly smaller font size for mobile */
     color: #555;
-    margin-bottom: 30px;
-    line-height: 1.4;
+    margin-bottom: 20px; /* Reduced margin for better spacing */
+    line-height: 1.5; /* Increased line-height for better readability */
 }
 
+/* Media queries for mobile responsiveness */
+@media (max-width: 768px) {
+    .title {
+        font-size: 2rem; /* Further reduce font size on smaller screens */
+        margin-bottom: 5%; /* Adjust spacing for smaller screens */
+    }
 
+    .description {
+        font-size: 1rem; /* Adjust font size for readability on small screens */
+        margin-bottom: 15px; /* Reduce spacing for better fit */
+    }
+
+    .intro-card {
+        padding: 15px; /* Reduce padding for smaller screens */
+        max-width: 90%; /* Limit max width to ensure good fit on mobile */
+        max-height: 80%;
+    }
+}
 
 /* Animation for zooming in the intro card */
 @keyframes zoomIn {
@@ -85,6 +106,185 @@ br {
         opacity: 1;
         transform: scale(1);
     }
+}
+
+.game-mode-selector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0;
+    flex-wrap: wrap; /* Allows wrapping for smaller screens */
+}
+
+.mode-label {
+    transition: opacity 0.3s ease;
+    padding: 0 15px;
+    user-select: none;
+    cursor: pointer;
+}
+
+.left-label {
+    opacity: 1;
+    font-size: 3rem;
+}
+
+.right-label {
+    opacity: 0.5;
+    font-size: 4rem;
+    margin-bottom: 3%;
+}
+
+.toggle {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+.toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #2196F3;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #4CAF50;
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px #4CAF50;
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+#game-mode-toggle:checked ~ .right-label {
+    opacity: 1;
+}
+
+#game-mode-toggle:checked ~ .left-label {
+    opacity: 0.5;
+}
+
+
+/* Difficulty Slider Styles */
+.difficulty-slider-container {
+    margin-top: 5%;
+    margin-bottom: 0; /* Space between the slider and the toggle */
+    text-align: center; /* Center-align the slider and label */
+    opacity: 1;
+    transition: opacity 0.3s ease; /* Smooth transition for fading in and out */
+    user-select: none;
+}
+
+.difficulty-slider-container.invisible {
+    display: block; /* Show when the slider container should be visible */
+    opacity: 0; /* Fully visible */
+}
+
+.difficulty-slider {
+    width: 50%; /* Full width */
+    cursor: pointer;
+}
+
+.difficulty-label {
+    font-size: 2rem; /* Label font size */
+    position: relative; /* For positioning the tooltip */
+    pointer-events: none;
+    user-select: none;
+}
+
+/* Join Room Button */
+#join-room-btn {
+    background-color: #28a745; /* Green color */
+    color: #fff; /* Text color */
+    border: none;
+    border-radius: 5px; /* Rounded corners */
+    padding: 10px 0;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 10px;
+    width: 50%;
+    display: inline-block;
+}
+
+.room-section {
+    margin-bottom: 0; /* Space between the slider and the toggle */
+    text-align: center; /* Center-align the slider and label */
+    transition: opacity 0.3s ease; /* Smooth transition for fading in and out */
+    user-select: none;
+}
+.room-section.invisible {
+    display: block; /* Show when the slider container should be visible */
+    opacity: 0; /* Fully visible */
+}
+
+#join-room-btn:hover {
+    background-color: #218838; /* Darker green on hover */
+}
+
+/* Leave Room Button */
+#leave-room-btn {
+    background-color: #ff7f7f; /* Pastel red color */
+    color: #fff; /* Text color */
+    border: none;
+    border-radius: 5px; /* Rounded corners */
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 10px;
+    display: none;
+    height: 10%;
+    width: 50%;
+    transition: opacity 0.5s ease; /* Smooth transition for fading in and out */
+}
+
+#leave-room-btn:hover {
+    background-color: #ff3d2f; /* Darker pastel red on hover */
+}
+
+.hidden-message {
+    color: #fff;
+    cursor: pointer;
+}
+
+.repo-text-container {
+    background-color: transparent;
+    padding-bottom: 1%;
+}
+
+.repo-text-container a {
+    color: rgba(255, 255, 255, 0.25); /* White with 70% opacity */
+    text-decoration: none;
+}
+
+.repo-text-container a:hover {
+    color: rgba(255, 255, 255, 1); /* Fully opaque on hover */
 }
 
 /* Style for the start game button */
@@ -104,6 +304,19 @@ br {
 /* Button hover effect */
 #start-game-btn:hover {
     background-color: #0056b3; /* Darker background color on hover */
+}
+
+#start-game-btn:disabled {
+    background-color: #0096e9;
+    transform: translateY(0); /* remove the button press effect */
+    cursor: auto;
+}
+
+
+@media (max-width: 768px) {
+    #join-room-btn, #leave-room-btn {
+        width: 75%;
+    }
 }
 
 /* Center the cards container vertically and horizontally */
@@ -572,186 +785,6 @@ br {
     position: relative;
     z-index: 1;
     user-select: none; /* Disable text selection */
-}
-
-.game-mode-selector {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 0;
-}
-
-.mode-label {
-    transition: opacity 0.3s ease;
-    padding: 0 15px;
-}
-
-.left-label {
-    opacity: 1;
-    font-size: 3rem;
-    user-select: none;
-    cursor: pointer;
-}
-
-.right-label {
-    opacity: 0.5;
-    font-size: 4rem;
-    margin-bottom: 3%;
-    user-select: none;
-    cursor: pointer;
-}
-
-.toggle {
-    position: relative;
-    display: inline-block;
-    width: 60px;
-    height: 34px;
-}
-
-.toggle input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #2196F3;
-    transition: .4s;
-    border-radius: 34px;
-}
-
-.slider:before {
-    position: absolute;
-    content: "";
-    height: 26px;
-    width: 26px;
-    left: 4px;
-    bottom: 4px;
-    background-color: white;
-    transition: .4s;
-    border-radius: 50%;
-}
-
-input:checked + .slider {
-    background-color: #4CAF50;
-}
-
-input:focus + .slider {
-    box-shadow: 0 0 1px #4CAF50;
-}
-
-input:checked + .slider:before {
-    transform: translateX(26px);
-}
-
-#game-mode-toggle:checked ~ .right-label {
-    opacity: 1;
-}
-
-#game-mode-toggle:checked ~ .left-label {
-    opacity: 0.5;
-}
-
-
-/* Difficulty Slider Styles */
-.difficulty-slider-container {
-    margin-top: 5%;
-    margin-bottom: 0; /* Space between the slider and the toggle */
-    text-align: center; /* Center-align the slider and label */
-    opacity: 1;
-    transition: opacity 0.3s ease; /* Smooth transition for fading in and out */
-    user-select: none;
-}
-
-.difficulty-slider-container.invisible {
-    display: block; /* Show when the slider container should be visible */
-    opacity: 0; /* Fully visible */
-}
-
-.difficulty-slider {
-    width: 50%; /* Full width */
-    cursor: pointer;
-}
-
-.difficulty-label {
-    font-size: 30px; /* Label font size */
-    position: relative; /* For positioning the tooltip */
-    pointer-events: none;
-    user-select: none;
-}
-
-/* Join Room Button */
-#join-room-btn {
-    background-color: #28a745; /* Green color */
-    color: #fff; /* Text color */
-    border: none;
-    border-radius: 5px; /* Rounded corners */
-    padding: 10px 20px;
-    cursor: pointer;
-    font-size: 16px;
-    margin-top: 10px;
-    width: 50%;
-    display: inline-block;
-}
-
-.room-section {
-    margin-bottom: 0; /* Space between the slider and the toggle */
-    text-align: center; /* Center-align the slider and label */
-    transition: opacity 0.3s ease; /* Smooth transition for fading in and out */
-    user-select: none;
-}
-.room-section.invisible {
-    display: block; /* Show when the slider container should be visible */
-    opacity: 0; /* Fully visible */
-}
-
-#join-room-btn:hover {
-    background-color: #218838; /* Darker green on hover */
-}
-
-/* Leave Room Button */
-#leave-room-btn {
-    background-color: #ff7f7f; /* Pastel red color */
-    color: #fff; /* Text color */
-    border: none;
-    border-radius: 5px; /* Rounded corners */
-    padding: 10px 20px;
-    cursor: pointer;
-    font-size: 16px;
-    margin-top: 10px;
-    display: none;
-    height: 10%;
-    width: 50%;
-    transition: opacity 0.5s ease; /* Smooth transition for fading in and out */
-}
-
-#leave-room-btn:hover {
-    background-color: #ff3d2f; /* Darker pastel red on hover */
-}
-
-.hidden-message {
-    color: #fff;
-    cursor: pointer;
-}
-
-.repo-text-container {
-    background-color: transparent;
-    padding-bottom: 1%;
-}
-
-.repo-text-container a {
-    color: rgba(255, 255, 255, 0.25); /* White with 70% opacity */
-    text-decoration: none;
-}
-
-.repo-text-container a:hover {
-    color: rgba(255, 255, 255, 1); /* Fully opaque on hover */
 }
 
 /* Exit Button Container */

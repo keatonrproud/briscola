@@ -20,7 +20,7 @@
             <div class="game-mode-selector">
                 <span class="mode-label left-label" aria-label="Computer">💻</span>
                 <label class="toggle">
-                    <input type="checkbox" id="game-mode-toggle">
+                    <input type="checkbox" id="game-mode-toggle" checked>
                     <span class="slider"></span>
                 </label>
                 <span class="mode-label right-label" aria-label="Local">👥</span>
@@ -120,7 +120,7 @@
                 // Function to update the Start Game button text
             function updateStartGameButtonText(userCount) {
                 if (gameModeToggle.checked && leaveRoomBtn.style.display !== "none" && userCount < 2) {
-                    startGameButton.textContent = "Waiting for another player...";
+                    startGameButton.textContent = "Waiting for Player 2...";
                     startGameButton.disabled = true;
                 } else {
                     startGameButton.disabled = false;
