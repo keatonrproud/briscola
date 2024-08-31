@@ -34,23 +34,26 @@
        <!-- Player Cards -->
         <div id="player-cards" class="cards"></div>
 
-        <!-- Turn Information -->
-        <div id="turn-info"></div>
+        <div id="bottom-buttons">
 
-            <!-- Scoreboard -->
-        <div id="scoreboard-container">
-            <button id="scoreboard-toggle">Scoreboard</button>
-            <div id="scoreboard">
-                <div id="scores">
-                    <!-- Scores will be inserted here -->
+            <div id="exit-btn-container">
+               <button id="exit-btn">🔙</button>
+            </div>
+
+            <!-- Turn Information -->
+            <div id="turn-info"></div>
+
+                <!-- Scoreboard -->
+            <div id="scoreboard-container">
+                <button id="scoreboard-toggle">Scoreboard</button>
+                <div id="scoreboard">
+                    <div id="scores">
+                        <!-- Scores will be inserted here -->
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div id="exit-btn-container">
-           <button id="exit-btn">🔙</button>
         </div>
-
 
     <script type = "module">
         import { socket } from '/static/js/websocket.js';

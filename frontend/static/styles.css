@@ -20,6 +20,7 @@ body {
     text-align: center;
     display: flex;
     height: 100vh; /* Full viewport height */
+    width: 100vw;
     flex-direction: column;
     background: linear-gradient(135deg, #4a90e2, #50e3c2); /* Gradient background */
     justify-content: center; /* Center content vertically */
@@ -419,15 +420,50 @@ a:focus, a:active {
     opacity: 0.000001; /* Optional: make it slightly transparent */
 }
 
+#bottom-buttons {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-end;
+    width: 100vw;
+    margin: auto 0 1rem 0;
+}
+
+/* Exit Button Container */
+#exit-btn-container {
+    border-radius: 10px; /* Rounded corners */
+}
+
+#exit-btn {
+    background-color: rgba(102, 204, 255, 0.1); /* Lighter blue background color with 80% opacity */
+    color: #fff; /* Text color */
+    height: 100%;
+    margin-left: 1rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    border: none;
+    font-family: Arial, sans-serif; /* Consistent font */
+    border-radius: 10px;
+    padding: 1rem;
+    cursor: pointer; /* Pointer cursor to indicate clickability */
+    font-size: 24px;
+    text-align: center;
+}
+
+#exit-btn:hover {
+    background-color: rgba(102, 204, 255, 0.3);
+}
+
+@media (max-width: 600px) {
+    #exit-btn {
+        font-size: 18px;
+        padding: 0.5rem; /* Padding around the content */
+    }
+}
+
 /* Turn info styling */
 #turn-info {
-    position: fixed; /* Fixed position relative to the viewport */
-    bottom: 1rem; /* 20px from the bottom of the viewport */
-    left: 50%; /* Center horizontally */
-    transform: translateX(-50%); /* Offset to center the element */
     text-align: center;
-    font-size: 2rem;
-    margin: 0;
+    font-size: 1rem;
     padding: 0.5rem 1rem;
     background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent background */
     color: #fff; /* White text */
@@ -438,12 +474,80 @@ a:focus, a:active {
     pointer-events: none; /* Disables clicking on text and images */
 }
 
-@media (max-width: 600px) {
+/* Center the TurnInfo on large screens */
+@media (min-width: 601px) {
     #turn-info {
-        font-size: 1.5rem;
-        transform: translateX(-65%); /* Offset to center the element */
+        position: absolute;
+        font-size: 2rem;
+        margin-left: 50%;
+        transform: translateX(-50%);
     }
 }
+
+/* Scoreboard container */
+#scoreboard-container {
+    width: 20%; /* Set a fixed width */
+    max-width: 12rem;
+    margin-right: 1rem;
+    background-color: #007bff; /* Background color similar to button */
+    color: #fff; /* Text color */
+    border-radius: 10px; /* Rounded corners */
+    padding: 0.75rem; /* Padding around the content */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    font-family: Arial, sans-serif; /* Consistent font */
+    overflow: hidden; /* Hide overflow for smooth collapsing */
+}
+
+#scoreboard-toggle {
+    width: 100%;
+    height: 100%;
+    background-color: #3399ff; /* Darker background color */
+    color: #fff; /* Text color */
+    border: none;
+    border-radius: 10px;
+    padding: 0.75rem;
+    cursor: pointer; /* Pointer cursor to indicate clickability */
+    font-size: 18px;
+    text-align: center;
+
+}
+
+#scoreboard {
+    max-height: 0; /* Initially collapsed */
+    overflow: hidden; /* Hide overflow */
+    transition: max-height 0.5s ease; /* Smooth transition */
+}
+
+#scores {
+    margin-top: 10px;
+    padding: 2px;
+}
+
+.score {
+    display: flex;
+    justify-content: space-between; /* Space out player name and score */
+    margin-bottom: 8px;
+    font-size: 18px;
+}
+
+
+@media (max-width: 600px) {
+  #scoreboard-container {
+      padding: 1.5%;
+      width: 7rem;
+  }
+
+    #scoreboard-toggle {
+        font-size: 1rem;
+        padding: 5% 1.5%;
+    }
+
+    .score {
+        margin-bottom: 4px;
+        font-size: 1rem;
+    }
+}
+
 
 /* Briscola card container styling */
 #briscola-container {
@@ -505,7 +609,7 @@ a:focus, a:active {
 
     #briscola-container {
         left: 0; /* Move to the left side */
-        top: 30%; /* Center vertically */
+        top: 40%; /* Center vertically */
     }
 
 }
@@ -545,7 +649,7 @@ a:focus, a:active {
         width: 90px;
         height: 125px;
         right: 0;
-        top: 35%;
+        top: 25%;
     }
 
     .deck-card {
@@ -557,78 +661,13 @@ a:focus, a:active {
 
 /* Player cards container at the bottom */
 #player-cards {
-    display: flex;
-    flex-wrap: wrap;
+    position: absolute;
     justify-content: center;
-    margin-top: auto; /* Pushes the cards container to the bottom */
-    width: 100%; /* Full width of the container */
+    align-content: flex-end;
+    margin: auto 0 0 0;
+    padding: 0;
+    width: 100vw;
 }
-
-/* Scoreboard container */
-#scoreboard-container {
-    position: fixed; /* Fix the position to the bottom right corner */
-    bottom: 1rem;
-    right: 1rem;
-    width: 20%; /* Set a fixed width */
-    max-width: 300px;
-    background-color: #007bff; /* Background color similar to button */
-    color: #fff; /* Text color */
-    border-radius: 10px; /* Rounded corners */
-    padding: 15px; /* Padding around the content */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
-    font-family: Arial, sans-serif; /* Consistent font */
-    overflow: hidden; /* Hide overflow for smooth collapsing */
-}
-
-#scoreboard-toggle {
-    width: 100%;
-    background-color: #3399ff; /* Darker background color */
-    color: #fff; /* Text color */
-    border: none;
-    border-radius: 10px;
-    padding: 10px;
-    cursor: pointer; /* Pointer cursor to indicate clickability */
-    font-size: 18px;
-    text-align: center;
-
-}
-
-#scoreboard {
-    max-height: 0; /* Initially collapsed */
-    overflow: hidden; /* Hide overflow */
-    transition: max-height 0.5s ease; /* Smooth transition */
-}
-
-#scores {
-    margin-top: 10px;
-    padding: 2px;
-}
-
-.score {
-    display: flex;
-    justify-content: space-between; /* Space out player name and score */
-    margin-bottom: 8px;
-    font-size: 18px;
-}
-
-
-@media (max-width: 600px) {
-  #scoreboard-container {
-      padding: 1%;
-      width: 7rem;
-  }
-
-    #scoreboard-toggle {
-        font-size: 1rem;
-        padding: 5% 1%;
-    }
-
-    .score {
-        margin-bottom: 4px;
-        font-size: 1rem;
-    }
-}
-
 
 /* Keyframes for moving up and fading out */
 @keyframes moveUpFadeOut {
@@ -651,19 +690,14 @@ a:focus, a:active {
 #active-pile {
     position: absolute;
     top: 30%; /* Center vertically */
-    left: 55%; /* Center horizontally */
-    transform: translate(-50%, -50%); /* Center the element exactly */
+    left: 50%; /* Center horizontally */
     display: flex;
     align-items: center;
-    margin-right: 20px;
     justify-content: center; /* Center cards horizontally within the pile */
     z-index: 10; /* Ensure it's on top of other elements */
     pointer-events: none; /* Disable interaction */
     padding: 15px; /* Add padding if needed */
     user-select: none; /* Prevent text selection */
-    /* Ensure the container of the cards has relative positioning */
-    /*position: relative; !* Needed for absolute positioning of child elements *!*/
-    width: 100%; /* Adjust as needed for proper alignment */
 }
 
 /* Style for individual cards to overlap */
@@ -676,22 +710,22 @@ a:focus, a:active {
     /* Overlap each card by 50% of its width */
     #active-pile .card:nth-child(1) {
         z-index: 1;
-        transform: translateX(-60%) rotate(-3deg); /* Default position */
+        transform: translateX(-30%) rotate(-3deg); /* Default position */
     }
 
     #active-pile .card:nth-child(2) {
         z-index: 2;
-        transform: rotate(3deg);
+        transform: translateX(30%) rotate(3deg);
     }
 
     #active-pile .card:nth-child(3) {
         z-index: 3;
-        transform: translateX(60%) rotate(9deg);
+        transform: translateX(90%) rotate(9deg);
     }
 
     #active-pile .card:nth-child(4) {
         z-index: 4;
-        transform: translateX(120%) rotate(15deg);
+        transform: translateX(150%) rotate(15deg);
     }
 }
 
@@ -894,36 +928,5 @@ a:focus, a:active {
     .face-down-cards {
         width: 60px;
         height: 90px;
-    }
-}
-/* Exit Button Container */
-#exit-btn-container {
-    position: fixed; /* Fix the position to the bottom right corner */
-    bottom: 1rem;
-    left: 1rem;
-    width: 5%; /* Set a fixed width */
-    border-radius: 10px; /* Rounded corners */
-}
-
-#exit-btn {
-    background-color: #3399cc; /* Darker background color */
-    color: #fff; /* Text color */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
-    border: none;
-    font-family: Arial, sans-serif; /* Consistent font */
-    border-radius: 10px;
-    padding: 15px; /* Padding around the content */
-    cursor: pointer; /* Pointer cursor to indicate clickability */
-    font-size: 18px;
-    text-align: center;
-}
-
-#exit-btn:hover {
-    background-color: #3399ff; /* Darker background color */
-}
-
-@media (max-width: 600px) {
-    #exit-btn-container {
-        bottom: 1rem;
     }
 }
