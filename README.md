@@ -23,6 +23,8 @@ Play vs a friend (local or online!) or the computer at www.briscola.pro ⚔️
     - [ ] Refresh page causes the game to freeze / have issues... how to avoid this?
     - [ ] If H2H Local, should say player's name instead of always Your Turn
     - [ ] Can't force end_game -- should check some logic, and only if it's valid should it go to end_game, otherwise keep user where they are
+    - [ ] If users are in an online game, they shouldn't show in the userCount for users not in a game yet
+    - [ ] Improve computer logic
     - [x] Exit game button that returns home
     - [x] If quickly, player can play >1 card per turn...
     - [x] Make sure `end_game` works as expected

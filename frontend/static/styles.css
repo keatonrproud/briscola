@@ -615,12 +615,12 @@ a:focus, a:active {
 @media (max-width: 600px) {
   #scoreboard-container {
       padding: 1%;
-      width: 8rem;
+      width: 7rem;
   }
 
     #scoreboard-toggle {
         font-size: 1rem;
-        padding: 5%;
+        padding: 5% 1%;
     }
 
     .score {
@@ -647,26 +647,69 @@ a:focus, a:active {
     animation: moveUpFadeOut 0.5s ease forwards; /* Apply the animation */
 }
 
-
 /* Active Pile Section */
 #active-pile {
     position: absolute;
     top: 30%; /* Center vertically */
-    left: 50%; /* Center horizontally */
+    left: 55%; /* Center horizontally */
     transform: translate(-50%, -50%); /* Center the element exactly */
     display: flex;
     align-items: center;
-    justify-content: center;
+    margin-right: 20px;
+    justify-content: center; /* Center cards horizontally within the pile */
     z-index: 10; /* Ensure it's on top of other elements */
     pointer-events: none; /* Disable interaction */
     padding: 15px; /* Add padding if needed */
     user-select: none; /* Prevent text selection */
+    /* Ensure the container of the cards has relative positioning */
+    /*position: relative; !* Needed for absolute positioning of child elements *!*/
+    width: 100%; /* Adjust as needed for proper alignment */
+}
+
+/* Style for individual cards to overlap */
+#active-pile .card {
+    position: absolute; /* Allows overlapping */
+    transition: transform 0.3s ease; /* Smooth transform animations */
+}
+
+@media (max-width: 600px) {
+    /* Overlap each card by 50% of its width */
+    #active-pile .card:nth-child(1) {
+        z-index: 1;
+        transform: translateX(-60%) rotate(-3deg); /* Default position */
+    }
+
+    #active-pile .card:nth-child(2) {
+        z-index: 2;
+        transform: rotate(3deg);
+    }
+
+    #active-pile .card:nth-child(3) {
+        z-index: 3;
+        transform: translateX(60%) rotate(9deg);
+    }
+
+    #active-pile .card:nth-child(4) {
+        z-index: 4;
+        transform: translateX(120%) rotate(15deg);
+    }
 }
 
 /* Apply animation to cards being played */
 #active-pile.cleared {
     animation: pileMove 0.5s ease forwards; /* Apply the animation */
 }
+
+@media (max-width: 600px) {
+    #active-pile .container {
+        padding: 0;
+    }
+
+    #active-pile .card {
+        position: absolute;
+    }
+}
+
 
 /* Define the keyframe animation for clearing the pile */
 @keyframes pileMoveUp {
