@@ -122,6 +122,11 @@ br {
     cursor: pointer;
 }
 
+.mode-label:focus, .mode-label:active {
+    background-color: transparent;
+    outline: none;
+}
+
 .left-label {
     opacity: 1;
     font-size: 3rem;
@@ -267,11 +272,8 @@ input:checked + .slider:before {
     background-color: #ff3d2f; /* Darker pastel red on hover */
 }
 
-a:focus {
+a:focus, a:active {
     outline: none;
-}
-
-a:active {
     background-color: transparent;
 }
 
