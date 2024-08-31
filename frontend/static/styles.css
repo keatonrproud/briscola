@@ -52,7 +52,6 @@ br {
     z-index: 20;
     transform: scale(0.95);
     animation: zoomIn 0.6s ease-out forwards;
-    display: flex;
     flex-direction: column; /* Arrange children vertically */
     align-items: center; /* Center children horizontally */
     justify-content: center; /* Center children vertically */
