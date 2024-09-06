@@ -849,8 +849,7 @@ a:focus, a:active {
     border-radius: 20px;
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
     padding: 20px;
-    width: 100%;
-    max-width: 30dvw;
+    min-width: 500px;
     position: relative;
     z-index: 20;
     overflow: hidden;
@@ -869,8 +868,14 @@ a:focus, a:active {
     margin-bottom: 20px;
 }
 
+.game-over-card .message {
+    font-size: 2.5rem;
+}
+
+
 @media (max-width: 600px) {
     .game-over-card {
+        min-width: auto;
         max-width: 80dvw;
     }
 

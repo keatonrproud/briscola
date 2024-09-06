@@ -7,9 +7,13 @@
     <title>Briscola</title>
     <link rel="stylesheet" href="/static/styles.css"> <!-- Link to the external CSS file -->
     <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
-    <script type="module" src="/static/script.js"></script> <!-- Link to the external JavaScript file -->
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js" defer></script>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script type="module" src="/static/script.js" defer></script> <!-- Link to the external JavaScript file -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js" defer></script>
+    <script type="module">
+        import { checkIfInGame } from '/static/script.js';
+        await checkIfInGame();
+    </script>
 </head>
 <body>
 
@@ -63,10 +67,6 @@
     <script type="module">
         import { socket } from '/static/js/websocket.js';
         import { updateGameState } from '/static/script.js';
-        import { checkIfInGame } from '/static/script.js';
-
-        const userId = localStorage.getItem('user_id');
-        socket.emit("update_user_id", { user_id: userId });
 
         function setUpGameStateListener() {
             if (!socket.__gameStateListenerSetUp) {
@@ -105,9 +105,6 @@
         setUpGameStateListener();
         setUpEndPlayListener();
         setUpRoomClosedListener();
-
-        checkIfInGame();
-
 
         // get random icon for loading spinner
         const icons = ['🪵', '🗡️', '🏆', '🪙'];

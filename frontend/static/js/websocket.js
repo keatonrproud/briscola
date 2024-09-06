@@ -1,13 +1,19 @@
 export { socket };
 
-const socket = io();
-const PORT = 10000;
+let socket;
 
-// Ensure this script runs after the DOM is fully loaded
+if (!socket) {
+    socket = io();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
 
     socket.on('connect', () => {
-        localStorage.setItem('user_id', socket.id);
+        let userId = localStorage.getItem('user_id');
+        if (!userId) {
+            localStorage.setItem('user_id', socket.id);
+        }
+        socket.emit("update_user_id", { user_id: userId });
     })
 
     // Connect to the Socket.IO server
@@ -27,6 +33,5 @@ document.addEventListener('DOMContentLoaded', () => {
     socket.on('reconnect_attempt', () => {
         console.log('Attempting to reconnect...');
     });
-
 
 });

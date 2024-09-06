@@ -117,6 +117,9 @@ function setUpInGameResultListener() {
     }}
 
 function checkIfInGame() {
+    const userId = localStorage.getItem('user_id');
+    socket.emit("update_user_id", { user_id: userId});
+
     setUpInGameResultListener();
     socket.emit("check_if_in_game");
 }
@@ -169,12 +172,12 @@ async function playHumanCard(cardIndex, cardDiv) {
     }, 500);
 }
 
-
 async function getComputerChoice() {
     try {
-        const response = await fetch('/api/get_computer_choice');
-        const data = await response.json();
-        return data.card_idx;
+        const response = await fetch('/api/get_computer_choice', {method: 'POST', headers: {
+        'Content-Type': 'application/json'},body: JSON.stringify({ socket_id: socket.id })})
+        const res = await response.json();
+        return res.card_idx;
     } catch (error) {
         console.error('Error:', error);
     }
@@ -190,14 +193,11 @@ function setUpComputerCardPlayedListener() {
 
         socket.__computerCardPlayedSetUp = true;
     }
-
 }
 
 async function playComputerCard(cardIndex) {
-
     setUpComputerCardPlayedListener();
     socket.emit('play_active_card', {card_index: cardIndex});
-
 }
 
 function endPlay() {

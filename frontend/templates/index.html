@@ -7,7 +7,7 @@
     <title>Briscola</title>
     <link rel="stylesheet" href="/static/styles.css">
     <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" defer></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script type="module" src="/static/js/websocket.js"></script>
     <script type="module" src="/static/script.js" defer></script>
 </head>
@@ -53,181 +53,180 @@
 
             document.addEventListener('DOMContentLoaded', () => {
 
-            const startGameButton = document.getElementById('start-game-btn');
-            const gameModeToggle = document.getElementById('game-mode-toggle');
-            const leftLabel = document.querySelector('.left-label');
-            const rightLabel = document.querySelector('.right-label');
-            const difficultySlider = document.getElementById('difficulty-slider');
-            const difficultySliderContainer = document.querySelector('.difficulty-slider-container');
-            const roomSection = document.querySelector('.room-section');
-            const joinRoomBtn = document.getElementById('join-room-btn');
-            const leaveRoomBtn = document.getElementById('leave-room-btn');
+                const startGameButton = document.getElementById('start-game-btn');
+                const gameModeToggle = document.getElementById('game-mode-toggle');
+                const leftLabel = document.querySelector('.left-label');
+                const rightLabel = document.querySelector('.right-label');
+                const difficultySlider = document.getElementById('difficulty-slider');
+                const difficultySliderContainer = document.querySelector('.difficulty-slider-container');
+                const roomSection = document.querySelector('.room-section');
+                const joinRoomBtn = document.getElementById('join-room-btn');
+                const leaveRoomBtn = document.getElementById('leave-room-btn');
 
 
-            function updateRoomBtns(userCount) {
-                joinRoomBtn.textContent = `Join Online Room (${userCount}/2)`;
-                leaveRoomBtn.textContent = `Leave Online Room (${userCount}/2)`;
-                updateStartGameButtonText(userCount);
-            }
-
-            function manualUpdateRoomsBtns() {
-
-                fetch('/api/get_room_users?room=public_room')
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.error) {
-                            console.error('Room not found:', data.error);
-                        } else {
-                            updateRoomBtns(data.users.length);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Fetch error:', error);
-                    });
-            }
-
-            function updateLabels() {
-
-                manualUpdateRoomsBtns();
-
-                if (gameModeToggle.checked) {
-                    leftLabel.style.opacity = '0.5';
-                    rightLabel.style.opacity = '1';
-                    difficultySliderContainer.classList.add('invisible');
-                    roomSection.classList.remove('invisible');
-                } else {
-                    leftLabel.style.opacity = '1';
-                    rightLabel.style.opacity = '0.5';
-                    difficultySliderContainer.classList.remove('invisible');
-                    roomSection.classList.add('invisible');
+                function updateRoomBtns(userCount) {
+                    joinRoomBtn.textContent = `Join Online Room (${userCount}/2)`;
+                    leaveRoomBtn.textContent = `Leave Online Room (${userCount}/2)`;
+                    updateStartGameButtonText(userCount);
                 }
-            }
 
+                function manualUpdateRoomsBtns() {
 
-            // Ensure the toggle label clicks work to change the game mode
-            leftLabel.addEventListener('click', () => {
-                gameModeToggle.checked = false;
-                updateLabels();
-            });
+                    fetch('/api/get_room_users?room=public_room')
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.error) {
+                                console.error('Room not found:', data.error);
+                            } else {
+                                updateRoomBtns(data.users.length);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Fetch error:', error);
+                        });
+                }
 
-            rightLabel.addEventListener('click', () => {
-                gameModeToggle.checked = true;
-                updateLabels();
-            });
+                function updateLabels() {
 
-            gameModeToggle.addEventListener('change', updateLabels);
-            updateLabels(); // Initial call to set the correct state on page load
+                    manualUpdateRoomsBtns();
 
-                // Function to update the Start Game button text
-            function updateStartGameButtonText(userCount) {
-                if (gameModeToggle.checked && leaveRoomBtn.style.display !== "none" && userCount < 2) {
-                    startGameButton.textContent = "Waiting for Player 2...";
-                    startGameButton.disabled = true;
-                } else {
-                    startGameButton.disabled = false;
-                    if (leaveRoomBtn.style.display !== "none") {
-                        startGameButton.textContent = "Start Online Game";
+                    if (gameModeToggle.checked) {
+                        leftLabel.style.opacity = '0.5';
+                        rightLabel.style.opacity = '1';
+                        difficultySliderContainer.classList.add('invisible');
+                        roomSection.classList.remove('invisible');
                     } else {
-                        startGameButton.textContent = "Start Local Game";
+                        leftLabel.style.opacity = '1';
+                        rightLabel.style.opacity = '0.5';
+                        difficultySliderContainer.classList.remove('invisible');
+                        roomSection.classList.add('invisible');
                     }
                 }
-            }
 
-            // Join room button click handler
-            joinRoomBtn.addEventListener('click', async () => {
-                try {
-                    if (!socket.connected) {
-                        console.log('Socket not connected yet, waiting...');
-                        await new Promise((resolve) => socket.on('connect', resolve));
-                    }
-                    socket.emit('join_game', { room: 'public_room' });
-                    joinRoomBtn.style.display = 'none'; // Hide the join room button
-                    leaveRoomBtn.style.display = 'inline-block'; // Show the leave room button
 
-                } catch (error) {
-                    console.error('Error:', error);
-                }
-            });
-
-            // Join room button click handler
-            leaveRoomBtn.addEventListener('click', () => {
-                socket.emit('leave_room', { room: 'public_room' });
-                joinRoomBtn.style.display = 'inline-block';
-                leaveRoomBtn.style.display = 'none';
-            });
-
-            // Listen for the game state response
-            socket.on('game_state', (data) => {
-                if (data.error) {
-                    console.error('Error:', data.error);
-                } else {
-                    window.location.href = '/turn';
-                }
-            });
-
-            startGameButton.addEventListener('click', async () => {
-                const gameMode = gameModeToggle.checked ? 'player' : 'computer';
-                const difficulty = difficultySlider.value; // Get the difficulty value
-
-                try {
-                    if (!socket.connected) {
-                        console.log('Socket not connected yet, waiting...');
-                        await new Promise((resolve) => socket.on('connect', resolve));
-                    }
-                    socket.emit('start_game', {gameMode: gameMode, difficulty: difficulty}
-                    );
-                } catch (error) {
-                    console.error('Error:', error);
-                }
-            });
-
-            socket.on('room_update', (data) => {
-                const { users } = data;
-                updateRoomBtns(users.length);
-            });
-
-            const cardNumbers = ['ace', 'two', 'three', 'four', 'five', 'six', 'seven', 'soldier', 'horse', 'king'];
-            const suits = ['sword', 'club', 'coin', 'cup'];
-            const images = [];
-            let imagesLoaded = 0;
-
-            // Function to preload a single image
-            function preloadImage(url) {
-                return new Promise((resolve, reject) => {
-                    const img = new Image();
-                    img.src = url;
-                    img.onload = () => {
-                        images.push(img);
-                        imagesLoaded++;
-                        resolve();
-                    };
-                    img.onerror = (err) => {
-                        console.error(`Failed to load image: ${url}`, err); // Log errors
-                        reject(err);
-                    };
+                // Ensure the toggle label clicks work to change the game mode
+                leftLabel.addEventListener('click', () => {
+                    gameModeToggle.checked = false;
+                    updateLabels();
                 });
-            }
 
-            // Function to preload all images
-            function preloadAllImages() {
-                const promises = [];
-                for (const number of cardNumbers) {
-                    for (const suit of suits) {
-                        const url = `https://s3.eu-north-1.amazonaws.com/briscola.pro/piacentine/piacentine/${number}_${suit}.png`.toLowerCase();
-                        promises.push(preloadImage(url));
+                rightLabel.addEventListener('click', () => {
+                    gameModeToggle.checked = true;
+                    updateLabels();
+                });
+
+                gameModeToggle.addEventListener('change', updateLabels);
+                updateLabels(); // Initial call to set the correct state on page load
+
+                    // Function to update the Start Game button text
+                function updateStartGameButtonText(userCount) {
+                    if (gameModeToggle.checked && leaveRoomBtn.style.display !== "none" && userCount < 2) {
+                        startGameButton.textContent = "Waiting for Player 2...";
+                        startGameButton.disabled = true;
+                    } else {
+                        startGameButton.disabled = false;
+                        if (leaveRoomBtn.style.display !== "none") {
+                            startGameButton.textContent = "Start Online Game";
+                        } else {
+                            startGameButton.textContent = "Start Local Game";
+                        }
                     }
                 }
-                return Promise.all(promises);
-            }
 
-            // only preload images when online and pulling images via AWS, otherwise we use local images
-            if (navigator.onLine) {
-                preloadAllImages()
-                    .catch(err => {
-                        console.error('An error occurred while preloading images:', err);
+                // Join room button click handler
+                joinRoomBtn.addEventListener('click', async () => {
+                    try {
+                        if (!socket.connected) {
+                            console.log('Socket not connected yet, waiting...');
+                            await new Promise((resolve) => socket.on('connect', resolve));
+                        }
+                        socket.emit('join_game', { room: 'public_room' });
+                        joinRoomBtn.style.display = 'none'; // Hide the join room button
+                        leaveRoomBtn.style.display = 'inline-block'; // Show the leave room button
+
+                    } catch (error) {
+                        console.error('Error:', error);
+                    }
+                });
+
+                // Join room button click handler
+                leaveRoomBtn.addEventListener('click', () => {
+                    socket.emit('leave_room', { room: 'public_room' });
+                    joinRoomBtn.style.display = 'inline-block';
+                    leaveRoomBtn.style.display = 'none';
+                });
+
+                // Listen for the game state response
+                socket.on('game_state', (data) => {
+                    if (data.error) {
+                        console.error('Error:', data.error);
+                    } else {
+                        window.location.href = '/turn';
+                    }
+                });
+
+                startGameButton.addEventListener('click', async () => {
+                    const gameMode = gameModeToggle.checked ? 'player' : 'computer';
+                    const difficulty = difficultySlider.value; // Get the difficulty value
+
+                    try {
+                        if (!socket.connected) {
+                            console.log('Socket not connected yet, waiting...');
+                            await new Promise((resolve) => socket.on('connect', resolve));
+                        }
+                        socket.emit('start_game', {gameMode: gameMode, difficulty: difficulty}
+                        );
+                    } catch (error) {
+                        console.error('Error:', error);
+                    }
+                });
+
+                socket.on('room_update', (data) => {
+                    const { users } = data;
+                    updateRoomBtns(users.length);
+                });
+
+                const cardNumbers = ['ace', 'two', 'three', 'four', 'five', 'six', 'seven', 'soldier', 'horse', 'king'];
+                const suits = ['sword', 'club', 'coin', 'cup'];
+                const images = [];
+                let imagesLoaded = 0;
+
+                // Function to preload a single image
+                function preloadImage(url) {
+                    return new Promise((resolve, reject) => {
+                        const img = new Image();
+                        img.src = url;
+                        img.onload = () => {
+                            images.push(img);
+                            imagesLoaded++;
+                            resolve();
+                        };
+                        img.onerror = (err) => {
+                            console.error(`Failed to load image: ${url}`, err); // Log errors
+                            reject(err);
+                        };
                     });
-            }
+                }
 
+                // Function to preload all images
+                function preloadAllImages() {
+                    const promises = [];
+                    for (const number of cardNumbers) {
+                        for (const suit of suits) {
+                            const url = `https://s3.eu-north-1.amazonaws.com/briscola.pro/piacentine/piacentine/${number}_${suit}.png`.toLowerCase();
+                            promises.push(preloadImage(url));
+                        }
+                    }
+                    return Promise.all(promises);
+                }
+
+                // only preload images when online and pulling images via AWS, otherwise we use local images
+                if (navigator.onLine) {
+                    preloadAllImages()
+                        .catch(err => {
+                            console.error('An error occurred while preloading images:', err);
+                        });
+                }
 
         })
     </script>
