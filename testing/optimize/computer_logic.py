@@ -12,7 +12,7 @@ N_TEST_GAMES = 1_000
 
 
 def play_game(
-    logics: tuple[Callable, ...], first_dealer: int | None = -1, computer_skill_level: int = 10
+    logics: tuple[Callable, ...], first_dealer: int | None = None, computer_skill_level: int = 10
 ) -> dict[str, int]:
     """Play a game, and return the scores for each logic."""
     game = BriscolaCLI(

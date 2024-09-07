@@ -169,10 +169,15 @@ def end_play() -> None:
 
 
 @socketio.on('end_game')
-def end_game():
+def end_game() -> None:
     oid, game = get_game_and_oid_from_request_sid(request.sid)
 
     target = OID__ONLINE_ROOM.get(oid, request.sid)
+
+    # return to /turn, and if the game isn't active at all it'll auto return home
+    if not game or game.game_ongoing:
+        emit("game_not_complete", to=target)
+        return
 
     max_score = max(player.score for player in game.players)
     winner = next((player for player in game.players if player.score > game.win_condition), None)

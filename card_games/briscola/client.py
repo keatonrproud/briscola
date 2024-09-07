@@ -107,10 +107,7 @@ class BriscolaGame(CardGame, ABC):
 
     @property
     def game_ongoing(self) -> bool:
-        no_winner = max(player.score for player in self.players) <= self.win_condition
-        players_have_cards = max(len(player.hand.cards) for player in self.players) > 0
-
-        return no_winner and players_have_cards
+        return max(len(player.hand.cards) for player in self.players) > 0
 
     def reset_game(self) -> None:
         self.briscola, self.briscola_card = None, None

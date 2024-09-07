@@ -7,7 +7,7 @@ from config.logging_config import build_logger
 from card_games.general.generics.card import CARD
 from card_games.general.generics.deck import DECK
 from card_games.general.generics.player import PLAYER
-
+from random import choice
 logger = build_logger(__name__)
 
 
