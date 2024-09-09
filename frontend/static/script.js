@@ -149,26 +149,26 @@ function setUpHumanCardPlayedListener() {
 
         socket.__humanCardPlayedSetUp = true;
     }
-
 }
 
-async function playHumanCard(cardIndex, cardDiv) {
-
-    // set all other cards to be unplayable
+function makeShownCardsUnplayable() {
     const playerCardsContainer = document.getElementById('player-cards');
     Array.from(playerCardsContainer.children).forEach(cardDiv => {
         cardDiv.removeEventListener('click', cardDiv.handleCardClick);
         delete cardDiv.handleCardClick;
+        console.log('card unplayable');
     })
+}
 
+async function playHumanCard(cardIndex, cardDiv) {
+
+    makeShownCardsUnplayable();
 
     cardDiv.classList.add('played'); // Add the class to trigger animation
 
     setTimeout(() => {
-        // Emit event to the server with the card index
         setUpHumanCardPlayedListener();
         socket.emit('play_active_card', { card_index: cardIndex });
-
     }, 500);
 }
 
@@ -361,8 +361,9 @@ async function updateGameState(data) {
     }
 
     const oppPlayer = state.players.find(other_player => other_player.player_num !== shownPlayer.player_num);
-    const cardsPlayable = shownPlayer.player_num === activePlayer.player_num;
 
+    // cards are playable only if it's currently the shown player's turn, or if not all players have played yet
+    const cardsPlayable = shownPlayer.player_num === activePlayer.player_num && state.pile.cards.length !== state.players.length;
     updateCards(shownPlayer.hand.cards, oppPlayer.hand.cards, cardsPlayable);
 
     updateTurnInfo(activePlayer, shownPlayer, state); // Update the turn info
