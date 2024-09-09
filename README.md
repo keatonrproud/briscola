@@ -22,7 +22,7 @@ Play vs a friend (local or online!) or the computer at www.briscola.pro ⚔️
 - [ ] In-Game
   - [ ] Logic
     - [ ] Improve computer logic
-    - [ ] Can't force end_game -- should check some logic, and only if it's valid should it go to end_game, otherwise keep user where they are
+    - [x] Can't force end_game -- should check some logic, and only if it's valid should it go to end_game, otherwise keep user where they are
     - [ ] Currently, in H2H local second player can play while pile is being selected. Shouldn't be playable if pile.length === players.length
     - [x] Refresh page causes the game to freeze / have issues... how to avoid this?
     - [x] Convert fixed_shown_player into something more about being online

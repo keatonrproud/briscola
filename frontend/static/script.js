@@ -116,9 +116,9 @@ function setUpInGameResultListener() {
         socket.__inGameResultSetUp = true;
     }}
 
-function checkIfInGame() {
+async function checkIfInGame() {
     const userId = localStorage.getItem('user_id');
-    socket.emit("update_user_id", { user_id: userId});
+    await socket.emit("update_user_id", { user_id: userId});
 
     setUpInGameResultListener();
     socket.emit("check_if_in_game");

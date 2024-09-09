@@ -16,10 +16,8 @@
         import { checkIfInGame } from '/static/script.js';
         await checkIfInGame();
 
-        await checkIfGameOver();
-
         // Event listener for the 'end_game_response' event from the server
-        socket.on('game_not_complete', function(data) {
+        socket.on('game_not_complete', function() {
             window.location.href = '/turn';
         });
 

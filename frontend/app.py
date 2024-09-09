@@ -221,7 +221,8 @@ def handle_disconnect():
     if game_of_oid:
         del OID__GAME[oid]
 
-    del SOCKET__OID[request.sid]
+    if request.sid in SOCKET__OID:
+        del SOCKET__OID[request.sid]
 
     print(f"User disconnected: {oid} on socket {request.sid}, Total users: {len(SOCKET__OID)}")
 
@@ -284,21 +285,22 @@ def handle_leave_room(data):
 @socketio.on("leave_game")
 def handle_leave_game():
     oid = get_oid(request.sid)
+    game = get_game_of_oid(oid)
 
-    # if user is in an online room
-    if online_room := get_online_room_of_oid(oid):
+    # if user is in an online room and the game has ended
+    if (online_room := get_online_room_of_oid(oid)) and not game.game_ongoing:
         leave_room(online_room, sid=request.sid)
         close_room(online_room)
 
     if oid in OID__ONLINE_ROOM or oid in OID__GAME:
-        del OLD_OID_INFO[oid]
+        if not game.game_ongoing:
+            del OLD_OID_INFO[oid]
 
         if oid in OID__ONLINE_ROOM:
             del OID__ONLINE_ROOM[oid]
 
         if oid in OID__GAME:
             del OID__GAME[oid]
-
 
     target = online_room or request.sid
 
@@ -321,7 +323,6 @@ def add_request_sid_to_sockets(request_sid: str, oid: str | None = None) -> None
 def update_user_id(data):
     oid = data.get("user_id")
     add_request_sid_to_sockets(request_sid=request.sid, oid=oid)
-
 
     # if user's oid has old info, then reconnect them with their past state
     if (old_info := OLD_OID_INFO.get(oid, None)) is not None:
