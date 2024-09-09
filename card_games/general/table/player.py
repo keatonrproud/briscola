@@ -22,7 +22,7 @@ class Player:
         in_game: bool = True,
         color: PlayerColor = choice(list(PlayerColor)),
         is_person: bool = True,
-        unique_player_type = False
+        unique_player_type=False,
     ):
         self.player_num = player_num
         self.hand = hand if hand is not None else Hand(cards=[])
@@ -49,5 +49,5 @@ class Player:
             "in_game": self.in_game,
             "color": self.color.value,
             "is_person": self.is_person,
-            "repr": self.__repr__()
+            "repr": self.__repr__(),
         }

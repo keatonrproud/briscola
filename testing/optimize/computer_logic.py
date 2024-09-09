@@ -8,7 +8,7 @@ from play.cli.client import BriscolaCLI
 
 logger = build_logger(__name__)
 
-N_TEST_GAMES = 1_000
+N_TEST_GAMES = 10_000
 
 
 def play_game(
@@ -79,6 +79,6 @@ def main(logics: tuple[Callable, ...], computer_skill_level: int = 10) -> None:
 
 
 if __name__ == "__main__":
-    skill = 0  # 10 means fully based on the choice, 0 means completely random
+    skill = 10  # 10 means fully based on the choice, 0 means completely random
 
     main(logics=(basic_choice, random_choice), computer_skill_level=skill)

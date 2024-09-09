@@ -8,6 +8,7 @@ from card_games.general.generics.card import CARD
 from card_games.general.generics.deck import DECK
 from card_games.general.generics.player import PLAYER
 from random import choice
+
 logger = build_logger(__name__)
 
 
@@ -18,10 +19,16 @@ class CardGame(Generic[DECK, PLAYER, CARD], ABC):
         self.deck = deck
         self.computer_count = computer_count
 
-        assert first_dealer_idx is None or first_dealer_idx < len(self.players), "The first_dealer_idx must be an index less than the number of players in the game."
-        self.first_dealer_idx = first_dealer_idx if first_dealer_idx is not None else choice(range(len(self.players)))
+        assert first_dealer_idx is None or first_dealer_idx < len(
+            self.players
+        ), "The first_dealer_idx must be an index less than the number of players in the game."
+        self.first_dealer_idx = (
+            first_dealer_idx if first_dealer_idx is not None else choice(range(len(self.players)))
+        )
         self.dealer = self.players[self.first_dealer_idx]
-        first_player_idx = self.first_dealer_idx+1 if self.first_dealer_idx < len(self.players)-1 else 0
+        first_player_idx = (
+            self.first_dealer_idx + 1 if self.first_dealer_idx < len(self.players) - 1 else 0
+        )
         self.active_player = self.players[first_player_idx]
 
         try:

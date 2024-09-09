@@ -156,7 +156,6 @@ function makeShownCardsUnplayable() {
     Array.from(playerCardsContainer.children).forEach(cardDiv => {
         cardDiv.removeEventListener('click', cardDiv.handleCardClick);
         delete cardDiv.handleCardClick;
-        console.log('card unplayable');
     })
 }
 

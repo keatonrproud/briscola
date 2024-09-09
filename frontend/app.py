@@ -18,14 +18,19 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY")
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-SOCKET__OID: dict[str, str] = {}  # a user's socket linked to their oid, which is the first localStorageId of the user
+SOCKET__OID: dict[str, str] = (
+    {}
+)  # a user's socket linked to their oid, which is the first localStorageId of the user
 OID__ONLINE_ROOM: dict[str, str] = {}  # the room each oid is currently in
 OID__GAME: dict[str, BriscolaWeb] = {}  # the current game for each oid
 
-OLD_OID_INFO: dict[str, OldOidInfo] = {}  # the info of a disconnected oid to reconnect them via localStorageId
+OLD_OID_INFO: dict[str, OldOidInfo] = (
+    {}
+)  # the info of a disconnected oid to reconnect them via localStorageId
 
 # used to ping the keep-alive endpoint at some interval to avoid Render's 15min sleep
 keep_alive()
+
 
 @app.route("/")
 def index() -> str:
@@ -36,12 +41,15 @@ def index() -> str:
 def turn() -> str:
     return render_template("turn.html")
 
+
 def get_oid(request_sid) -> str:
     return SOCKET__OID.get(request_sid, None)
+
 
 def get_game_and_oid_from_request_sid(request_sid) -> tuple[str, BriscolaWeb | None]:
     oid = get_oid(request_sid)
     return oid, get_game_of_oid(oid)
+
 
 @socketio.on("check_if_in_game")
 def handle_check_if_in_game():
@@ -151,15 +159,24 @@ def get_computer_choice() -> jsonify:
     if (oid := convert_request_to_oid(request)) == 1:
         return jsonify({"error": "OID not found"}), 404
 
+    oid: str
     if (game := get_game_of_oid(oid)) is None:
         return jsonify({"error": "Game not found"}), 404
 
-    return jsonify({"card_idx": game.play_card_computer(cards=game.active_player.hand.cards)})
+    print(f"Pile: {game.active_pile.cards}")
+    computer_choice_idx = game.play_card_computer(cards=game.active_player.hand.cards)
+    print(
+        f"From {game.active_player.hand.cards}, computer chooses {game.active_player.hand.cards[computer_choice_idx]}"
+    )
+    return jsonify({"card_idx": computer_choice_idx})
 
 
 @socketio.on("end_play")
 def end_play() -> None:
     oid, game = get_game_and_oid_from_request_sid(request.sid)
+
+    assert type(game) is BriscolaWeb
+
     game.end_play()
 
     # send to online room if user is in one, otherwise just to the user's current socket
@@ -168,7 +185,7 @@ def end_play() -> None:
     emit("end_play", {"game_state": game.to_dict()}, to=target)
 
 
-@socketio.on('end_game')
+@socketio.on("end_game")
 def end_game() -> None:
     oid, game = get_game_and_oid_from_request_sid(request.sid)
 
@@ -197,11 +214,13 @@ def end_game() -> None:
     scores = [[str(player), f"{player.score}pts"] for player in sorted_players]
 
     # Emit the winner message to the online room if one exists, or the user's current socket
-    emit('end_game_response', {'message': message, 'scores': scores}, to=target)
+    emit("end_game_response", {"message": message, "scores": scores}, to=target)
 
-@app.route('/end_game')
+
+@app.route("/end_game")
 def end_game_page():
     return render_template("end_game.html")
+
 
 @socketio.on("disconnect")
 def handle_disconnect():
@@ -230,8 +249,10 @@ def handle_disconnect():
 def get_online_room_of_oid(oid: str) -> str | None:
     return OID__ONLINE_ROOM.get(oid, None)
 
+
 def get_game_of_oid(oid: str) -> BriscolaWeb | None:
     return OID__GAME.get(oid, None)
+
 
 @app.route("/api/get_room_users", methods=["GET"])
 def get_room_users() -> jsonify:
@@ -251,6 +272,7 @@ def get_oids_in_online_room(room) -> list[str] | None:
         if room_of_oid == room:
             oids_in_room.update({oid})
     return list(oids_in_room)
+
 
 @socketio.on("join_game")
 def handle_join_game(data):
@@ -282,6 +304,7 @@ def handle_leave_room(data):
 
     send_room_user_count_update(room)
 
+
 @socketio.on("leave_game")
 def handle_leave_game():
     oid = get_oid(request.sid)
@@ -310,7 +333,9 @@ def handle_leave_game():
 def add_request_sid_to_sockets(request_sid: str, oid: str | None = None) -> None:
     if oid:
         # if there's a previous socket assigned to that oid, then delete the previous socket
-        sockets_to_remove = [socket for socket, existing_oid in SOCKET__OID.items() if existing_oid == oid]
+        sockets_to_remove = [
+            socket for socket, existing_oid in SOCKET__OID.items() if existing_oid == oid
+        ]
         for socket in sockets_to_remove:
             del SOCKET__OID[socket]
 
@@ -318,6 +343,7 @@ def add_request_sid_to_sockets(request_sid: str, oid: str | None = None) -> None
         SOCKET__OID[request_sid] = oid
     else:
         SOCKET__OID[request_sid] = request_sid
+
 
 @socketio.on("update_user_id")
 def update_user_id(data):
@@ -335,6 +361,7 @@ def update_user_id(data):
     print(f"User connected: {oid} on socket {request.sid}, Total users: {len(SOCKET__OID)}")
 
     return jsonify({"status": "success"})
+
 
 def convert_request_to_oid(req) -> str | int:
     request_data = req.get_json()
@@ -354,10 +381,10 @@ def convert_socketid_to_oid() -> jsonify:
     return jsonify({"oid": oid})
 
 
-@app.route('/keep-alive')
-def keep_alive():
+@app.route("/keep-alive")
+def keep_app_alive():
     """Used to keep the server from sleeping on Render."""
-    return 'Keep-alive ping received', 200
+    return "Keep-alive ping received", 200
 
 
 if __name__ == "__main__":
