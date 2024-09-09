@@ -223,7 +223,7 @@ def handle_disconnect():
 
     del SOCKET__OID[request.sid]
 
-    print(f"User disconnected: {request.sid}, Total users: {len(SOCKET__OID)}")
+    print(f"User disconnected: {oid} on socket {request.sid}, Total users: {len(SOCKET__OID)}")
 
 
 def get_online_room_of_oid(oid: str) -> str | None:
@@ -331,7 +331,7 @@ def update_user_id(data):
         if old_info.online_room is not None:
             join_room(room=old_info.online_room, sid=request.sid)
 
-    print(f"User connected: {request.sid}, Total users: {len(SOCKET__OID)}")
+    print(f"User connected: {oid} on socket {request.sid}, Total users: {len(SOCKET__OID)}")
 
     return jsonify({"status": "success"})
 

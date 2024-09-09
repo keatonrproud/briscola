@@ -14,17 +14,16 @@ logger = build_logger(__name__)
 class CardGame(Generic[DECK, PLAYER, CARD], ABC):
     last_winner: PLAYER | None = None
 
-    def __init__(self, deck: DECK, first_dealer: int | None = None, computer_count: int = 0):
+    def __init__(self, deck: DECK, first_dealer_idx: int | None = None, computer_count: int = 0):
         self.deck = deck
         self.computer_count = computer_count
-        self.dealer = self.players[-1] if first_dealer is None else self.players[first_dealer]
-        self.first_dealer = first_dealer
-        first_player_idx = (
-            first_dealer + 1
-            if first_dealer is not None and 0 <= first_dealer < len(self.players) - 1
-            else 0
-        )
+
+        assert first_dealer_idx is None or first_dealer_idx < len(self.players), "The first_dealer_idx must be an index less than the number of players in the game."
+        self.first_dealer_idx = first_dealer_idx if first_dealer_idx is not None else choice(range(len(self.players)))
+        self.dealer = self.players[self.first_dealer_idx]
+        first_player_idx = self.first_dealer_idx+1 if self.first_dealer_idx < len(self.players)-1 else 0
         self.active_player = self.players[first_player_idx]
+
         try:
             # show the active player if it's a person, otherwise the first person-player
             self.shown_player = (

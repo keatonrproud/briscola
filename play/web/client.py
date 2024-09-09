@@ -14,7 +14,7 @@ class BriscolaWeb(BriscolaGame):
         computer_count: int = 0,
         computer_logic_override: tuple[Callable, ...] = (),
         computer_skill_level: int = 10,
-        first_dealer: int | None = -1,
+        first_dealer: int | None = None,
         online: bool = False,
     ):
         super().__init__(

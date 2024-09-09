@@ -40,15 +40,13 @@ class BriscolaGame(CardGame, ABC):
         computer_count: int = 0,
         computer_logic_override: tuple[Callable, ...] = (),
         computer_skill_level: int = 10,
-        first_dealer: int | None = -1,
+        first_dealer: int | None = None,
         online: bool = False,
     ):
         self.online = online
         self.computer_logic_override = computer_logic_override
         self.computer_skill_level = computer_skill_level
-        super().__init__(
-            deck=BriscolaDeck(), first_dealer=first_dealer, computer_count=computer_count
-        )
+        super().__init__(deck=BriscolaDeck(), first_dealer_idx=first_dealer, computer_count=computer_count)
         self.clear_pile()
         self.deal_hands(cards_in_hand=CARDS_IN_HAND, change_dealers=False)
 
@@ -113,11 +111,7 @@ class BriscolaGame(CardGame, ABC):
         self.briscola, self.briscola_card = None, None
         self.deck = BriscolaDeck()
 
-        super().__init__(
-            deck=self.deck,
-            first_dealer=self.first_dealer,
-            computer_count=self.computer_count
-        )
+        super().__init__(deck=self.deck, first_dealer_idx=self.first_dealer_idx, computer_count=self.computer_count)
 
         self.clear_pile()
         self.deal_hands(cards_in_hand=CARDS_IN_HAND, change_dealers=False)
