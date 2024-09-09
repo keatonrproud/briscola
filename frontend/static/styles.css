@@ -21,6 +21,7 @@ body {
     display: flex;
     height: 100vh; /* Full viewport height */
     width: 100vw;
+    -webkit-tap-highlight-color: transparent;
     flex-direction: column;
     background: linear-gradient(135deg, #4a90e2, #50e3c2); /* Gradient background */
     justify-content: center; /* Center content vertically */
@@ -164,6 +165,7 @@ br {
     display: inline-block;
     width: 60px;
     height: 34px;
+    user-select: none;
 }
 
 .toggle input {
@@ -267,6 +269,7 @@ input:checked + .slider:before {
 .room-section.invisible {
     display: block; /* Show when the slider container should be visible */
     opacity: 0; /* Fully visible */
+    pointer-events: none;
 }
 
 #join-room-btn:hover {
