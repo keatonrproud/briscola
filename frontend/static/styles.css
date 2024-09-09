@@ -265,11 +265,13 @@ input:checked + .slider:before {
     text-align: center; /* Center-align the slider and label */
     transition: opacity 0.3s ease; /* Smooth transition for fading in and out */
     user-select: none;
+    cursor: pointer;
 }
 .room-section.invisible {
     display: block; /* Show when the slider container should be visible */
     opacity: 0; /* Fully visible */
     pointer-events: none;
+    cursor: auto;
 }
 
 #join-room-btn:hover {
