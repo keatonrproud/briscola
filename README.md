@@ -20,8 +20,20 @@ Play vs a friend (local or online!) or the computer at www.briscola.pro ⚔️
   - [x] Create method for removing players from the game + room (used for disconnects, exit game button, end of game, etc)
 
 - [ ] In-Game
-  - [ ] Logic
-    - [ ] Improve computer logic
+  - [ ] Appearance
+    - [ ] First card played by Human in game doesn't always show?
+    - [ ] Click on area above START LOCAL GAME makes it START ONLINE GAME ??
+    - [ ] Choice of card set (Piacentine, etc)
+    - [x] Fix card image alignment
+    - [x] Briscola card under the deck?
+    - [x] Short loading screen before match shows up to avoid empty cards, objects, etc
+    - [x] Friendly for small screens, ie mobile
+      - [x] Home screen
+      - [x] Turn screen
+      - [x] End Game screen
+    - [x] Logic for offline use to load images locally
+  - [x] Logic
+    - [x] Improve computer logic
     - [x] Can't force end_game -- should check some logic, and only if it's valid should it go to end_game, otherwise keep user where they are
     - [x] Currently, in H2H local second player can play while pile is being selected. Shouldn't be playable if pile.length === players.length
     - [x] Refresh page causes the game to freeze / have issues... how to avoid this?
@@ -35,17 +47,6 @@ Play vs a friend (local or online!) or the computer at www.briscola.pro ⚔️
     - [x] Exit game button that returns home
     - [x] If quickly, player can play >1 card per turn...
     - [x] Make sure `end_game` works as expected
-  - [ ] Appearance
-    - [ ] First card played by Human in game doesn't always show?
-    - [ ] Fix card image alignment
-    - [ ] Choice of card set (Piacentine, etc)
-    - [x] Briscola card under the deck?
-    - [x] Short loading screen before match shows up to avoid empty cards, objects, etc
-    - [x] Friendly for small screens, ie mobile
-      - [x] Home screen
-      - [x] Turn screen
-      - [x] End Game screen
-    - [x] Logic for offline use to load images locally
 
 - [x] Site Improvements
   - [x] Workaround for Render's free tier timeout of ~15min inactivity
