@@ -424,8 +424,8 @@ a:focus, a:active {
     border-radius: 15px;
     margin: 10px;
     text-align: center;
-    padding-top: 2%;
-    padding-bottom: 2%;
+    padding-top: 5px;
+    padding-bottom: 5px;
     font-size: 24px;
     font-weight: bold;
     line-height: 1.2;
