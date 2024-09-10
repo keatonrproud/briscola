@@ -7,6 +7,10 @@
     <title>Briscola</title>
     <link rel="stylesheet" href="/static/styles.css">
     <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+    <script
+        src="https://js-de.sentry-cdn.com/5f17bc809837d10d6efa3f8b3036d42c.min.js"
+        crossorigin="anonymous"
+    ></script>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script type="module" src="/static/js/websocket.js"></script>
     <script type="module" src="/static/script.js" defer></script>
@@ -148,6 +152,8 @@
                         console.error('Error:', error);
                     }
                 });
+
+                badMethod();
 
                 // Join room button click handler
                 leaveRoomBtn.addEventListener('click', () => {
