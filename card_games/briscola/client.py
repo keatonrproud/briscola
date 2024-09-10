@@ -72,8 +72,7 @@ class BriscolaGame(CardGame, ABC):
         return super().deal_hands(cards_in_hand=cards_in_hand, change_dealers=change_dealers)
 
     def fill_hands(self, max_cards_in_hand: int | None = None) -> None:
-        return self.deck.fill_hands(
-            players=self.players,
+        return super().fill_hands(
             max_cards_in_hand=self.max_cards_in_hand or max_cards_in_hand,
         )
 
@@ -107,7 +106,7 @@ class BriscolaGame(CardGame, ABC):
 
     @property
     def game_ongoing(self) -> bool:
-        return max(len(player.hand.cards) for player in self.players) > 0
+        return sum(player.score for player in self.players) < 120
 
     def reset_game(self) -> None:
         self.briscola, self.briscola_card = None, None
@@ -204,6 +203,8 @@ class BriscolaGame(CardGame, ABC):
         losing_cards = [card for card in self.active_pile.cards if card != winning_card]
 
         self.clear_pile()
+        print(self.turn_order())
+        print(self.deck.cards)
         self.fill_hands()
 
         logger.debug(", ".join(f"{player} has {player.score}pts" for player in self.players))

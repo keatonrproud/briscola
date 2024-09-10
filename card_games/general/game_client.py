@@ -69,8 +69,8 @@ class CardGame(Generic[DECK, PLAYER, CARD], ABC):
             self.change_dealers()
         return self.deck.deal(players=self.players, cards_in_hand=cards_in_hand)
 
-    def fill_hands(self, max_cards_in_hand: int) -> None:
-        return self.deck.fill_hands(players=self.players, max_cards_in_hand=max_cards_in_hand)
+    def fill_hands(self, max_cards_in_hand: int | None) -> None:
+        return self.deck.fill_hands(players=self.turn_order(), max_cards_in_hand=max_cards_in_hand)
 
     def draw_card(self, player: PLAYER, draw_count: int = 0) -> None:
         player.hand.cards += self.deck.draw_cards(draw_count=draw_count)
