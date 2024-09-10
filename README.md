@@ -21,6 +21,7 @@ Play vs a friend (local or online!) or the computer at www.briscola.pro ⚔️
 
 - [ ] In-Game
   - [ ] Appearance
+    - [ ] Preload card images so they don't flash while loading
     - [ ] First card played by Human in game doesn't always show?
     - [ ] Choice of card set (Piacentine, etc)
     - [x] Click on area above START LOCAL GAME makes it START ONLINE GAME ??
