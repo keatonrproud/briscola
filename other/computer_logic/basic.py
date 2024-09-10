@@ -9,8 +9,6 @@ from card_games.general.table.pile import Pile
 def basic_choice(briscola: Suit, active_pile: Pile, cards: list[BriscolaCard]) -> int:
     aces_and_threes = (BriscolaCardNumber.ACE, BriscolaCardNumber.THREE)
 
-    print(f"points: {[card.points for card in cards]}")
-    print(f"strengths: {[card.strength for card in cards]}")
     # if computer is first
     if not active_pile.cards:
         # have a low non-briscola card, play the worst card
@@ -24,7 +22,6 @@ def basic_choice(briscola: Suit, active_pile: Pile, cards: list[BriscolaCard]) -
                 None,
             )
         ) is not None:
-            print("play bad card idx")
             return bad_card_idx
 
         # play a low pt non-briscola
@@ -38,7 +35,6 @@ def basic_choice(briscola: Suit, active_pile: Pile, cards: list[BriscolaCard]) -
                 None,
             )
         ) is not None:
-            print("low pt non briscola")
             return low_pt_non_briscola_idx
 
         # have any briscola not worth any points
@@ -48,7 +44,6 @@ def basic_choice(briscola: Suit, active_pile: Pile, cards: list[BriscolaCard]) -
                 None,
             )
         ) is not None:
-            print("zero pt briscola idx")
             return zero_pt_briscola
 
         # (if only 3s and As, then play briscola if possible)
@@ -58,7 +53,6 @@ def basic_choice(briscola: Suit, active_pile: Pile, cards: list[BriscolaCard]) -
                 None,
             )
         ) is not None:
-            print("high briscola idx")
             return high_briscola_idx
 
         # otherwise, random of the non-ace-or-three cards
@@ -67,10 +61,8 @@ def basic_choice(briscola: Suit, active_pile: Pile, cards: list[BriscolaCard]) -
                 (idx for idx, card in enumerate(cards) if card.number not in aces_and_threes), None
             )
         ) is not None:
-            print("random non ace or three")
             return non_ace_three
 
-        print("random card")
         return choice(range(len(cards)))
 
     # if you're second
@@ -90,7 +82,6 @@ def basic_choice(briscola: Suit, active_pile: Pile, cards: list[BriscolaCard]) -
             None,
         )
     ) is not None:
-        print("offsuit winner")
         return offsuit_winner
 
     # if you can take any A or 3, take it
@@ -109,7 +100,6 @@ def basic_choice(briscola: Suit, active_pile: Pile, cards: list[BriscolaCard]) -
             )
             is not None
         ):
-            print("take A or 3 briscola")
             return winning_idx
         elif (
             opp_card.suit != briscola
@@ -126,7 +116,6 @@ def basic_choice(briscola: Suit, active_pile: Pile, cards: list[BriscolaCard]) -
             )
             is not None
         ):
-            print("take A or 3 non briscola")
             return winning_idx
 
     # if you can win points with a non-ace-or-three card, do it
@@ -146,7 +135,6 @@ def basic_choice(briscola: Suit, active_pile: Pile, cards: list[BriscolaCard]) -
         )
         is not None
     ):
-        print("non ace three briscola")
         return non_ace_three_briscola_idx
 
     # if it's a low card, and you can play off, play off
@@ -162,14 +150,12 @@ def basic_choice(briscola: Suit, active_pile: Pile, cards: list[BriscolaCard]) -
                     None,
                 )
             ) is not None:
-                print("bad not briscola")
                 return bad_not_briscola
             if (
                 worse_briscola := next(
                     (idx for idx, card in enumerate(cards) if card.points == 0), None
                 )
             ) is not None:
-                print("worse briscola")
                 return worse_briscola
         elif opp_card.suit != briscola:
             if (
@@ -182,7 +168,6 @@ def basic_choice(briscola: Suit, active_pile: Pile, cards: list[BriscolaCard]) -
                     None,
                 )
             ) is not None:
-                print("bad losing suit")
                 return bad_losing_suit
 
             if (
@@ -195,7 +180,6 @@ def basic_choice(briscola: Suit, active_pile: Pile, cards: list[BriscolaCard]) -
                     None,
                 )
             ) is not None:
-                print("bad same suit")
                 return bad_same_suit
 
     if (
@@ -203,7 +187,6 @@ def basic_choice(briscola: Suit, active_pile: Pile, cards: list[BriscolaCard]) -
             (idx for idx, card in enumerate(cards) if card.points == 0), None
         )
     ) is not None:
-        print("card worth no points")
         return card_worth_no_points
 
     # otherwise, random
