@@ -50,6 +50,7 @@ Play vs a friend (local or online!) or the computer at www.briscola.pro ⚔️
     - [x] Make sure `end_game` works as expected
 
 - [x] Site Improvements
+  - [x] Sentry integration for error reporting
   - [x] Workaround for Render's free tier timeout of ~15min inactivity
   - [x] If user is not in a game, via USER_LOCAL_GAME or USER_ROOM, then return them home from /turn or /end_game
   - [x] Small link to the repo on the home screen
