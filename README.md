@@ -22,9 +22,10 @@ Play vs a friend (local or online!) or the computer at www.briscola.pro ⚔️
 - [ ] In-Game
   - [ ] Appearance
     - [ ] Preload card images so they don't flash while loading
-    - [ ] First card played by Human in game doesn't always show?
     - [ ] Choice of card set (Piacentine, etc)
     - [x] Click on area above START LOCAL GAME makes it START ONLINE GAME ??
+    - [x] First card played by Human in game doesn't always show?
+      - Happens when attempt to play before some first timer ?
     - [x] Fix card image alignment
     - [x] Briscola card under the deck?
     - [x] Short loading screen before match shows up to avoid empty cards, objects, etc
@@ -33,7 +34,9 @@ Play vs a friend (local or online!) or the computer at www.briscola.pro ⚔️
       - [x] Turn screen
       - [x] End Game screen
     - [x] Logic for offline use to load images locally
-  - [x] Logic
+  - [ ] Logic
+    - [ ] Sometimes gets stuck on the last card?
+    - [ ] Sometimes the turn gets stuck and computer/person cannot play?
     - [x] Improve computer logic
     - [x] Can't force end_game -- should check some logic, and only if it's valid should it go to end_game, otherwise keep user where they are
     - [x] Currently, in H2H local second player can play while pile is being selected. Shouldn't be playable if pile.length === players.length
