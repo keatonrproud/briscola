@@ -153,8 +153,6 @@
                     }
                 });
 
-                badMethod();
-
                 // Join room button click handler
                 leaveRoomBtn.addEventListener('click', () => {
                     socket.emit('leave_room', { room: 'public_room' });
