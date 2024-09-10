@@ -100,8 +100,6 @@
                         rightLabel.style.opacity = '0.5';
                         difficultySliderContainer.classList.remove('invisible');
                         roomSection.classList.add('invisible');
-
-                        updateStartGameButtonText({userCount: 0});
                     }
                 }
 
@@ -127,7 +125,7 @@
                         startGameButton.disabled = true;
                     } else {
                         startGameButton.disabled = false;
-                        if (leaveRoomBtn.style.display !== "none") {
+                        if (leaveRoomBtn.style.display !== "none" && gameModeToggle.checked) {
                             startGameButton.textContent = "Start Online Game";
                         } else {
                             startGameButton.textContent = "Start Local Game";
