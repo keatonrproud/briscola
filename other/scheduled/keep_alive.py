@@ -1,9 +1,7 @@
-from threading import Thread
-
 import http.client
 import sched
 import time
-
+from threading import Thread
 
 scheduler = sched.scheduler(time.monotonic, time.sleep)
 PING_INTERVAL = 12 * 60  # 12 minutes

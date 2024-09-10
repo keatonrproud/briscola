@@ -1,13 +1,13 @@
 from abc import ABC, abstractmethod
 from functools import cached_property
+from random import choice
 from typing import Generic
 
-from card_games.general.table.table_settings import Direction, TableSettings
-from config.logging_config import build_logger
 from card_games.general.generics.card import CARD
 from card_games.general.generics.deck import DECK
 from card_games.general.generics.player import PLAYER
-from random import choice
+from card_games.general.table.table_settings import Direction, TableSettings
+from config.logging_config import build_logger
 
 logger = build_logger(__name__)
 

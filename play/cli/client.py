@@ -48,7 +48,8 @@ class BriscolaCLI(BriscolaGame):
         print("       ".join([f"{player}: {player.score}pts" for player in self.players]))
         print("----------------\n")
 
-    def announce_scores(self, turn_winner: BriscolaTurnWinner) -> None:
+    @staticmethod
+    def announce_scores(turn_winner: BriscolaTurnWinner) -> None:
         winning_card, winner, pts, losing_cards = (
             turn_winner.winning_card,
             turn_winner.winning_player,

@@ -1,13 +1,13 @@
 import os
+from dataclasses import dataclass
+
 from dotenv import load_dotenv
-from flask import Flask, jsonify, render_template, request
-from other.scheduled.keep_alive import keep_alive
-from old_oid_info import OldOidInfo
+from flask import Flask, Response, jsonify, render_template, request
+from flask_socketio import SocketIO, close_room, emit, join_room, leave_room  # type: ignore
 
-from flask_socketio import SocketIO, emit, join_room, leave_room, close_room
-
-from other.computer_logic.basic import basic_choice
 from config.logging_config import build_logger
+from other.computer_logic.basic import basic_choice
+from other.scheduled.keep_alive import keep_alive
 from play.web.client import BriscolaWeb
 
 logger = build_logger(__name__)
@@ -18,15 +18,27 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY")
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-SOCKET__OID: dict[str, str] = (
-    {}
-)  # a user's socket linked to their oid, which is the first localStorageId of the user
-OID__ONLINE_ROOM: dict[str, str] = {}  # the room each oid is currently in
-OID__GAME: dict[str, BriscolaWeb] = {}  # the current game for each oid
 
-OLD_OID_INFO: dict[str, OldOidInfo] = (
-    {}
-)  # the info of a disconnected oid to reconnect them via localStorageId
+SOCKET__OID: dict[str, str] = {}
+""" A user's socket linked to their oid, which is the first localStorageId of the user. """
+
+OID__ONLINE_ROOM: dict[str, str | None] = {}
+""" The room each oid is currently in. """
+
+OID__GAME: dict[str, BriscolaWeb | None] = {}  # the current game for each oid
+""" The current game for each oid. """
+
+
+@dataclass
+class OldOidInfo:
+    """The user info to maintain after a user disconnects in case they reconnect later."""
+
+    online_room: str | None = None
+    game: BriscolaWeb | None = None
+
+
+OLD_OID_INFO: dict[str, OldOidInfo] = {}
+""" The info of a disconnected oid to reconnect them via localStorageId. """
 
 # used to ping the keep-alive endpoint at some interval to avoid Render's 15min sleep
 keep_alive()
@@ -42,11 +54,11 @@ def turn() -> str:
     return render_template("turn.html")
 
 
-def get_oid(request_sid) -> str:
+def get_oid(request_sid) -> str | None:
     return SOCKET__OID.get(request_sid, None)
 
 
-def get_game_and_oid_from_request_sid(request_sid) -> tuple[str, BriscolaWeb | None]:
+def get_game_and_oid_from_request_sid(request_sid) -> tuple[str | None, BriscolaWeb | None]:
     oid = get_oid(request_sid)
     return oid, get_game_of_oid(oid)
 
@@ -119,7 +131,7 @@ def handle_start_game(data):
 
 
 def emit_game_state(
-    game: BriscolaWeb, continue_play: bool = False, additional_data: dict = None
+    game: BriscolaWeb, continue_play: bool = False, additional_data: dict | None = None
 ) -> None:
     data = {"game_state": game.to_dict(), "continue_play": continue_play}
     if additional_data:
@@ -155,24 +167,19 @@ def handle_play_active_card(data):
 
 
 @app.route("/api/get_computer_choice", methods=["POST"])
-def get_computer_choice() -> jsonify:
+def get_computer_choice() -> tuple[Response, int]:
     if (oid := convert_request_to_oid(request)) == 1:
         return jsonify({"error": "OID not found"}), 404
 
-    oid: str
     if (game := get_game_of_oid(oid)) is None:
         return jsonify({"error": "Game not found"}), 404
 
-    print(f"Pile: {game.active_pile.cards}")
     computer_choice_idx = game.play_card_computer(cards=game.active_player.hand.cards)
-    print(
-        f"From {game.active_player.hand.cards}, computer chooses {game.active_player.hand.cards[computer_choice_idx]}"
-    )
-    return jsonify({"card_idx": computer_choice_idx})
+    return jsonify({"card_idx": computer_choice_idx}), 200
 
 
 @socketio.on("end_play")
-def end_play() -> None:
+def end_play():
     oid, game = get_game_and_oid_from_request_sid(request.sid)
 
     assert type(game) is BriscolaWeb
@@ -186,8 +193,11 @@ def end_play() -> None:
 
 
 @socketio.on("end_game")
-def end_game() -> None:
+def end_game():
     oid, game = get_game_and_oid_from_request_sid(request.sid)
+
+    if oid is None:
+        return
 
     target = OID__ONLINE_ROOM.get(oid, request.sid)
 
@@ -204,7 +214,7 @@ def end_game() -> None:
     else:
         tied_players = [str(player) for player in game.players if player.score == max_score]
         if len(tied_players) > 1:
-            message = f"The game ends in a tie!"
+            message = "The game ends in a tie!"
         else:
             message = f"{tied_players[0]} wins!"
 
@@ -246,21 +256,27 @@ def handle_disconnect():
     print(f"User disconnected: {oid} on socket {request.sid}, Total users: {len(SOCKET__OID)}")
 
 
-def get_online_room_of_oid(oid: str) -> str | None:
+def get_online_room_of_oid(oid: str | None) -> str | None:
+    if oid is None:
+        return None
+
     return OID__ONLINE_ROOM.get(oid, None)
 
 
-def get_game_of_oid(oid: str) -> BriscolaWeb | None:
+def get_game_of_oid(oid: str | None) -> BriscolaWeb | None:
+    if oid is None:
+        return None
+
     return OID__GAME.get(oid, None)
 
 
 @app.route("/api/get_room_users", methods=["GET"])
-def get_room_users() -> jsonify:
+def get_room_users() -> tuple[Response, int]:
     room = request.args.get("room")
     oids = get_oids_in_online_room(room)
     if oids is None:
         return jsonify({"error": "Room or users not found"}), 404
-    return jsonify({"users": oids})
+    return jsonify({"users": oids}), 200
 
 
 def get_oids_in_online_room(room) -> list[str] | None:
@@ -360,25 +376,19 @@ def update_user_id(data):
 
     print(f"User connected: {oid} on socket {request.sid}, Total users: {len(SOCKET__OID)}")
 
-    return jsonify({"status": "success"})
+    return jsonify({"status": "success"}), 200
 
 
-def convert_request_to_oid(req) -> str | int:
+def convert_request_to_oid(req) -> str | None:
     request_data = req.get_json()
-
-    if not request_data or "socket_id" not in request_data:
-        return 1
 
     socket_id = request_data.get("socket_id")
     return get_oid(socket_id)
 
 
 @app.route("/api/convert_socketid_to_oid", methods=["POST"])
-def convert_socketid_to_oid() -> jsonify:
-    if (oid := convert_request_to_oid(request)) == 1:
-        return jsonify({"error": "OID not found"}), 404
-
-    return jsonify({"oid": oid})
+def convert_socketid_to_oid() -> tuple[Response, int]:
+    return jsonify({"oid": convert_request_to_oid(request)}), 200
 
 
 @app.route("/keep-alive")

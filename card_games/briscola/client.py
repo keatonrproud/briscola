@@ -4,7 +4,6 @@ from functools import cached_property
 from random import choice
 from typing import Callable, Final
 
-from other.computer_logic.random_ import random_choice
 from card_games.briscola.card import BriscolaCard
 from card_games.briscola.deck import BriscolaDeck
 from card_games.briscola.game_settings import CARDS_IN_HAND, PLAY_DIRECTION
@@ -16,6 +15,7 @@ from card_games.general.game_client import CardGame
 from card_games.general.table.player import PlayerColor
 from card_games.general.table.table_settings import Direction
 from config.logging_config import build_logger
+from other.computer_logic.random_ import random_choice
 
 logger = build_logger(__name__)
 

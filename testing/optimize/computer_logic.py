@@ -1,9 +1,9 @@
 from pprint import pprint
 from typing import Callable
 
+from config.logging_config import build_logger
 from other.computer_logic.basic import basic_choice
 from other.computer_logic.random_ import random_choice
-from config.logging_config import build_logger
 from play.cli.client import BriscolaCLI
 
 logger = build_logger(__name__)
