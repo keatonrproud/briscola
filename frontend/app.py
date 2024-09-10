@@ -52,6 +52,11 @@ OLD_OID_INFO: dict[str, OldOidInfo] = {}
 keep_alive()
 
 
+@app.route("/")
+def index() -> str:
+    return render_template("index.html")
+
+
 @app.route("/turn")
 def turn() -> str:
     return render_template("turn.html")

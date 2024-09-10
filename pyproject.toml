@@ -33,7 +33,7 @@ python-dotenv = "^1.0.1"
 gunicorn = "^23.0.0"
 gevent = "^24.2.1"
 flask = "^3.0.3"
-sentry-sdk = {version = "1.0.0", extras = ["flask"]}
+sentry-sdk = {extras = ["flask"], version = "^2.14.0"}
 
 
 [build-system]
