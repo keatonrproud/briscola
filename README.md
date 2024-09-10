@@ -10,7 +10,7 @@ Play vs a friend (local or online!) or the computer at www.briscola.pro ⚔️
 
 ### TODO List
 - [ ] Sockets
-  - [ ] Room count is accurate at all times and **accounts for disconnects**
+  - [ ] Room count is accurate at all times and **accounts for disconnects after a player closes the tab**
   - [ ] If users are in an online game, they shouldn't show in the userCount for users not in a game yet (or does that mean the room is full..?)
   - [ ] Handle disconnect functionality for:
       - [ ] Online Multiplayer
