@@ -132,12 +132,8 @@ function setUpHumanCardPlayedListener() {
             if (!data.active_player.is_person) {
                 return;
             }
-            // Handle the updated game state
-            if (data.pile.cards.length === 0) {
-                setTimeout(async () => { await getGameState(); }, 500);
-            } else {
-                await getGameState();
-            }
+
+            await getGameState();
 
             if (data.pile.cards.length === data.players.length) {
                 setTimeout(() => {
