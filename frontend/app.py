@@ -1,6 +1,7 @@
 import os
 from dataclasses import dataclass
 
+import sentry_sdk
 from dotenv import load_dotenv
 from flask import Flask, Response, jsonify, render_template, request
 from flask_socketio import SocketIO, close_room, emit, join_room, leave_room  # type: ignore
@@ -9,6 +10,13 @@ from config.logging_config import build_logger
 from other.computer_logic.basic import basic_choice
 from other.scheduled.keep_alive import keep_alive
 from play.web.client import BriscolaWeb
+
+sentry_sdk.init(
+    dsn="https://a417850f811124c72be11a26ada21f55@o4507925862744064.ingest.de.sentry.io/4507925879849040",
+    traces_sample_rate=1.0,  # capture 100% of issues for tracing
+    profiles_sample_rate=1.0,  # profile 100% of sampled transactions
+)
+
 
 logger = build_logger(__name__)
 
@@ -42,11 +50,6 @@ OLD_OID_INFO: dict[str, OldOidInfo] = {}
 
 # used to ping the keep-alive endpoint at some interval to avoid Render's 15min sleep
 keep_alive()
-
-
-@app.route("/")
-def index() -> str:
-    return render_template("index.html")
 
 
 @app.route("/turn")
