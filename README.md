@@ -34,9 +34,9 @@ Play vs a friend (local or online!) or the computer at www.briscola.pro ⚔️
       - [x] Turn screen
       - [x] End Game screen
     - [x] Logic for offline use to load images locally
-  - [ ] Logic
-    - [ ] Sometimes gets stuck on the last card?
-    - [ ] Sometimes the turn gets stuck and computer/person cannot play?
+  - [x] Logic
+    - [x] Sometimes the turn gets stuck and computer/person cannot play?
+    - [x] Sometimes gets stuck on the last card?
     - [x] Improve computer logic
     - [x] Can't force end_game -- should check some logic, and only if it's valid should it go to end_game, otherwise keep user where they are
     - [x] Currently, in H2H local second player can play while pile is being selected. Shouldn't be playable if pile.length === players.length
