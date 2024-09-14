@@ -63,20 +63,32 @@
                 const rightLabel = document.querySelector('.right-label');
                 const difficultySlider = document.getElementById('difficulty-slider');
                 const difficultySliderContainer = document.querySelector('.difficulty-slider-container');
+                const difficultyLabel = document.querySelector('.difficulty-label');
                 const roomSection = document.querySelector('.room-section');
-                const joinRoomBtn = document.getElementById('join-room-btn');
-                const leaveRoomBtn = document.getElementById('leave-room-btn');
+                const joinWaitingRoomBtn = document.getElementById('join-room-btn');
+                const leaveWaitingRoomBtn = document.getElementById('leave-room-btn');
 
+                function updateDifficultyLabelFontSize() {
+                    const sliderValue = difficultySlider.value;
+                    let remFontSize = 2.25 + (sliderValue / 10000 * 0.5); // Max font size will be 36px
+                    let opacity = 0.5 + (sliderValue / 10000 * 0.5);
+                    difficultyLabel.style.fontSize = `${remFontSize}rem`;
+                    difficultyLabel.style.opacity = `${opacity}`;
+                }
+                updateDifficultyLabelFontSize();
+
+                // Update font size as the slider value changes
+                difficultySlider.addEventListener('input', updateDifficultyLabelFontSize);
 
                 function updateRoomBtns(userCount) {
-                    joinRoomBtn.textContent = `Join Online Room (${userCount}/2)`;
-                    leaveRoomBtn.textContent = `Leave Online Room (${userCount}/2)`;
+                    joinWaitingRoomBtn.textContent = `Join Online Room (${userCount}/2)`;
+                    leaveWaitingRoomBtn.textContent = `Leave Online Room (${userCount}/2)`;
                     updateStartGameButtonText(userCount);
                 }
 
                 function manualUpdateRoomsBtns() {
 
-                    fetch('/api/get_room_users?room=public_room')
+                    fetch('/api/get_waiting_room_users')
                         .then(response => response.json())
                         .then(data => {
                             if (data.error) {
@@ -124,12 +136,12 @@
 
                     // Function to update the Start Game button text
                 function updateStartGameButtonText(userCount) {
-                    if (gameModeToggle.checked && leaveRoomBtn.style.display !== "none" && userCount < 2) {
+                    if (gameModeToggle.checked && leaveWaitingRoomBtn.style.display !== "none" && userCount < 2) {
                         startGameButton.textContent = "Waiting for Player 2...";
                         startGameButton.disabled = true;
                     } else {
                         startGameButton.disabled = false;
-                        if (leaveRoomBtn.style.display !== "none" && gameModeToggle.checked) {
+                        if (leaveWaitingRoomBtn.style.display !== "none" && gameModeToggle.checked) {
                             startGameButton.textContent = "Start Online Game";
                         } else {
                             startGameButton.textContent = "Start Local Game";
@@ -137,27 +149,27 @@
                     }
                 }
 
-                // Join room button click handler
-                joinRoomBtn.addEventListener('click', async () => {
+                // Join waiting room button click handler
+                joinWaitingRoomBtn.addEventListener('click', async () => {
                     try {
                         if (!socket.connected) {
                             console.log('Socket not connected yet, waiting...');
                             await new Promise((resolve) => socket.on('connect', resolve));
                         }
-                        socket.emit('join_game', { room: 'public_room' });
-                        joinRoomBtn.style.display = 'none'; // Hide the join room button
-                        leaveRoomBtn.style.display = 'inline-block'; // Show the leave room button
+                        socket.emit('join_game', { room: 'waiting_room' });
+                        joinWaitingRoomBtn.style.display = 'none'; // Hide the join room button
+                        leaveWaitingRoomBtn.style.display = 'inline-block'; // Show the leave room button
 
                     } catch (error) {
                         console.error('Error:', error);
                     }
                 });
 
-                // Join room button click handler
-                leaveRoomBtn.addEventListener('click', () => {
-                    socket.emit('leave_room', { room: 'public_room' });
-                    joinRoomBtn.style.display = 'inline-block';
-                    leaveRoomBtn.style.display = 'none';
+                // Leave waiting room button click handler
+                leaveWaitingRoomBtn.addEventListener('click', () => {
+                    socket.emit('leave_room', { room: 'waiting_room' });
+                    joinWaitingRoomBtn.style.display = 'inline-block';
+                    leaveWaitingRoomBtn.style.display = 'none';
                 });
 
                 // Listen for the game state response
@@ -189,6 +201,8 @@
                     const { users } = data;
                     updateRoomBtns(users.length);
                 });
+
+
 
                 const cardNumbers = ['ace', 'two', 'three', 'four', 'five', 'six', 'seven', 'soldier', 'horse', 'king'];
                 const suits = ['sword', 'club', 'coin', 'cup'];

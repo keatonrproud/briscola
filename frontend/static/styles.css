@@ -223,10 +223,16 @@ input:checked + .slider:before {
 .difficulty-slider-container {
     margin-top: 5%;
     margin-bottom: 0; /* Space between the slider and the toggle */
-    text-align: center; /* Center-align the slider and label */
     opacity: 1;
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    text-align: center; /* Center-align the slider and label */
+    align-items: center; /* Center vertically */
+    position: relative;
     transition: opacity 0.3s ease; /* Smooth transition for fading in and out */
     user-select: none;
+    height: 3rem;
+    padding-right: .5rem;
 }
 
 .difficulty-slider-container.invisible {
@@ -244,6 +250,9 @@ input:checked + .slider:before {
     position: relative; /* For positioning the tooltip */
     pointer-events: none;
     user-select: none;
+    padding-right: .5rem;
+    width: 3rem;
+    text-align: center;
 }
 
 /* Join Room Button */

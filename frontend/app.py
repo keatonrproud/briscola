@@ -145,7 +145,7 @@ def emit_game_state(
     if additional_data:
         data = data | additional_data
 
-    emit("game_state", data, to="public_room" if game.online else False, include_self=True)
+    emit("game_state", data, to="waiting_room" if game.online else False, include_self=True)
 
 
 @socketio.on("get_state")
@@ -278,12 +278,13 @@ def get_game_of_oid(oid: str | None) -> BriscolaWeb | None:
     return OID__GAME.get(oid, None)
 
 
-@app.route("/api/get_room_users", methods=["GET"])
-def get_room_users() -> tuple[Response, int]:
-    room = request.args.get("room")
-    oids = get_oids_in_online_room(room)
+@app.route("/api/get_waiting_room_users")
+def get_waiting_room_users() -> tuple[Response, int]:
+    oids = get_oids_in_online_room('waiting_room')
+
     if oids is None:
-        return jsonify({"error": "Room or users not found"}), 404
+        oids = []
+
     return jsonify({"users": oids}), 200
 
 
@@ -295,6 +296,7 @@ def get_oids_in_online_room(room) -> list[str] | None:
     for oid, room_of_oid in OID__ONLINE_ROOM.items():
         if room_of_oid == room:
             oids_in_room.update({oid})
+
     return list(oids_in_room)
 
 
