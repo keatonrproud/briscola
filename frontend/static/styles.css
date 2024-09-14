@@ -252,6 +252,8 @@ input:checked + .slider:before {
     padding-right: .5rem;
     width: 3rem;
     text-align: center;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Join Room Button */
