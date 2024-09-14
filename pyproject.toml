@@ -23,7 +23,7 @@ line_length = 100
 name = "briscola"
 version = "0.1.0"
 description = "Briscola"
-authors = ["Your Name <you@example.com>"]
+authors = ["Keaton Proud <keatonrproud@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
