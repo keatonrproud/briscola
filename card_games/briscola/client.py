@@ -203,8 +203,6 @@ class BriscolaGame(CardGame, ABC):
         losing_cards = [card for card in self.active_pile.cards if card != winning_card]
 
         self.clear_pile()
-        print(self.turn_order())
-        print(self.deck.cards)
         self.fill_hands()
 
         logger.debug(", ".join(f"{player} has {player.score}pts" for player in self.players))

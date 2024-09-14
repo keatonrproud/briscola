@@ -339,7 +339,6 @@ async function updateGameState(data) {
     updateScoreboard(state.players); // Update scoreboard
     updateDeck(state.deck.current_cards); // Update the deck
 
-
     let shownPlayer = state.shown_player;
     // is shown player is not fixed, and the active player is a person
     if (!state.online && state.table_settings.computer_count === 0 && activePlayer.is_person) {
@@ -364,11 +363,14 @@ async function updateGameState(data) {
     updateTurnInfo(activePlayer, shownPlayer, state); // Update the turn info
     updateActivePile(state.pile.cards, activePlayer, shownPlayer); // Update active pile
 
+    const n_cards_played = state.pile.cards.length;
+    if (n_cards_played < state.players.length) {
+        const isActivePlayersTurn = state.turn_order[n_cards_played].player_num === activePlayer.player_num;
+        const activePlayerIsComputer = !activePlayer.is_person;
 
-    const activePlayerIsFirst = state.turn_order[0].player_num === activePlayer.player_num;
-    const noComputerCardPlayed = (state.pile.cards.length === 0 && activePlayerIsFirst) || (activePlayer.hand.cards.length === 3 && state.pile.cards.length < state.players.length);
-    if (!activePlayer.is_person && noComputerCardPlayed){
-        await playComputerTurn(state.turn_order[state.turn_order.length-1].player_num === activePlayer.player_num);
+        if (activePlayerIsComputer && isActivePlayersTurn){
+            await playComputerTurn(state.turn_order[state.turn_order.length-1].player_num === activePlayer.player_num);
+        }
     }
 
     if (!state.game_ongoing) {
