@@ -546,6 +546,7 @@ a:focus, a:active {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
     font-family: Arial, sans-serif; /* Consistent font */
     overflow: hidden; /* Hide overflow for smooth collapsing */
+    z-index: 99;  /* show on top of the cards */
 }
 
 #scoreboard-toggle {
