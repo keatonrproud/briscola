@@ -318,6 +318,22 @@ a:focus, a:active {
     cursor: pointer;
 }
 
+.greyed-message {
+    color: #D3D3D3;
+    cursor: pointer;
+}
+
+.greyed-message-container {
+    padding-top: 0;
+    background-color: transparent;
+    padding-bottom: 1%;
+}
+
+.greyed-message-container a {
+    color: rgba(80, 80, 80, 0.25); /* White with 70% opacity */
+    text-decoration: none;
+}
+
 .repo-text-container {
     background-color: transparent;
     padding-bottom: 1%;
@@ -338,7 +354,7 @@ a:focus, a:active {
     font-size: 18px; /* Button font size */
     cursor: pointer; /* Pointer cursor on hover */
     margin-top: 10%; /* Space between the slider and the toggle */
-    margin-bottom: 10%;
+    margin-bottom: 5%;
     border: none; /* Remove default button border */
     border-radius: 5px; /* Rounded corners */
     background-color: #007bff; /* Button background color */
