@@ -484,21 +484,6 @@ files = [
 ]
 
 [[package]]
-name = "python-dotenv"
-version = "1.0.1"
-description = "Read key-value pairs from a .env file and set them as environment variables"
-optional = false
-python-versions = ">=3.8"
-groups = ["main"]
-files = [
-    {file = "python-dotenv-1.0.1.tar.gz", hash = "sha256:e324ee90a023d808f1959c46bcbc04446a10ced277783dc6ee09987c37ec10ca"},
-    {file = "python_dotenv-1.0.1-py3-none-any.whl", hash = "sha256:f7b63ef50f1b690dddf550d03497b66d609393b40b564ed0d674909a68ebf16a"},
-]
-
-[package.extras]
-cli = ["click (>=5.0)"]
-
-[[package]]
 name = "python-engineio"
 version = "4.9.1"
 description = "Engine.IO server and client for Python"
@@ -758,4 +743,4 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "9b21780fe00238fa8d7d447e6e93abed64e6854dd72f485cf3f233f04d896d13"
+content-hash = "69a90f51160cd7c6c97541a3e660112b47694f504f0e72289309e8539c455eac"
