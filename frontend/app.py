@@ -1,4 +1,3 @@
-import os
 from dataclasses import dataclass
 
 from flask import Flask, Response, jsonify, render_template, request
@@ -8,7 +7,6 @@ from config.logging_config import build_logger
 from other.computer_logic.basic import basic_choice
 from other.scheduled.keep_alive import keep_alive
 from play.web.client import BriscolaWeb
-
 
 logger = build_logger(__name__)
 
@@ -134,7 +132,10 @@ def emit_game_state(
     if additional_data:
         data = data | additional_data
 
-    emit("game_state", data, to="waiting_room" if game.online else False, include_self=True)
+    target_room = "waiting_room" if game.online else False
+    logger.info(f"Emitting game state to {'room waiting_room' if target_room else 'individual socket'}")
+    logger.info(f"Game state data: {data}")
+    emit("game_state", data, to=target_room, include_self=True)
 
 
 @socketio.on("get_state")
@@ -157,8 +158,12 @@ def handle_play_active_card(data):
         return
 
     oid, game = get_game_and_oid_from_request_sid(request_sid=request.sid)
+    logger.info(f"Player {oid} playing card at index {card_idx}")
+    logger.info(f"Current game state before play: {game.to_dict()}")
 
     game.active_player_play_card_idx(card_idx=card_idx)
+    logger.info(f"Game state after play: {game.to_dict()}")
+    logger.info(f"Emitting active_card_played to socket {request.sid}")
 
     emit("active_card_played", game.to_dict(), to=request.sid)
 
@@ -178,13 +183,16 @@ def get_computer_choice() -> tuple[Response, int]:
 @socketio.on("end_play")
 def end_play():
     oid, game = get_game_and_oid_from_request_sid(request.sid)
+    logger.info(f"Ending play for player {oid}")
 
     assert type(game) is BriscolaWeb
 
     game.end_play()
+    logger.info(f"Game state after end_play: {game.to_dict()}")
 
     # send to online room if user is in one, otherwise just to the user's current socket
     target = get_online_room_of_oid(oid) or request.sid
+    logger.info(f"Sending end_play event to target: {target}")
 
     emit("end_play", {"game_state": game.to_dict()}, to=target)
 
@@ -293,12 +301,15 @@ def get_oids_in_online_room(room) -> list[str] | None:
 def handle_join_game(data):
     room = data.get("room")
     oid = get_oid(request.sid)
+    logger.info(f"Player {oid} joining room {room}")
 
     # add the current active socket to the room
     join_room(room, sid=request.sid)
+    logger.info(f"Socket {request.sid} added to room {room}")
 
     # set room as the current room of the oid
     OID__ONLINE_ROOM[oid] = room
+    logger.info(f"Current room mappings: {OID__ONLINE_ROOM}")
 
     send_room_user_count_update(room)
 

@@ -1,14 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
 
 :root {
-  --face-up-card-width: 146px;
-  --face-up-card-height: 250px;
+  --face-up-card-width: min(25vw, 146px);
+  --face-up-card-height: calc(var(--face-up-card-width) * 1.712);  /* maintain aspect ratio */
 }
 
 @media (max-width: 600px) {
     :root {
-      --face-up-card-width: 99px;
-      --face-up-card-height: 170px;
+      --face-up-card-width: min(25vw, 99px);
+      --face-up-card-height: calc(var(--face-up-card-width) * 1.712);
     }
 }
 
@@ -456,9 +456,11 @@ a:focus, a:active {
     font-weight: bold;
     line-height: 1.2;
     background-color: #f9f9f9;
+    background-size: contain !important;
+    background-position: center !important;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    cursor: pointer; /* Show pointer cursor on hover */
-    transition: all 0.3s ease; /* Smooth transition for hover and click effects */
+    cursor: pointer;
+    transition: all 0.3s ease;
 }
 
 /* Hover effect: Darker background */
@@ -873,8 +875,10 @@ a:focus, a:active {
 }
 
 @media (max-width: 600px) {
-    width: 60%;
-    height: 60%;
+    .confetti {
+        width: 60%;
+        height: 60%;
+    }
 }
 
 /* Game over card styling */
