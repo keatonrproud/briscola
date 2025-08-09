@@ -96,11 +96,11 @@ class GameService:
                 (team for team in game.teams if team.score > game.win_condition), None
             )
             if winning_team:
-                message = f"Team {winning_team.name} wins!"
+                message = f"Team {winning_team.name.name} wins!"
             else:
                 max_team_score = max(team.score for team in game.teams)
                 tied_teams = [
-                    team.name
+                    team.name.name
                     for team in game.teams
                     if team.score == max_team_score and team.score >= 120
                 ]
@@ -111,7 +111,7 @@ class GameService:
 
             sorted_teams = sorted(game.teams, key=lambda team: team.score, reverse=True)
             scores = [
-                [f"Team {team.name}", f"{team.score}pts"] for team in sorted_teams
+                [f"Team {team.name.name}", f"{team.score}pts"] for team in sorted_teams
             ]
         elif winner:
             message = f"{winner} wins!"

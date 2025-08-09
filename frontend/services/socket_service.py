@@ -71,6 +71,7 @@ class SocketService:
         difficulty = data.get("difficulty")
         player_count = int(data.get("playerCount", 2))
         room_code = data.get("room")  # Get room code if provided
+        team_selection = data.get("team")  # Get team selection if provided
 
         oid = self.get_oid(request.sid)
         online_room = room_code or self.get_online_room_of_oid(oid)
@@ -101,13 +102,63 @@ class SocketService:
                             player_count=player_count, online=True
                         )
 
-                        # Set up the player-to-userid mapping
-                        game.userid_playernum_map = {
-                            user_id: player_num
-                            for user_id, player_num in zip(
-                                room_oids, range(len(game.players))
+                        # For 4-player games, organize players into teams
+                        if player_count == 4 and hasattr(user_service, "user_teams"):
+                            # Sort room_oids based on team assignment
+                            team1_players = []
+                            team2_players = []
+
+                            # First pass to assign players with team preferences
+                            for user_id in room_oids:
+                                team = user_service.user_teams.get(
+                                    user_id, "1"
+                                )  # Default to team 1
+                                if team == "1" and len(team1_players) < 2:
+                                    team1_players.append(user_id)
+                                elif team == "2" and len(team2_players) < 2:
+                                    team2_players.append(user_id)
+
+                            # Second pass for any unassigned players
+                            for user_id in room_oids:
+                                if (
+                                    user_id not in team1_players
+                                    and user_id not in team2_players
+                                ):
+                                    if len(team1_players) < 2:
+                                        team1_players.append(user_id)
+                                    elif len(team2_players) < 2:
+                                        team2_players.append(user_id)
+
+                            # Create final player order: team1_player1, team2_player1, team1_player2, team2_player2
+                            ordered_players = []
+                            for i in range(min(2, len(team1_players))):
+                                ordered_players.append(team1_players[i])
+                                if i < len(team2_players):
+                                    ordered_players.append(team2_players[i])
+
+                            # Add any remaining players
+                            remaining = set(room_oids) - set(ordered_players)
+                            ordered_players.extend(list(remaining))
+
+                            # Set up the player-to-userid mapping with team assignments
+                            game.userid_playernum_map = {
+                                user_id: player_num
+                                for user_id, player_num in zip(
+                                    ordered_players, range(len(game.players))
+                                )
+                            }
+
+                            logger.info(
+                                f"Team assignments: {game.userid_playernum_map}"
                             )
-                        }
+                        else:
+                            # For 2-player games or when no team assignments, use normal mapping
+                            game.userid_playernum_map = {
+                                user_id: player_num
+                                for user_id, player_num in zip(
+                                    room_oids, range(len(game.players))
+                                )
+                            }
 
                         # Register the game with the room
                         game_service.register_room_game(online_room, game)
@@ -142,7 +193,6 @@ class SocketService:
             if online_room:
                 for player_oid in self.get_oids_in_room(online_room):
                     user_service.set_game(player_oid, game)
-
             # otherwise, set it just for the current oid who started the game
             else:
                 user_service.set_game(oid, game)
@@ -163,7 +213,34 @@ class SocketService:
 
                         join_room(online_room, sid=sid)
 
-            game_service.emit_game_state(game, additional_data=additional_data)
+                # Delay just slightly to ensure all sockets are properly joined
+                from time import sleep
+
+                sleep(0.1)
+
+                # Emit to each player individually first to ensure they get the initial game state
+                for player_oid in self.get_oids_in_room(online_room):
+                    sid = user_service.get_socket_from_oid(player_oid)
+                    if sid:
+                        # Emit directly to this player's socket
+                        logger.info(
+                            f"Sending initial game state directly to player {player_oid}"
+                        )
+                        emit(
+                            EmitType.GAME_STATE,
+                            {
+                                GameStateKeys.GAME_STATE: game.to_dict(),
+                                GameStateKeys.CONTINUE_PLAY: False,
+                                **additional_data,
+                            },
+                            to=sid,
+                        )
+
+                # Then emit to the room as well for redundancy
+                game_service.emit_game_state(game, additional_data=additional_data)
+            else:
+                # For local games, just emit to the current player
+                game_service.emit_game_state(game, additional_data=additional_data)
 
         except Exception as e:
             self.emit(EmitType.ERROR, {ErrorKeys.MESSAGE: str(e)})

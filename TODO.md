@@ -1,41 +1,58 @@
-# Architect's TODO List
+# Briscola App Issues Todo List
 
-This document outlines the proposed architectural changes to improve the Briscola application.
+## Bug Fixes
 
-## Phase 1: Backend Refactoring
+### 1. Player Name Display Issues
+- [x] Fix player name displaying enum instead of value (issue in `script.js` when displaying player representation)
+- [x] Ensure proper representation in all game views and end-game screen
 
-- [ ] **State Management:**
-  - [ ] Create a `state.py` module to encapsulate all in-memory data (e.g., `SOCKET__OID`, `OID__GAME`, `ROOMS`). This will centralize state and make it easier to replace with a more robust solution like Redis in the future.
-  - [ ] Refactor `app.py` to import and use the new state management module.
+### 2. Card Interaction Issues
+- [x] Fix cards getting stuck when clicked when it's not the player's turn
+- [x] Add better visual feedback when a card can't be played
+- [x] Prevent card click events when it's not the user's turn
 
-- [ ] **SocketIO Event Handlers:**
-  - [ ] Create a `sockets.py` module.
-  - [ ] Move all SocketIO event handlers (e.g., `@socketio.on(...)`) from `app.py` to `sockets.py`.
-  - [ ] Create a function in `sockets.py` to initialize the socket events, which will be called from `app.py`. This will keep `app.py` cleaner and focused on application setup.
+### 3. Turn Notification Issues
+- [x] Fix turn notifications not updating automatically (requiring page refresh)
+- [x] Improve WebSocket handling to properly update UI when turn changes
+- [x] Add visual indicators when it's the player's turn
 
-- [ ] **API Endpoints:**
-  - [ ] Create an `api.py` module.
-  - [ ] Move all Flask API routes (e.g., `@app.route('/api/...')`) from `app.py` to `api.py` using a Flask Blueprint.
-  - [ ] Register the Blueprint in `app.py`.
+### 4. Game Initialization Issues
+- [x] Fix issue where users need to refresh to see cards after starting a game
+- [x] Ensure proper state synchronization when game starts
+- [x] Add proper loading indicators during game initialization
 
-- [ ] **Game Logic:**
-  - [ ] The game logic seems reasonably separated in `play/web/client.py` and the `card_games` directory. No major changes are proposed here for now, but we should keep an eye on it as the application grows.
+### 5. End-Game Score Display Issues
+- [x] Fix score display not showing in the end-game screen
+- [x] Debug why score data isn't being passed correctly to the end_game template
+- [x] Ensure team scores are displayed properly for 4-player games
 
-## Phase 2: Frontend Refactoring
+## Feature Requests
 
-- [ ] **JavaScript Modularity:**
-  - [ ] Create separate JavaScript files for different functionalities. For example:
-    - `lobby.js`: Handles the initial game setup, mode selection, and difficulty.
-    - `room.js`: Manages creating, joining, leaving, and waiting in rooms.
-    - `game.js`: Contains the logic for the actual game turn page.
-    - `websockets.js`: Centralizes all socket event listeners and emitters.
-  - [ ] Update `index.html`, `turn.html`, etc., to import these new JavaScript modules.
+### 6. Username Input
+- [x] Add username input field for all multiplayer games
+- [x] Store username in localStorage for persistence across sessions
+- [x] Update player representation to use custom username instead of default names
+- [x] Show the username in an online game somewhere near their cards, small in a visible font/container based on the general gameplay screen
 
-- [ ] **Template Splitting:**
-  - [ ] The current `index.html` serves as both the lobby and the room. We should consider splitting this into `lobby.html` and `room.html`.
-  - [ ] Alternatively, we can use a single-page application (SPA) approach where different "views" (lobby, room) are dynamically rendered using JavaScript, hiding and showing different sections of the `index.html` page. The current implementation already does a bit of this, and we can formalize it.
+### 7. Team Selection for 4-Player Games
+- [x] Add team selection UI for 4-player rooms
+- [x] Allow players to choose teams when joining a 4-player game
+- [x] Update room management to handle team assignments
+- [x] Add visual indicators for team membership during gameplay
 
-## Phase 3: Long-Term Scalability
+## Implementation Plan
+- [x] Address critical bugs first (1-5) ✓
+- [x] Implement username feature (6) ✓
+- [x] Add team selection functionality (7) ✓
 
-- [ ] **Persistent State:**
-  - [ ] Replace the in-memory state management with a more persistent solution like Redis. This will allow the application to scale across multiple workers and prevent data loss on server restarts. This is a larger task and should be considered after the initial refactoring.
+## Summary of Fixes
+
+All identified issues have been fixed:
+
+1. Fixed player name display issues by properly handling enum values in Python and presenting them correctly in the UI.
+2. Fixed card interaction issues by disabling card click events when it's not the user's turn and adding visual feedback.
+3. Fixed turn notification issues by improving the WebSocket connection and adding clear visual indicators when it's a player's turn.
+4. Fixed game initialization issues by ensuring all players receive the game state when a game starts.
+5. Fixed end-game score display by correcting the data formatting and handling empty/null values.
+6. Added username input for multiplayer games with localStorage persistence.
+7. Added team selection for 4-player games with visual feedback and proper team assignments.

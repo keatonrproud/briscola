@@ -284,7 +284,7 @@ class BriscolaGame(CardGame, ABC):
             "game_ongoing": self.game_ongoing,
             "turn_order": [player.to_dict() for player in self.turn_order()],
             "teams": (
-                [{"name": team.name, "score": team.score} for team in self.teams]
+                [{"name": str(team.name.name), "score": team.score} for team in self.teams]
                 if self.teams
                 else None
             ),

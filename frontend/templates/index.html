@@ -32,6 +32,13 @@
                 <span class="mode-label right-label" aria-label="Local">👥</span>
             </div>
 
+            <!-- Username Input -->
+            <div class="username-container" style="margin-bottom: 15px;">
+                <label for="username-input" style="display: block; margin-bottom: 5px;">Player Name:</label>
+                <input type="text" id="username-input" placeholder="Enter your name" maxlength="15" 
+                    style="padding: 8px; border: 1px solid #ccc; border-radius: 5px; width: 100%; box-sizing: border-box;">
+            </div>
+
             <!-- Difficulty Slider -->
             <div class="difficulty-slider-container">
                 <label for="difficulty-slider" class="difficulty-label" title="Computer Difficulty">🔥</label>
@@ -65,6 +72,17 @@
                     <div id="current-room-info" style="display: none; margin-top: 1rem;">
                         <p><strong>Room Code: <span id="current-room-code"></span></strong></p>
                         <p>Players: <span id="current-room-players">0</span>/<span id="max-players">2</span></p>
+                        
+                        <!-- Team Selection for 4-player games -->
+                        <div id="team-selection" style="display: none; margin-top: 1rem; margin-bottom: 1rem;">
+                            <p><strong>Select Your Team:</strong></p>
+                            <div class="team-buttons" style="display: flex; justify-content: center; gap: 10px; margin-bottom: 10px;">
+                                <button id="team1-btn" class="team-btn" data-team="1" style="padding: 8px 15px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">Team 1</button>
+                                <button id="team2-btn" class="team-btn" data-team="2" style="padding: 8px 15px; background-color: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer;">Team 2</button>
+                            </div>
+                            <p id="team-status" style="font-size: 0.9rem; color: #666;">You haven't selected a team yet.</p>
+                        </div>
+                        
                         <button id="leave-room-btn" class="button">Leave Room</button>
                     </div>
                 </div>
@@ -130,6 +148,12 @@
                 const difficultySlider = document.getElementById('difficulty-slider');
                 const difficultySliderContainer = document.querySelector('.difficulty-slider-container');
                 const difficultyLabel = document.querySelector('.difficulty-label');
+                const usernameInput = document.getElementById('username-input');
+                
+                // Load saved username if available
+                if (localStorage.getItem('username')) {
+                    usernameInput.value = localStorage.getItem('username');
+                }
                 const roomSection = document.querySelector('.room-section');
                 const createRoomBtn = document.getElementById('create-room-btn');
                 const joinRoomBtn = document.getElementById('join-room-btn');
@@ -210,6 +234,53 @@
                         button.classList.add('active');
                         selectedPlayerCount = parseInt(button.getAttribute('data-count'));
                         maxPlayers.textContent = selectedPlayerCount;
+                    });
+                });
+                
+                // Team selection handlers
+                const teamButtons = document.querySelectorAll('.team-btn');
+                let selectedTeam = localStorage.getItem('selectedTeam') || null;
+                const teamStatus = document.getElementById('team-status');
+                
+                // Apply stored team selection if available
+                if (selectedTeam) {
+                    teamButtons.forEach(btn => {
+                        if (btn.getAttribute('data-team') === selectedTeam) {
+                            btn.classList.add('selected');
+                            btn.style.opacity = '1';
+                            teamStatus.textContent = `You selected Team ${selectedTeam}`;
+                        } else {
+                            btn.classList.remove('selected');
+                            btn.style.opacity = '0.7';
+                        }
+                    });
+                }
+                
+                teamButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        const team = button.getAttribute('data-team');
+                        
+                        // Store team selection
+                        localStorage.setItem('selectedTeam', team);
+                        selectedTeam = team;
+                        
+                        // Update UI
+                        teamButtons.forEach(btn => {
+                            if (btn === button) {
+                                btn.classList.add('selected');
+                                btn.style.opacity = '1';
+                            } else {
+                                btn.classList.remove('selected');
+                                btn.style.opacity = '0.7';
+                            }
+                        });
+                        
+                        teamStatus.textContent = `You selected Team ${team}`;
+                        
+                        // Emit team selection event
+                        if (socket.connected) {
+                            socket.emit('select_team', { team: team, room: currentRoom });
+                        }
                     });
                 });
 
@@ -335,6 +406,14 @@
                         joinRoomBtn.parentElement.style.display = 'none';
                         currentRoomCode.textContent = currentRoom;
                         leaveRoomBtn.style.display = 'inline-block';
+                        
+                        // Show team selection UI if it's a 4-player room
+                        const teamSelectionDiv = document.getElementById('team-selection');
+                        if (currentRoomMaxPlayers === 4) {
+                            teamSelectionDiv.style.display = 'block';
+                        } else {
+                            teamSelectionDiv.style.display = 'none';
+                        }
                     } else {
                         currentRoomInfo.style.display = 'none';
                         createRoomSection.style.display = 'block';
@@ -398,6 +477,12 @@
                         console.log('Button is disabled, not sending start_game event');
                         return;
                     }
+                    
+                    // Save username if provided
+                    const username = usernameInput.value.trim();
+                    if (username) {
+                        localStorage.setItem('username', username);
+                    }
 
                     const gameMode = gameModeToggle.checked ? 'online' : 'local';
                     const difficulty = difficultySlider.value; // Get the difficulty value
@@ -414,13 +499,21 @@
                             // Get the current number of players in the room to double check
                             const currentPlayersCount = parseInt(currentRoomPlayers.textContent) || 0;
                             
-                            console.log(`Starting online game with room: ${currentRoom} (${currentPlayersCount}/${currentRoomMaxPlayers} players)`);
-                            socket.emit('start_game', {
+                            // Include team selection data for 4-player games
+                            const gameData = {
                                 gameMode: gameMode, 
                                 difficulty: difficulty, 
                                 playerCount: parseInt(currentRoomMaxPlayers), // This is the max players for the game
                                 room: currentRoom
-                            });
+                            };
+                            
+                            // Add team selection if it's a 4-player game
+                            if (currentRoomMaxPlayers === 4) {
+                                gameData.team = selectedTeam || '1'; // Default to team 1 if not selected
+                            }
+                            
+                            console.log(`Starting online game with room: ${currentRoom} (${currentPlayersCount}/${currentRoomMaxPlayers} players)`);
+                            socket.emit('start_game', gameData);
                         } else {
                             console.log('Starting local game');
                             socket.emit('start_game', {
@@ -448,6 +541,37 @@
                     
                     updateStartGameButtonText(playerCount); 
                     alert(`Room created! Code: ${data[RoomCreateJoinKeys.ROOM_CODE]}`);
+                });
+                
+                // Team selection update event
+                socket.on('team_selection_update', (data) => {
+                    console.log('Team selection update:', data);
+                    
+                    // Display team selection notification
+                    const teamStatus = document.getElementById('team-status');
+                    if (teamStatus) {
+                        const message = `${data.username} joined Team ${data.team}`;
+                        
+                        // Create temporary notification
+                        const notification = document.createElement('div');
+                        notification.textContent = message;
+                        notification.style.color = data.team === '1' ? '#4CAF50' : '#2196F3';
+                        notification.style.fontWeight = 'bold';
+                        notification.style.padding = '5px';
+                        notification.style.margin = '5px 0';
+                        notification.style.borderRadius = '4px';
+                        notification.style.backgroundColor = 'rgba(255,255,255,0.1)';
+                        
+                        // Insert before team status
+                        teamStatus.parentNode.insertBefore(notification, teamStatus);
+                        
+                        // Remove after 3 seconds
+                        setTimeout(() => {
+                            if (notification.parentNode) {
+                                notification.parentNode.removeChild(notification);
+                            }
+                        }, 3000);
+                    }
                 });
 
                 socket.on(EmitType.ROOM_JOINED, (data) => {

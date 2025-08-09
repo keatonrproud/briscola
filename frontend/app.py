@@ -127,7 +127,9 @@ def handle_end_game():
 
     if online_room:
         # Force all players to leave and clean up the room
-        room_service.force_players_out_of_room(online_room, socket_service.socket_to_oid)
+        room_service.force_players_out_of_room(
+            online_room, socket_service.socket_to_oid
+        )
         room_service.cleanup_room(
             online_room,
             oid_online_room=user_service.oid_to_room,
@@ -213,6 +215,27 @@ def handle_join_room_by_code(data):
     )
     room_service.send_room_update(room_code, socket_service.get_oids_in_room)
     logger.info(f"Player {oid} joined room {room_code}")
+
+
+@socketio.on("select_team")
+def handle_select_team(data):
+    team = data.get("team")
+    room = data.get("room")
+    oid = socket_service.get_oid(request.sid)
+
+    if not room or not team or not oid:
+        emit(EmitType.ERROR, {ErrorKeys.MESSAGE: "Missing data for team selection"})
+        return
+
+    # Store the team selection for this user
+    if not hasattr(user_service, "user_teams"):
+        user_service.user_teams = {}
+
+    user_service.user_teams[oid] = team
+    logger.info(f"Player {oid} selected team {team} in room {room}")
+
+    # Notify other room members about the team selection
+    room_service.send_team_update(room, oid, team)
 
 
 @socketio.on("join_game")

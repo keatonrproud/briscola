@@ -80,48 +80,58 @@
         import { updateGameState } from '/static/script.js';
 
         function setUpGameStateListener() {
-            if (!socket.__gameStateListenerSetUp) {
-                socket.on('game_state', async (data) => {
-                    if (data.error) {
-                        console.error('Error:', data.error);
-                    } else {
-                        await updateGameState(data);
-                    }
-                });
+            // Remove existing listener if it exists to prevent duplicates
+            socket.off('game_state');
+            
+            // Add fresh listener
+            socket.on('game_state', async (data) => {
+                console.log('Game state update received:', new Date().toLocaleTimeString());
+                if (data.error) {
+                    console.error('Error:', data.error);
+                } else {
+                    await updateGameState(data);
+                }
+            });
 
-                socket.__gameStateListenerSetUp = true;
-            }
+            socket.__gameStateListenerSetUp = true;
         }
 
         function setUpEndPlayListener() {
-            if (!socket.__endPlayListenerSetUp) {
-                socket.on("end_play", async (data) => {
-                    await updateGameState(data);
-                })
+            // Remove existing listener if it exists to prevent duplicates
+            socket.off("end_play");
+            
+            // Add fresh listener
+            socket.on("end_play", async (data) => {
+                console.log('End play update received:', new Date().toLocaleTimeString());
+                await updateGameState(data);
+            });
 
-                socket.__endPlayListenerSetUp = true;
-            }
+            socket.__endPlayListenerSetUp = true;
         }
 
         function setUpRoomClosedListener() {
-            if (!socket.__setUpRoomClosedListener) {
-                socket.on("room_closed", async () => {
-                    window.location.href = '/';
-                })
+            // Remove existing listener if it exists
+            socket.off("room_closed");
+            
+            // Add fresh listener
+            socket.on("room_closed", async () => {
+                window.location.href = '/';
+            });
 
-                socket.__setUpRoomClosedListener = true;
-            }
+            socket.__setUpRoomClosedListener = true;
         }
 
         function setUpForceLeaveRoomListener() {
-            if (!socket.__setUpForceLeaveRoomListener) {
-                socket.on("force_leave_room", async (data) => {
-                    alert(data.message);
-                    window.location.href = '/';
-                })
+            // Remove existing listener if it exists
+            socket.off("force_leave_room");
+            
+            // Add fresh listener
+            socket.on("force_leave_room", async (data) => {
+                alert(data.message);
+                window.location.href = '/';
+            });
 
-                socket.__setUpForceLeaveRoomListener = true;
-            }
+            socket.__setUpForceLeaveRoomListener = true;
         }
 
         setUpGameStateListener();

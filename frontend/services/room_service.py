@@ -101,6 +101,25 @@ class RoomService:
             to=room,
         )
 
+    def send_team_update(self, room: str, oid: str, team: str) -> None:
+        """Send team selection update to all players in a room"""
+        if room not in self.rooms:
+            return
+
+        # Get username if available from user service
+        from frontend.services.user_service import user_service
+
+        username = getattr(user_service, "usernames", {}).get(oid, f"Player {oid[:4]}")
+
+        # Emit team selection event to the room
+        emit(
+            "team_selection_update",
+            {"room": room, "user_id": oid, "username": username, "team": team},
+            to=room,
+        )
+
+        logger.info(f"Sent team update for {username} (team {team}) to room {room}")
+
 
 # Create a singleton instance
 room_service = RoomService()

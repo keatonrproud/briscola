@@ -39,21 +39,52 @@ function updateCards(players, shownPlayer, cardsPlayable) {
     oppCardsContainer.innerHTML = '';
     if (leftPlayerCardsContainer) leftPlayerCardsContainer.innerHTML = '';
     if (rightPlayerCardsContainer) rightPlayerCardsContainer.innerHTML = '';
+    
+    // Add player name display above cards
+    const username = localStorage.getItem('username');
+    if (username) {
+        const nameDisplay = document.createElement('div');
+        nameDisplay.className = 'player-name-display';
+        nameDisplay.textContent = username;
+        nameDisplay.style.position = 'absolute';
+        nameDisplay.style.bottom = '110%';
+        nameDisplay.style.left = '50%';
+        nameDisplay.style.transform = 'translateX(-50%)';
+        nameDisplay.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
+        nameDisplay.style.color = 'white';
+        nameDisplay.style.padding = '2px 8px';
+        nameDisplay.style.borderRadius = '4px';
+        nameDisplay.style.fontSize = '0.9rem';
+        nameDisplay.style.zIndex = '5';
+        playerCardsContainer.style.position = 'relative';
+        playerCardsContainer.appendChild(nameDisplay);
+    }
 
 
     // Render shown player's cards
     shownPlayer.hand.cards.forEach((card) => {
         const cardDiv = document.createElement('div');
         setCardImage(cardDiv, card);
+        
+        // Set appropriate cursor style and class based on playability
         if (cardsPlayable) {
+            cardDiv.className = 'card playable';
+            cardDiv.style.cursor = 'pointer';
+            
             function handleCardClick(event) {
                 const cardIndex = Array.from(playerCardsContainer.children).indexOf(cardDiv);
+                // Cards are already checked to be playable when event listeners are attached
                 playHumanCard(cardIndex, cardDiv);
             }
+            
             cardDiv.addEventListener('click', handleCardClick);
             cardDiv.handleCardClick = handleCardClick;
+        } else {
+            cardDiv.className = 'card not-playable';
+            // Add subtle visual indicator that card is not playable
+            cardDiv.style.opacity = '0.8';
         }
-        cardDiv.className = 'card';
+        
         playerCardsContainer.appendChild(cardDiv);
     });
 
@@ -96,18 +127,94 @@ function updateCards(players, shownPlayer, cardsPlayable) {
 
 function updateTurnInfo(player, shownPlayer, gameState) {
     const turnInfo = document.getElementById('turn-info');
+    
+    // Check if turn info element exists
+    if (!turnInfo) return;
 
     let text = "";
     let singleHuman = gameState.table_settings.player_count - gameState.table_settings.computer_count === 1;
-
+    
+    // Store previous turn state for comparison
+    const prevTurnText = turnInfo.textContent;
+    const isYourTurnNow = player.player_num === shownPlayer.player_num && (gameState.online || singleHuman);
+    const wasYourTurnBefore = prevTurnText.includes('Your Turn');
+    
     // if the active player is the shown one, and the game is either online or there's only one human, show Your Turn
-    if (player.player_num === shownPlayer.player_num && (gameState.online || singleHuman)) {
-        text = `${player.color} Your Turn`
+    if (isYourTurnNow) {
+        text = `${player.color} Your Turn`;
+        
+        // Add visual highlight effect if it just became your turn
+        if (!wasYourTurnBefore) {
+            // Apply highlight animation
+            turnInfo.classList.add('highlight-turn');
+            setTimeout(() => {
+                turnInfo.classList.remove('highlight-turn');
+            }, 2000);
+            
+            // Play notification sound if supported
+            try {
+                const audio = new Audio('data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA/+M4wAAAAAAAAAAAAEluZm8AAAAPAAAAAwAAAbAAzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzM//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAZFgAAAAAAABsAAAAAAAAAAAAAAAP/jWMQACwALLDvrxC/VAPT+/sdtfigZ/uneLvPQLfJ/9e4FG0FQQhms0LBEARdX1tT661///9XV+LVVU5PABMgAIoAHuJ90oxnqZyucChGhIIANvBf/KAgEDUIIWZzo1LFui/JkXoVEIIJzneZQz/lz/KHs6/Wf/yh9C+XQfjKFuqpdnZ3NHxpcqgAEsAEn5NtGfhf/Lc/C/KX8zoiIRVXh8RaoiwzVW+mf/6oBiFAEQAALuKWwbtix7bNuxPttg0pRGm3RBtSxbT9VW227c3bnpQAGMAEVgAVg+TAYP3+Kig6iMtX/+UdHEVFR/lKjqK/9R1FfyoqOoqP//X////qKj+VHX//qKioqKn8qKioqKio+o6ioqP////iQAVQARIAfYUDf6P//+TOkyD//5M/kz+v//6aoADcAEJIAGMPkwpP//8jIywxJkf/+TMjLDLlSMuVOVP/P5cyMyUYnE5Wyp/9b//P9JGXPeTM/8mZF5M5UyMyU//8mZKo');
+                audio.play();
+            } catch(e) {
+                console.log('Sound not supported or blocked by browser');
+            }
+        }
     } else {
-        text = player.repr;
+        // Parse the player representation correctly
+        text = formatPlayerDisplay(player);
     }
 
-    turnInfo.textContent = text
+    // Add styles to the turn info element based on whose turn it is
+    turnInfo.textContent = text;
+    
+    if (isYourTurnNow) {
+        turnInfo.style.fontWeight = 'bold';
+        turnInfo.style.color = '#ff9500';
+    } else {
+        turnInfo.style.fontWeight = 'normal';
+        turnInfo.style.color = '';
+    }
+    
+    // If it's now your turn and wasn't before, add some CSS to make it noticeable
+    if (!window.__addedTurnStyles) {
+        window.__addedTurnStyles = true;
+        const style = document.createElement('style');
+        style.innerHTML = `
+            .highlight-turn {
+                animation: pulse 2s;
+            }
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                25% { transform: scale(1.1); }
+                50% { transform: scale(1); }
+                75% { transform: scale(1.1); }
+                100% { transform: scale(1); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+}
+
+// Helper function to handle player display formatting
+function formatPlayerDisplay(player) {
+    if (!player) return "";
+    
+    // If we have a stored username in localStorage, use that for the current player
+    if (player.player_num === 1) { // Assuming player 1 is typically the current player
+        const username = localStorage.getItem('username');
+        if (username) {
+            return `${player.color} ${username}`;
+        }
+    }
+    
+    // If repr property exists and looks correctly formatted, use it
+    if (player.repr && !player.repr.includes('TeamName.')) {
+        return player.repr;
+    }
+    
+    // Otherwise construct a display name from available properties
+    const playerType = player.is_person ? "Player" : "Computer";
+    return `${player.color} ${playerType} ${player.player_num}`;
 }
 
 function updateBriscolaCard(card, num_cards_in_deck) {
@@ -154,26 +261,28 @@ async function checkIfInGame() {
 }
 
 function setUpHumanCardPlayedListener() {
-    if (!socket.__humanCardPlayedSetUp) {
+    // Remove existing listener if it exists
+    socket.off('active_card_played');
 
-        // Listen for the response from the server
-        socket.on('active_card_played', async (data) => {
-            if (!data.active_player.is_person) {
-                return;
-            }
+    // Listen for the response from the server
+    socket.on('active_card_played', async (data) => {
+        console.log('Card played event received:', new Date().toLocaleTimeString());
+        if (!data.active_player.is_person) {
+            return;
+        }
 
-            await getGameState();
+        await getGameState();
 
-            if (data.pile.cards.length === data.players.length) {
-                setTimeout(() => {
-                    endPlay();
-                }, 1500);
-            } else {endPlay();}
-        });
+        if (data.pile.cards.length === data.players.length) {
+            setTimeout(() => {
+                endPlay();
+            }, 1500);
+        } else {
+            endPlay();
+        }
+    });
 
-
-        socket.__humanCardPlayedSetUp = true;
-    }
+    socket.__humanCardPlayedSetUp = true;
 }
 
 function makeShownCardsUnplayable() {
@@ -185,11 +294,12 @@ function makeShownCardsUnplayable() {
 }
 
 async function playHumanCard(cardIndex, cardDiv) {
-
     makeShownCardsUnplayable();
-
-    cardDiv.classList.add('played'); // Add the class to trigger animation
-
+    
+    // Add animation class
+    cardDiv.classList.add('played');
+    
+    // After a short delay, set up the listener and emit the card play event
     setTimeout(() => {
         setUpHumanCardPlayedListener();
         socket.emit('play_active_card', { card_index: cardIndex });
@@ -208,15 +318,9 @@ async function getComputerChoice() {
 }
 
 function setUpComputerCardPlayedListener() {
-    if (!socket.__computerCardPlayedSetUp) {
-        socket.on('active_card_played', (data) => {
-            if (!data.active_player.is_person) {
-                getGameState();
-            }
-        });
-
-        socket.__computerCardPlayedSetUp = true;
-    }
+    // We don't need a separate computer card played listener
+    // since we've already improved the main active_card_played listener
+    socket.__computerCardPlayedSetUp = true;
 }
 
 async function playComputerCard(cardIndex) {
@@ -260,6 +364,8 @@ function showConfetti(xOrigin, yOrigin) {
 let pastScores = {};
 function updateScoreboard(players, teams) {
     const scoresContainer = document.getElementById('scores');
+    if (!scoresContainer) return; // Exit if container not found
+    
     scoresContainer.innerHTML = ''; // Clear existing scores
     const teamScoresContainer = document.getElementById('team-scores');
     if (teamScoresContainer) {
@@ -270,25 +376,44 @@ function updateScoreboard(players, teams) {
         teams.forEach(team => {
             const teamScoreDiv = document.createElement('div');
             teamScoreDiv.className = 'score';
+            
+            // Format team name properly
+            let teamName = team.name;
+            if (typeof teamName === 'string' && teamName.includes('TeamName.')) {
+                teamName = teamName.split('.').pop(); // Extract name from enum
+            }
+            
             teamScoreDiv.innerHTML = `
-                <span>Team ${team.name}:</span>
+                <span>Team ${teamName}:</span>
                 <span>${team.score}</span>
             `;
-            teamScoresContainer.appendChild(teamScoreDiv);
+            if (teamScoresContainer) {
+                teamScoresContainer.appendChild(teamScoreDiv);
+            }
         });
     }
 
-    players.forEach(player => {
-        const scoreDiv = document.createElement('div');
-        scoreDiv.className = 'score';
-        scoreDiv.innerHTML = `
-            <span>${player.repr}:</span>
-            <span>${player.score}</span>
-        `;
-        scoresContainer.appendChild(scoreDiv);
+    if (players && Array.isArray(players)) {
+        players.forEach(player => {
+            if (!player) return;
+            
+            const scoreDiv = document.createElement('div');
+            scoreDiv.className = 'score';
+            scoreDiv.innerHTML = `
+                <span>${formatPlayerDisplay(player)}:</span>
+                <span>${player.score}</span>
+            `;
+            scoresContainer.appendChild(scoreDiv);
 
-        pastScores[player.player_num]  = player.score;
-    });
+            pastScores[player.player_num] = player.score;
+        });
+    }
+    
+    // Make scoreboard visible
+    const scoreboardContainer = document.getElementById('scoreboard-container');
+    if (scoreboardContainer) {
+        scoreboardContainer.style.display = 'block';
+    }
 }
 
 function updateDeck(cards) {
@@ -356,6 +481,8 @@ function updateActivePile(cards, activePlayer, shownPlayer) {
 }
 
 
+
+
 function endGame() {
     window.location.href = '/end_game';
 }
@@ -372,11 +499,17 @@ function blastConfettiForBigScore() {
 async function updateGameState(data) {
     // Extract data for the active player
     const state = data.game_state;
+    
+    // Check if we got a valid state
+    if (!state || !state.active_player) {
+        console.error('Invalid game state received:', data);
+        return;
+    }
 
     const activePlayer = state.active_player;
-    const playerNum = activePlayer.player_num; // Example: Player 1
+    const playerNum = activePlayer.player_num;
 
-    if (activePlayer.score - pastScores[playerNum] > 11) {
+    if (activePlayer.score - (pastScores[playerNum] || 0) > 11) {
         blastConfettiForBigScore()
     }
 
@@ -420,6 +553,14 @@ async function updateGameState(data) {
         endGame();
     }
 }
+
+// Handle visibility changes - get current state when tab becomes visible
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && window.location.pathname === '/turn') {
+        // Get the state immediately when tab becomes visible
+        getGameState();
+    }
+});
 
 function pingServer() {
     fetch('/keep-alive')

@@ -27,19 +27,38 @@
 
         // Event listener for the 'end_game_response' event from the server
         socket.on('end_game_response', function(data) {
+            console.log('End game data received:', data);
             const messageElement = document.querySelector('.message');
-            messageElement.textContent = data.message;
+            if (data && data.message) {
+                messageElement.textContent = data.message;
+            } else {
+                messageElement.textContent = 'Game Ended!';
+            }
 
             const finalScores = document.querySelector('.final-scores');
             finalScores.innerHTML = ''; // Clear existing scores
+
+            if (!data || !data.scores || !Array.isArray(data.scores) || data.scores.length === 0) {
+                const noScoresMsg = document.createElement('div');
+                noScoresMsg.className = 'player-score-info no-scores';
+                noScoresMsg.textContent = 'No scores available';
+                finalScores.appendChild(noScoresMsg);
+                return;
+            }
 
             const scoresInfo = data.scores;
             scoresInfo.forEach((score) => {
                 const scoreEntry = document.createElement('div');
                 scoreEntry.className = 'player-score-info';
 
+                // Format player name if it's an enum
+                let playerName = score[0];
+                if (typeof playerName === 'string' && playerName.includes('TeamName.')) {
+                    playerName = 'Team ' + playerName.split('.').pop();
+                }
+
                 const nameSpan = document.createElement('span');
-                nameSpan.textContent = score[0];
+                nameSpan.textContent = playerName;
                 scoreEntry.appendChild(nameSpan);
 
                 const scoreSpan = document.createElement('span');
@@ -47,6 +66,16 @@
                 scoreEntry.appendChild(scoreSpan);
 
                 finalScores.appendChild(scoreEntry);
+            });
+            
+            // Apply custom styling for better visibility
+            document.querySelectorAll('.player-score-info').forEach(entry => {
+                entry.style.padding = '10px';
+                entry.style.margin = '5px 0';
+                entry.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                entry.style.borderRadius = '5px';
+                entry.style.display = 'flex';
+                entry.style.justifyContent = 'space-between';
             });
         });
 
