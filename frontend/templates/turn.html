@@ -28,25 +28,29 @@
 
     <!-- Main Content Wrapper -->
     <div id="main-content">
-        <!-- Opp Cards -->
-        <div id="opp-cards" class="face-down-cards"></div>
+        <div id="left-player-cards" class="face-down-cards-vertical"></div>
+        <div id="center-content">
+            <!-- Opp Cards -->
+            <div id="opp-cards" class="face-down-cards"></div>
 
-        <!-- Active Pile Section -->
-        <div id="active-pile" class="active-pile"></div>
+            <!-- Active Pile Section -->
+            <div id="active-pile" class="active-pile"></div>
 
-        <!-- Briscola Card Display -->
-        <div id="briscola-container">
-            <div id="briscola-card" class="card">
-                <div class="symbol"></div>
-                <div class="number"></div>
+            <!-- Briscola Card Display -->
+            <div id="briscola-container">
+                <div id="briscola-card" class="card">
+                    <div class="symbol"></div>
+                    <div class="number"></div>
+                </div>
             </div>
+
+            <!-- Full deck of cards will be inserted here -->
+            <div id="deck-container"></div>
+
+            <!-- Player Cards -->
+            <div id="player-cards" class="cards"></div>
         </div>
-
-        <!-- Full deck of cards will be inserted here -->
-        <div id="deck-container"></div>
-
-        <!-- Player Cards -->
-        <div id="player-cards" class="cards"></div>
+        <div id="right-player-cards" class="face-down-cards-vertical"></div>
 
         <div id="bottom-buttons">
             <div id="exit-btn-container">
@@ -60,6 +64,9 @@
             <div id="scoreboard-container">
                 <button id="scoreboard-toggle">Scoreboard</button>
                 <div id="scoreboard">
+                    <div id="team-scores">
+                        <!-- Team scores will be inserted here -->
+                    </div>
                     <div id="scores">
                         <!-- Scores will be inserted here -->
                     </div>

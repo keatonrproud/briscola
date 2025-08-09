@@ -1,5 +1,5 @@
 from abc import ABC
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import cached_property
 from random import choice
 from typing import Callable, Final
@@ -13,11 +13,18 @@ from card_games.general.cards.card import Card
 from card_games.general.cards.suits import Suit
 from card_games.general.game_client import CardGame
 from card_games.general.table.player import PlayerColor
-from card_games.general.table.table_settings import Direction
+from card_games.general.table.table_settings import Direction, TableSettings
 from config.logging_config import build_logger
 from other.computer_logic.random_ import random_choice
 
 logger = build_logger(__name__)
+
+
+@dataclass
+class Team:
+    name: int
+    score: int = 0
+    players: list[BriscolaPlayer] = field(default_factory=list)
 
 
 @dataclass
@@ -34,6 +41,7 @@ class BriscolaGame(CardGame, ABC):
     max_cards_in_hand: int = 3
     active_pile: BriscolaPile = BriscolaPile(cards=[], face_up=True)
     win_condition: Final = 60
+    teams: list[Team] | None = None
 
     def __init__(
         self,
@@ -42,10 +50,12 @@ class BriscolaGame(CardGame, ABC):
         computer_skill_level: int = 10,
         first_dealer: int | None = None,
         online: bool = False,
+        player_count: int = 2,
     ):
         self.online = online
         self.computer_logic_override = computer_logic_override
         self.computer_skill_level = computer_skill_level
+        self._player_count = player_count
         super().__init__(
             deck=BriscolaDeck(),
             first_dealer_idx=first_dealer,
@@ -56,6 +66,19 @@ class BriscolaGame(CardGame, ABC):
 
     def __repr__(self) -> str:
         return f"Briscola: {self.briscola_card}\n----\n{super().__repr__()}"
+
+    @staticmethod
+    def get_player_count() -> int:
+        # Fallback default; actual value comes from table_settings override
+        return 2
+
+    @cached_property
+    def table_settings(self) -> TableSettings:
+        return TableSettings(
+            player_count=self._player_count,
+            turn_direction=self.play_direction,
+            computer_count=self.computer_count,
+        )
 
     @cached_property
     def play_direction(self) -> Direction:
@@ -94,9 +117,6 @@ class BriscolaGame(CardGame, ABC):
             logger.debug("Making a random choice due to computer skill level.")
             return random_choice(cards)
 
-        if len(self.players) > 2:
-            raise NotImplementedError()
-
         assert type(self.briscola) is Suit
 
         logic = self.active_player.computer_logic_override
@@ -111,6 +131,8 @@ class BriscolaGame(CardGame, ABC):
 
     @property
     def game_ongoing(self) -> bool:
+        if self.teams:
+            return all(team.score < 120 for team in self.teams)
         return sum(player.score for player in self.players) < 120
 
     def reset_game(self) -> None:
@@ -129,10 +151,26 @@ class BriscolaGame(CardGame, ABC):
     @cached_property
     def players(self) -> list[BriscolaPlayer]:
         colors = list(PlayerColor)
-        players = [
-            BriscolaPlayer(player_num=num + 1, color=colors[num])
-            for num in range(self.table_settings.player_count)
-        ]
+        player_count = self.table_settings.player_count
+        players = []
+
+        if player_count == 4:
+            self.teams = [Team(name=1), Team(name=2)]
+            for num in range(player_count):
+                team_id = 1 if (num % 2) == 0 else 2
+                player = BriscolaPlayer(
+                    player_num=num + 1, color=colors[num], team=team_id
+                )
+                if team_id == 1:
+                    self.teams[0].players.append(player)
+                else:
+                    self.teams[1].players.append(player)
+                players.append(player)
+        else:
+            players = [
+                BriscolaPlayer(player_num=num + 1, color=colors[num])
+                for num in range(player_count)
+            ]
 
         # set players as computers working from the end of the player list
         for computer_idx in range(0, self.computer_count):
@@ -203,7 +241,14 @@ class BriscolaGame(CardGame, ABC):
     def end_turn(self) -> BriscolaTurnWinner:
         winning_card, self.last_winner = self.get_winning_card()
         earned_pts = self.calculate_points(self.active_pile.cards)
-        self.last_winner.score += earned_pts
+
+        if self.teams:
+            for team in self.teams:
+                if self.last_winner in team.players:
+                    team.score += earned_pts
+                    break
+        else:
+            self.last_winner.score += earned_pts
 
         losing_cards = [card for card in self.active_pile.cards if card != winning_card]
 
@@ -238,6 +283,11 @@ class BriscolaGame(CardGame, ABC):
             "shown_player": self.shown_player.to_dict(),
             "game_ongoing": self.game_ongoing,
             "turn_order": [player.to_dict() for player in self.turn_order()],
+            "teams": (
+                [{"name": team.name, "score": team.score} for team in self.teams]
+                if self.teams
+                else None
+            ),
             "last_winner": self.last_winner.to_dict()
             if self.last_winner is not None
             else None,

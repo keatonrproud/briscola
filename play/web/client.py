@@ -16,6 +16,7 @@ class BriscolaWeb(BriscolaGame):
         computer_skill_level: int = 10,
         first_dealer: int | None = None,
         online: bool = False,
+        player_count: int = 2,
     ):
         super().__init__(
             computer_count=computer_count,
@@ -23,16 +24,8 @@ class BriscolaWeb(BriscolaGame):
             computer_skill_level=computer_skill_level,
             first_dealer=first_dealer,
             online=online,
+            player_count=player_count,
         )
-
-    @staticmethod
-    def get_player_count() -> int:
-        # response = input(f"Player count (2): \n")
-        # if response not in "2":
-        #     input("The player count must be 2. Input your player count: \n")
-        # else:
-        #     return int(response)
-        return 2
 
     def active_player_play_card_idx(self, card_idx: int) -> None:
         logger.debug(self.active_player)

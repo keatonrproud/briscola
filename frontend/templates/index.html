@@ -41,6 +41,13 @@
             <div class="room-section invisible">
                 <button id="join-room-btn" class="button">Join Online Room</button>
                 <button id="leave-room-btn" class="button" style="display: none;">Leave</button>
+                <div id="player-count-selector" style="margin-top: 1rem;">
+                    <span class="h3">Players:</span>
+                    <div class="player-count-buttons">
+                        <button class="player-count-btn active" data-count="2">2 Players</button>
+                        <button class="player-count-btn" data-count="4">4 Players</button>
+                    </div>
+                </div>
             </div>
 
             <button class="button" id="start-game-btn">Start Local Game</button>
@@ -70,6 +77,17 @@
                 const roomSection = document.querySelector('.room-section');
                 const joinWaitingRoomBtn = document.getElementById('join-room-btn');
                 const leaveWaitingRoomBtn = document.getElementById('leave-room-btn');
+                const playerCountButtons = document.querySelectorAll('.player-count-btn');
+                let selectedPlayerCount = 2; // Default to 2 players
+
+                playerCountButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        playerCountButtons.forEach(btn => btn.classList.remove('active'));
+                        button.classList.add('active');
+                        selectedPlayerCount = parseInt(button.getAttribute('data-count'));
+                        updateLabels();
+                    });
+                });
 
                 function updateDifficultyLabelFontSize() {
                     const sliderValue = difficultySlider.value;
@@ -84,8 +102,8 @@
                 difficultySlider.addEventListener('input', updateDifficultyLabelFontSize);
 
                 function updateRoomBtns(userCount) {
-                    joinWaitingRoomBtn.textContent = `Join Online Room (${userCount}/2)`;
-                    leaveWaitingRoomBtn.textContent = `Leave Online Room (${userCount}/2)`;
+                    joinWaitingRoomBtn.textContent = `Join Online Room (${userCount}/${selectedPlayerCount})`;
+                    leaveWaitingRoomBtn.textContent = `Leave Online Room (${userCount}/${selectedPlayerCount})`;
                     updateStartGameButtonText(userCount);
                 }
 
@@ -139,8 +157,8 @@
 
                     // Function to update the Start Game button text
                 function updateStartGameButtonText(userCount) {
-                    if (gameModeToggle.checked && leaveWaitingRoomBtn.style.display !== "none" && userCount < 2) {
-                        startGameButton.textContent = "Waiting for Player 2...";
+                    if (gameModeToggle.checked && leaveWaitingRoomBtn.style.display !== "none" && userCount < selectedPlayerCount) {
+                        startGameButton.textContent = `Waiting for players...`;
                         startGameButton.disabled = true;
                     } else {
                         startGameButton.disabled = false;
@@ -187,13 +205,14 @@
                 startGameButton.addEventListener('click', async () => {
                     const gameMode = gameModeToggle.checked ? 'player' : 'computer';
                     const difficulty = difficultySlider.value; // Get the difficulty value
+                    const playerCount = selectedPlayerCount;
 
                     try {
                         if (!socket.connected) {
                             console.log('Socket not connected yet, waiting...');
                             await new Promise((resolve) => socket.on('connect', resolve));
                         }
-                        socket.emit('start_game', {gameMode: gameMode, difficulty: difficulty}
+                        socket.emit('start_game', {gameMode: gameMode, difficulty: difficulty, playerCount: playerCount}
                         );
                     } catch (error) {
                         console.error('Error:', error);

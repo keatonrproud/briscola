@@ -7,10 +7,16 @@ from card_games.general.table.player import Player, PlayerColor
 
 class BriscolaPlayer(Player):
     hand: BriscolaHand
+    team: int | None = None
     computer_logic_override: Optional[Callable] = None
     skill_level: int | None = 10
 
-    def __init__(self, player_num: int, color: PlayerColor = choice(list(PlayerColor))):
+    def __init__(
+        self,
+        player_num: int,
+        color: PlayerColor = choice(list(PlayerColor)),
+        team: int | None = None,
+    ):
         super().__init__(
             player_num=player_num,
             hand=BriscolaHand(cards=[]),
@@ -19,3 +25,4 @@ class BriscolaPlayer(Player):
             in_game=True,
             color=color,
         )
+        self.team = team

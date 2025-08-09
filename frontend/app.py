@@ -70,6 +70,7 @@ def handle_check_if_in_game():
 def handle_start_game(data):
     game_mode = data.get("gameMode")
     difficulty = data.get("difficulty")
+    player_count = int(data.get("playerCount", 2))
 
     oid = get_oid(request.sid)
     online_room = get_online_room_of_oid(oid)
@@ -84,9 +85,18 @@ def handle_start_game(data):
     try:
         if game_mode == "player":
             if online_room:
-                if len(room_oids) == 2:
+                if player_count not in [2, 4]:
+                    emit(
+                        "error",
+                        {
+                            "message": "Only 2 or 4-player online games are currently supported."
+                        },
+                    )
+                    return
+
+                if len(room_oids) == player_count:
                     # Initialize the game instance for this room
-                    game = BriscolaWeb(online=True)
+                    game = BriscolaWeb(online=True, player_count=player_count)
                     game.userid_playernum_map = {
                         user_id: player_num
                         for user_id, player_num in zip(
@@ -100,7 +110,7 @@ def handle_start_game(data):
                     )
                     return
             else:
-                game = BriscolaWeb()
+                game = BriscolaWeb(player_count=player_count)
 
         elif game_mode == "computer":
             # Set up a game against the computer with a specified difficulty
@@ -108,6 +118,7 @@ def handle_start_game(data):
                 computer_count=1,
                 computer_logic_override=(basic_choice,),
                 computer_skill_level=difficulty,
+                player_count=2,
             )
         else:
             emit("error", {"message": "Invalid gameMode"})
@@ -217,14 +228,34 @@ def end_game():
         emit("game_not_complete", to=target)
         return
 
-    max_score = max(player.score for player in game.players)
     winner = next(
         (player for player in game.players if player.score > game.win_condition), None
     )
 
-    if winner:
+    if game.teams:
+        winning_team = next(
+            (team for team in game.teams if team.score > game.win_condition), None
+        )
+        if winning_team:
+            message = f"Team {winning_team.name} wins!"
+        else:
+            max_team_score = max(team.score for team in game.teams)
+            tied_teams = [
+                team.name
+                for team in game.teams
+                if team.score == max_team_score and team.score >= 120
+            ]
+            if len(tied_teams) > 1:
+                message = "The game ends in a tie!"
+            else:
+                message = f"Team {tied_teams[0]} wins!"
+
+        sorted_teams = sorted(game.teams, key=lambda team: team.score, reverse=True)
+        scores = [[f"Team {team.name}", f"{team.score}pts"] for team in sorted_teams]
+    elif winner:
         message = f"{winner} wins!"
     else:
+        max_score = max(player.score for player in game.players)
         tied_players = [
             str(player) for player in game.players if player.score == max_score
         ]
@@ -235,8 +266,8 @@ def end_game():
 
     sorted_players = sorted(game.players, key=lambda player: player.score, reverse=True)
 
-    # must use \r\n for line break to work in textContent attribute of html
-    scores = [[str(player), f"{player.score}pts"] for player in sorted_players]
+    if not game.teams:
+        scores = [[str(player), f"{player.score}pts"] for player in sorted_players]
 
     # Emit the winner message to the online room if one exists, or the user's current socket
     emit("end_game_response", {"message": message, "scores": scores}, to=target)
@@ -428,4 +459,9 @@ def keep_app_alive():
 
 
 if __name__ == "__main__":
-    socketio.run(app, debug=True, log_output=True, use_reloader=True)
+    host = "127.0.0.1"
+    port = 5000
+    print(f"\n\n    🃏 Access the game at: http://{host}:{port} 🃏\n\n")
+    socketio.run(
+        app, host=host, port=port, debug=True, log_output=True, use_reloader=True
+    )

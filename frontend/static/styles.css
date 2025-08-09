@@ -270,6 +270,27 @@ input:checked + .slider:before {
     display: inline-block;
 }
 
+.player-count-buttons {
+    display: flex;
+    justify-content: center;
+    margin-top: 0.5rem;
+}
+
+.player-count-btn {
+    background-color: #ddd;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    cursor: pointer;
+    margin: 0 5px;
+    transition: background-color 0.3s ease;
+}
+
+.player-count-btn.active {
+    background-color: #28a745;
+    color: white;
+}
+
 .room-section {
     margin-bottom: 0; /* Space between the slider and the toggle */
     text-align: center; /* Center-align the slider and label */
@@ -412,7 +433,7 @@ a:focus, a:active {
     display: flex;
     height: 100vh; /* Full viewport height */
     width: 100vw;
-    flex-direction: column;
+    flex-direction: row; /* Changed to row for 4-player layout */
     background: transparent; /* Gradient background */
     justify-content: center; /* Center content vertically */
     align-items: center; /* Center content horizontally */
@@ -427,6 +448,14 @@ a:focus, a:active {
     }
 }
 
+#center-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    width: 60%;
+}
+
 /* Center the cards container vertically and horizontally */
 .cards {
     pointer-events: auto; /* Enables clicking on the card itself */
@@ -434,7 +463,7 @@ a:focus, a:active {
     flex-wrap: wrap;
     justify-content: center; /* Center horizontally */
     align-items: center; /* Center vertically */
-    min-height: 60vh; /* Ensure the container takes at least 60% of the viewport height */
+    min-height: 20vh;
     padding: 20px; /* Optional: Add some padding around the container */
 }
 
@@ -461,6 +490,10 @@ a:focus, a:active {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     cursor: pointer;
     transition: all 0.3s ease;
+}
+
+.card.vertical {
+    transform: rotate(90deg);
 }
 
 /* Hover effect: Darker background */
@@ -575,6 +608,12 @@ a:focus, a:active {
     font-family: Arial, sans-serif; /* Consistent font */
     overflow: hidden; /* Hide overflow for smooth collapsing */
     z-index: 99;  /* show on top of the cards */
+}
+
+#team-scores {
+    margin-top: 10px;
+    padding: 2px;
+    border-bottom: 1px solid #fff; /* Separator */
 }
 
 #scoreboard-toggle {
@@ -993,10 +1032,38 @@ a:focus, a:active {
     user-select: none; /* Disable text selection */
 }
 
+.face-down-cards-vertical {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 20%;
+}
+
+.face-down-cards-vertical .card {
+    width: 80px;
+    height: 120px;
+    background-color: #007bff;
+    border-radius: 10px;
+    border: 2px solid white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    margin: -60px 0; /* Vertical overlap */
+    position: relative;
+    z-index: 1;
+    user-select: none;
+}
+
 @media (max-width: 600px) {
     .face-down-cards {
         width: 60px;
         height: 90px;
+    }
+
+    .face-down-cards-vertical .card {
+        width: 60px;
+        height: 90px;
+        margin: -45px 0;
     }
 }
 

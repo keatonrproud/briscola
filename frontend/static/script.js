@@ -26,43 +26,72 @@ function getGameState(continue_play=false) {
     socket.emit("get_state", {continue_play: continue_play});
 }
 
-function updateCards(playerCards, oppCards, cardsPlayable) {
+function updateCards(players, shownPlayer, cardsPlayable) {
+    const playerCount = players.length;
+
     const playerCardsContainer = document.getElementById('player-cards');
-    playerCardsContainer.innerHTML = '';  // Clear existing cards
+    const oppCardsContainer = document.getElementById('opp-cards');
+    const leftPlayerCardsContainer = document.getElementById('left-player-cards');
+    const rightPlayerCardsContainer = document.getElementById('right-player-cards');
 
-    playerCards.forEach((card) => {
+    // Clear all card containers first
+    playerCardsContainer.innerHTML = '';
+    oppCardsContainer.innerHTML = '';
+    if (leftPlayerCardsContainer) leftPlayerCardsContainer.innerHTML = '';
+    if (rightPlayerCardsContainer) rightPlayerCardsContainer.innerHTML = '';
+
+
+    // Render shown player's cards
+    shownPlayer.hand.cards.forEach((card) => {
         const cardDiv = document.createElement('div');
-
         setCardImage(cardDiv, card);
-
-        // Named function for the event listener
-        function handleCardClick(event) {
-            const cardIndex = Array.from(playerCardsContainer.children).indexOf(cardDiv);
-            playHumanCard(cardIndex, cardDiv); // Pass the position of the current card
-        }
-
-        // Add click event listener to each card IF they are allowed to be played
         if (cardsPlayable) {
+            function handleCardClick(event) {
+                const cardIndex = Array.from(playerCardsContainer.children).indexOf(cardDiv);
+                playHumanCard(cardIndex, cardDiv);
+            }
             cardDiv.addEventListener('click', handleCardClick);
-
-            // Store reference to the event handler function for potential removal
             cardDiv.handleCardClick = handleCardClick;
         }
-
-
         cardDiv.className = 'card';
         playerCardsContainer.appendChild(cardDiv);
     });
 
-    const oppCardsContainer = document.getElementById('opp-cards');
-    oppCardsContainer.innerHTML = '';  // Clear existing cards
+    // Render other players' cards (face down)
+    if (playerCount === 2) {
+        const oppPlayer = players.find(p => p.player_num !== shownPlayer.player_num);
+        oppPlayer.hand.cards.forEach(() => {
+            const oppCardDiv = document.createElement('div');
+            oppCardDiv.className = 'card';
+            oppCardsContainer.appendChild(oppCardDiv);
+        });
+    } else if (playerCount === 4) {
+        const shownPlayerIndex = players.findIndex(p => p.player_num === shownPlayer.player_num);
+        if (shownPlayerIndex === -1) {
+            return;
+        }
+        const partnerPlayer = players[(shownPlayerIndex + 2) % 4];
+        const leftPlayer = players[(shownPlayerIndex + 3) % 4];
+        const rightPlayer = players[(shownPlayerIndex + 1) % 4];
 
-    oppCards.forEach((_) => {
-        const oppCardDiv = document.createElement('div');
+        partnerPlayer.hand.cards.forEach(() => {
+            const cardDiv = document.createElement('div');
+            cardDiv.className = 'card';
+            oppCardsContainer.appendChild(cardDiv);
+        });
 
-        oppCardDiv.className = 'card';
-        oppCardsContainer.appendChild(oppCardDiv);
-    });
+        leftPlayer.hand.cards.forEach(() => {
+            const cardDiv = document.createElement('div');
+            cardDiv.className = 'card vertical';
+            leftPlayerCardsContainer.appendChild(cardDiv);
+        });
+
+        rightPlayer.hand.cards.forEach(() => {
+            const cardDiv = document.createElement('div');
+            cardDiv.className = 'card vertical';
+            rightPlayerCardsContainer.appendChild(cardDiv);
+        });
+    }
 }
 
 function updateTurnInfo(player, shownPlayer, gameState) {
@@ -229,9 +258,25 @@ function showConfetti(xOrigin, yOrigin) {
 }
 
 let pastScores = {};
-function updateScoreboard(players) {
+function updateScoreboard(players, teams) {
     const scoresContainer = document.getElementById('scores');
     scoresContainer.innerHTML = ''; // Clear existing scores
+    const teamScoresContainer = document.getElementById('team-scores');
+    if (teamScoresContainer) {
+        teamScoresContainer.innerHTML = '';
+    }
+
+    if (teams) {
+        teams.forEach(team => {
+            const teamScoreDiv = document.createElement('div');
+            teamScoreDiv.className = 'score';
+            teamScoreDiv.innerHTML = `
+                <span>Team ${team.name}:</span>
+                <span>${team.score}</span>
+            `;
+            teamScoresContainer.appendChild(teamScoreDiv);
+        });
+    }
 
     players.forEach(player => {
         const scoreDiv = document.createElement('div');
@@ -336,7 +381,7 @@ async function updateGameState(data) {
     }
 
     updateBriscolaCard(state.briscola.card, state.deck.current_cards.length); // Update the Briscola card
-    updateScoreboard(state.players); // Update scoreboard
+    updateScoreboard(state.players, state.teams); // Update scoreboard
     updateDeck(state.deck.current_cards); // Update the deck
 
     let shownPlayer = state.shown_player;
@@ -354,11 +399,9 @@ async function updateGameState(data) {
         }
     }
 
-    const oppPlayer = state.players.find(other_player => other_player.player_num !== shownPlayer.player_num);
-
     // cards are playable only if it's currently the shown player's turn, or if not all players have played yet
     const cardsPlayable = shownPlayer.player_num === activePlayer.player_num && state.pile.cards.length !== state.players.length;
-    updateCards(shownPlayer.hand.cards, oppPlayer.hand.cards, cardsPlayable);
+    updateCards(state.players, shownPlayer, cardsPlayable);
 
     updateTurnInfo(activePlayer, shownPlayer, state); // Update the turn info
     updateActivePile(state.pile.cards, activePlayer, shownPlayer); // Update active pile
