@@ -24,4 +24,7 @@ class Pile(Generic[CARD]):
         self.cards = []
 
     def to_dict(self) -> dict:
-        return {"cards": [card.to_dict() for card in self.cards], "face_up": self.face_up}
+        return {
+            "cards": [card.to_dict() for card in self.cards],
+            "face_up": self.face_up,
+        }

@@ -53,7 +53,9 @@ def get_oid(request_sid) -> str | None:
     return SOCKET__OID.get(request_sid, None)
 
 
-def get_game_and_oid_from_request_sid(request_sid) -> tuple[str | None, BriscolaWeb | None]:
+def get_game_and_oid_from_request_sid(
+    request_sid,
+) -> tuple[str | None, BriscolaWeb | None]:
     oid = get_oid(request_sid)
     return oid, get_game_of_oid(oid)
 
@@ -87,7 +89,9 @@ def handle_start_game(data):
                     game = BriscolaWeb(online=True)
                     game.userid_playernum_map = {
                         user_id: player_num
-                        for user_id, player_num in zip(room_oids, range(len(game.players)))
+                        for user_id, player_num in zip(
+                            room_oids, range(len(game.players))
+                        )
                     }
                 else:
                     emit(
@@ -133,7 +137,9 @@ def emit_game_state(
         data = data | additional_data
 
     target_room = "waiting_room" if game.online else False
-    logger.info(f"Emitting game state to {'room waiting_room' if target_room else 'individual socket'}")
+    logger.info(
+        f"Emitting game state to {'room waiting_room' if target_room else 'individual socket'}"
+    )
     logger.info(f"Game state data: {data}")
     emit("game_state", data, to=target_room, include_self=True)
 
@@ -212,12 +218,16 @@ def end_game():
         return
 
     max_score = max(player.score for player in game.players)
-    winner = next((player for player in game.players if player.score > game.win_condition), None)
+    winner = next(
+        (player for player in game.players if player.score > game.win_condition), None
+    )
 
     if winner:
         message = f"{winner} wins!"
     else:
-        tied_players = [str(player) for player in game.players if player.score == max_score]
+        tied_players = [
+            str(player) for player in game.players if player.score == max_score
+        ]
         if len(tied_players) > 1:
             message = "The game ends in a tie!"
         else:
@@ -258,7 +268,9 @@ def handle_disconnect():
     if request.sid in SOCKET__OID:
         del SOCKET__OID[request.sid]
 
-    print(f"User disconnected: {oid} on socket {request.sid}, Total users: {len(SOCKET__OID)}")
+    print(
+        f"User disconnected: {oid} on socket {request.sid}, Total users: {len(SOCKET__OID)}"
+    )
 
 
 def get_online_room_of_oid(oid: str | None) -> str | None:
@@ -277,7 +289,7 @@ def get_game_of_oid(oid: str | None) -> BriscolaWeb | None:
 
 @app.route("/api/get_waiting_room_users")
 def get_waiting_room_users() -> tuple[Response, int]:
-    oids = get_oids_in_online_room('waiting_room')
+    oids = get_oids_in_online_room("waiting_room")
 
     if oids is None:
         oids = []
@@ -315,7 +327,11 @@ def handle_join_game(data):
 
 
 def send_room_user_count_update(room) -> None:
-    emit("room_update", {"room": room, "users": get_oids_in_online_room(room)}, broadcast=True)
+    emit(
+        "room_update",
+        {"room": room, "users": get_oids_in_online_room(room)},
+        broadcast=True,
+    )
 
 
 @socketio.on("leave_room")
@@ -360,7 +376,9 @@ def add_request_sid_to_sockets(request_sid: str, oid: str | None = None) -> None
     if oid:
         # if there's a previous socket assigned to that oid, then delete the previous socket
         sockets_to_remove = [
-            socket for socket, existing_oid in SOCKET__OID.items() if existing_oid == oid
+            socket
+            for socket, existing_oid in SOCKET__OID.items()
+            if existing_oid == oid
         ]
         for socket in sockets_to_remove:
             del SOCKET__OID[socket]
@@ -384,7 +402,9 @@ def update_user_id(data):
         if old_info.online_room is not None:
             join_room(room=old_info.online_room, sid=request.sid)
 
-    print(f"User connected: {oid} on socket {request.sid}, Total users: {len(SOCKET__OID)}")
+    print(
+        f"User connected: {oid} on socket {request.sid}, Total users: {len(SOCKET__OID)}"
+    )
 
     return jsonify({"status": "success"}), 200
 

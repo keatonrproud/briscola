@@ -6,7 +6,9 @@ from card_games.general.cards.suits import Suit
 
 
 class BriscolaCard(Card):
-    def __init__(self, number: BriscolaCardNumber, suit: Suit, card_info: BriscolaCardInfo) -> None:
+    def __init__(
+        self, number: BriscolaCardNumber, suit: Suit, card_info: BriscolaCardInfo
+    ) -> None:
         super().__init__(number=number, suit=suit)
         self.strength = card_info.strength
         self.points = card_info.points

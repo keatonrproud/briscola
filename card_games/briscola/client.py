@@ -47,13 +47,15 @@ class BriscolaGame(CardGame, ABC):
         self.computer_logic_override = computer_logic_override
         self.computer_skill_level = computer_skill_level
         super().__init__(
-            deck=BriscolaDeck(), first_dealer_idx=first_dealer, computer_count=computer_count
+            deck=BriscolaDeck(),
+            first_dealer_idx=first_dealer,
+            computer_count=computer_count,
         )
         self.clear_pile()
         self.deal_hands(cards_in_hand=CARDS_IN_HAND, change_dealers=False)
 
     def __repr__(self) -> str:
-        return f"Briscola: {self.briscola_card}\n" f"----\n" f"{super().__repr__()}"
+        return f"Briscola: {self.briscola_card}\n----\n{super().__repr__()}"
 
     @cached_property
     def play_direction(self) -> Direction:
@@ -69,7 +71,9 @@ class BriscolaGame(CardGame, ABC):
             self.briscola = self.briscola_card.suit
             # briscola card should be treated as the last card of the generics
             self.deck.cards.insert(0, self.briscola_card)
-        return super().deal_hands(cards_in_hand=cards_in_hand, change_dealers=change_dealers)
+        return super().deal_hands(
+            cards_in_hand=cards_in_hand, change_dealers=change_dealers
+        )
 
     def fill_hands(self, max_cards_in_hand: int | None = None) -> None:
         return super().fill_hands(
@@ -85,7 +89,6 @@ class BriscolaGame(CardGame, ABC):
         self,
         cards: list[BriscolaCard],
     ) -> int:
-
         # (1 - skill_level) * 10 is the percent chance of computer choosing a card randomly
         if choice(range(9)) >= self.computer_skill_level:
             logger.debug("Making a random choice due to computer skill level.")
@@ -101,7 +104,9 @@ class BriscolaGame(CardGame, ABC):
         return (
             random_choice(cards=cards)
             if logic is None or logic == random_choice
-            else logic(briscola=self.briscola, active_pile=self.active_pile, cards=cards)
+            else logic(
+                briscola=self.briscola, active_pile=self.active_pile, cards=cards
+            )
         )
 
     @property
@@ -144,9 +149,9 @@ class BriscolaGame(CardGame, ABC):
                 computer = next(player for player in players if not player.is_person)
                 computer.unique_player_type = True
 
-            assert (
-                len(self.computer_logic_override) > 0
-            ), "You must include at least one computer logic override for your computers."
+            assert len(self.computer_logic_override) > 0, (
+                "You must include at least one computer logic override for your computers."
+            )
             self.set_computer_logic(computers=players[-self.computer_count :])
 
         return players
@@ -205,7 +210,9 @@ class BriscolaGame(CardGame, ABC):
         self.clear_pile()
         self.fill_hands()
 
-        logger.debug(", ".join(f"{player} has {player.score}pts" for player in self.players))
+        logger.debug(
+            ", ".join(f"{player} has {player.score}pts" for player in self.players)
+        )
 
         return BriscolaTurnWinner(
             winning_card=winning_card,
@@ -221,7 +228,9 @@ class BriscolaGame(CardGame, ABC):
             "deck": self.deck.to_dict(),
             "briscola": {
                 "suit": self.briscola.to_dict() if self.briscola is not None else None,
-                "card": self.briscola_card.to_dict() if self.briscola_card is not None else None,
+                "card": self.briscola_card.to_dict()
+                if self.briscola_card is not None
+                else None,
             },
             "pile": self.active_pile.to_dict(),
             "dealer": self.dealer.to_dict(),
@@ -229,6 +238,8 @@ class BriscolaGame(CardGame, ABC):
             "shown_player": self.shown_player.to_dict(),
             "game_ongoing": self.game_ongoing,
             "turn_order": [player.to_dict() for player in self.turn_order()],
-            "last_winner": self.last_winner.to_dict() if self.last_winner is not None else None,
+            "last_winner": self.last_winner.to_dict()
+            if self.last_winner is not None
+            else None,
             "online": self.online,
         }

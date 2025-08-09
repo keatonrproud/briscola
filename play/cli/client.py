@@ -11,7 +11,6 @@ logger = build_logger(__name__)
 
 
 class BriscolaCLI(BriscolaGame):
-
     def __init__(
         self,
         computer_count: int = 0,
@@ -45,7 +44,9 @@ class BriscolaCLI(BriscolaGame):
 
     def announce_game_state(self) -> None:
         print(f"{len(self.deck.cards)}🃏 remain")
-        print("       ".join([f"{player}: {player.score}pts" for player in self.players]))
+        print(
+            "       ".join([f"{player}: {player.score}pts" for player in self.players])
+        )
         print("----------------\n")
 
     @staticmethod
@@ -69,11 +70,17 @@ class BriscolaCLI(BriscolaGame):
     def announce_winner(self) -> None:
         max_score = max(player.score for player in self.players)
         try:
-            winner = next(player for player in self.players if player.score > self.win_condition)
+            winner = next(
+                player for player in self.players if player.score > self.win_condition
+            )
             print(f"{winner} wins with {winner.score} points!")
         except StopIteration:
-            tied_players = [f"{player}" for player in self.players if player.score == max_score]
-            print(f"The game ends with {' and '.join(tied_players)} having {max_score} points!")
+            tied_players = [
+                f"{player}" for player in self.players if player.score == max_score
+            ]
+            print(
+                f"The game ends with {' and '.join(tied_players)} having {max_score} points!"
+            )
 
     def choose_card(self, player: BriscolaPlayer) -> BriscolaCard:
         self.announce_game_state()
@@ -86,7 +93,14 @@ class BriscolaCLI(BriscolaGame):
         print(f"{player}\n{player.hand}")
         while True:
             try:
-                choice = int(input("Choose a card by inputting the number you want to play: ")) - 1
+                choice = (
+                    int(
+                        input(
+                            "Choose a card by inputting the number you want to play: "
+                        )
+                    )
+                    - 1
+                )
                 assert choice in range(len(player.hand.cards))
             except ValueError:
                 print("You must respond with a whole number!")

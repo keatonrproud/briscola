@@ -39,7 +39,9 @@ class Deck(Pile, Generic[CARD, PLAYER]):
 
     def fill_hands(self, players: list[PLAYER], max_cards_in_hand: int | None) -> None:
         if max_cards_in_hand is None:
-            raise UnlimitedHandSizeException("Max hand size must be declared to fill the hands.")
+            raise UnlimitedHandSizeException(
+                "Max hand size must be declared to fill the hands."
+            )
 
         for player in players:
             num_cards_missing = max_cards_in_hand - len(player.hand.cards)
@@ -53,4 +55,7 @@ class Deck(Pile, Generic[CARD, PLAYER]):
         return self.draw_cards(draw_count=1)[0]
 
     def draw_cards(self, draw_count: int = 1) -> list[CARD]:
-        return [self.current_cards.pop() for _ in range(min(draw_count, len(self.current_cards)))]
+        return [
+            self.current_cards.pop()
+            for _ in range(min(draw_count, len(self.current_cards)))
+        ]

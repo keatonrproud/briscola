@@ -50,7 +50,9 @@ class BriscolaWeb(BriscolaGame):
         else:
             current_player_idx = self.turn_order().index(self.active_player)
             next_player_idx = (
-                current_player_idx + 1 if current_player_idx + 1 != len(self.turn_order()) else 0
+                current_player_idx + 1
+                if current_player_idx + 1 != len(self.turn_order())
+                else 0
             )
             self.active_player = self.turn_order()[next_player_idx]
 

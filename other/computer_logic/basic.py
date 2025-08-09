@@ -49,7 +49,11 @@ def basic_choice(briscola: Suit, active_pile: Pile, cards: list[BriscolaCard]) -
         # (if only 3s and As, then play briscola if possible)
         if (
             high_briscola_idx := next(
-                (idx for idx, card in enumerate(cards) if card.suit not in aces_and_threes),
+                (
+                    idx
+                    for idx, card in enumerate(cards)
+                    if card.suit not in aces_and_threes
+                ),
                 None,
             )
         ) is not None:
@@ -58,7 +62,12 @@ def basic_choice(briscola: Suit, active_pile: Pile, cards: list[BriscolaCard]) -
         # otherwise, random of the non-ace-or-three cards
         if (
             non_ace_three := next(
-                (idx for idx, card in enumerate(cards) if card.number not in aces_and_threes), None
+                (
+                    idx
+                    for idx, card in enumerate(cards)
+                    if card.number not in aces_and_threes
+                ),
+                None,
             )
         ) is not None:
             return non_ace_three
@@ -109,7 +118,10 @@ def basic_choice(briscola: Suit, active_pile: Pile, cards: list[BriscolaCard]) -
                         idx
                         for idx, card in enumerate(cards)
                         if card.suit == briscola
-                        or (card.suit == opp_card.suit and card.strength > opp_card.strength)
+                        or (
+                            card.suit == opp_card.suit
+                            and card.strength > opp_card.strength
+                        )
                     ),
                     None,
                 )
@@ -163,7 +175,8 @@ def basic_choice(briscola: Suit, active_pile: Pile, cards: list[BriscolaCard]) -
                     (
                         idx
                         for idx, card in enumerate(cards)
-                        if card.suit not in {briscola, opp_card.suit} and card.points == 0
+                        if card.suit not in {briscola, opp_card.suit}
+                        and card.points == 0
                     ),
                     None,
                 )

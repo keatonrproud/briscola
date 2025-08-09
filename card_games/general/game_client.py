@@ -15,19 +15,25 @@ logger = build_logger(__name__)
 class CardGame(Generic[DECK, PLAYER, CARD], ABC):
     last_winner: PLAYER | None = None
 
-    def __init__(self, deck: DECK, first_dealer_idx: int | None = None, computer_count: int = 0):
+    def __init__(
+        self, deck: DECK, first_dealer_idx: int | None = None, computer_count: int = 0
+    ):
         self.deck = deck
         self.computer_count = computer_count
 
-        assert first_dealer_idx is None or first_dealer_idx < len(
-            self.players
-        ), "The first_dealer_idx must be an index less than the number of players in the game."
+        assert first_dealer_idx is None or first_dealer_idx < len(self.players), (
+            "The first_dealer_idx must be an index less than the number of players in the game."
+        )
         self.first_dealer_idx = (
-            first_dealer_idx if first_dealer_idx is not None else choice(range(len(self.players)))
+            first_dealer_idx
+            if first_dealer_idx is not None
+            else choice(range(len(self.players)))
         )
         self.dealer = self.players[self.first_dealer_idx]
         first_player_idx = (
-            self.first_dealer_idx + 1 if self.first_dealer_idx < len(self.players) - 1 else 0
+            self.first_dealer_idx + 1
+            if self.first_dealer_idx < len(self.players) - 1
+            else 0
         )
         self.active_player = self.players[first_player_idx]
 
@@ -64,13 +70,17 @@ class CardGame(Generic[DECK, PLAYER, CARD], ABC):
     def scores(self) -> list[int]:
         return [player.score for player in self.players]
 
-    def deal_hands(self, cards_in_hand: int, change_dealers: bool = True) -> list[list[CARD]]:
+    def deal_hands(
+        self, cards_in_hand: int, change_dealers: bool = True
+    ) -> list[list[CARD]]:
         if change_dealers:
             self.change_dealers()
         return self.deck.deal(players=self.players, cards_in_hand=cards_in_hand)
 
     def fill_hands(self, max_cards_in_hand: int | None) -> None:
-        return self.deck.fill_hands(players=self.turn_order(), max_cards_in_hand=max_cards_in_hand)
+        return self.deck.fill_hands(
+            players=self.turn_order(), max_cards_in_hand=max_cards_in_hand
+        )
 
     def draw_card(self, player: PLAYER, draw_count: int = 0) -> None:
         player.hand.cards += self.deck.draw_cards(draw_count=draw_count)

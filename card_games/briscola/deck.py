@@ -12,6 +12,5 @@ def generate_cards() -> Generator[BriscolaCard, None, None]:
 
 
 class BriscolaDeck(Deck):
-
     def __init__(self) -> None:
         super().__init__(deck_type="BRISCOLA", card_set=list(generate_cards()))

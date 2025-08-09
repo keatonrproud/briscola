@@ -12,7 +12,9 @@ N_TEST_GAMES = 10_000
 
 
 def play_game(
-    logics: tuple[Callable, ...], first_dealer: int | None = None, computer_skill_level: int = 10
+    logics: tuple[Callable, ...],
+    first_dealer: int | None = None,
+    computer_skill_level: int = 10,
 ) -> dict[str, int]:
     """Play a game, and return the scores for each logic."""
     game = BriscolaCLI(
@@ -36,7 +38,9 @@ def main(logics: tuple[Callable, ...], computer_skill_level: int = 10) -> None:
 
     names = [logic.__name__ for idx, logic in enumerate(logics)]
 
-    print(f"Testing {' vs '.join(names)} over {N_TEST_GAMES:,} per dealer variation...\n")
+    print(
+        f"Testing {' vs '.join(names)} over {N_TEST_GAMES:,} per dealer variation...\n"
+    )
 
     full_sum_scores = {name: 0 for name in names}
     wins = {name: 0 for name in names}
@@ -44,11 +48,13 @@ def main(logics: tuple[Callable, ...], computer_skill_level: int = 10) -> None:
         total_scores = {name: 0 for name in names}
         for game_num in range(N_TEST_GAMES):
             if game_num == N_TEST_GAMES // 2:
-                logger.debug(f"Game #{game_num+1}")
+                logger.debug(f"Game #{game_num + 1}")
             dealer_idx = dealer_option if dealer_option is not None else game_num % 2
 
             game_scores = play_game(
-                logics=logics, first_dealer=dealer_idx, computer_skill_level=computer_skill_level
+                logics=logics,
+                first_dealer=dealer_idx,
+                computer_skill_level=computer_skill_level,
             )
 
             for name in names:
@@ -71,7 +77,7 @@ def main(logics: tuple[Callable, ...], computer_skill_level: int = 10) -> None:
     winner = max(full_sum_scores, key=lambda x: full_sum_scores[x])
     loser = min(full_sum_scores, key=lambda x: full_sum_scores[x])
     print(
-        f"The best performer was {winner}, winning by {full_sum_scores[winner]/full_sum_scores[loser]-1:.1%}"
+        f"The best performer was {winner}, winning by {full_sum_scores[winner] / full_sum_scores[loser] - 1:.1%}"
     )
     print("\n\n\n")
 
