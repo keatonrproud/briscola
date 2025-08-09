@@ -40,22 +40,32 @@
 
             <div class="room-section invisible">
                 <div class="room-controls">
-                    <button id="create-room-btn" class="button">Create Room</button>
+                    <div id="create-room-section">
+                        <div id="player-count-selector" style="margin-bottom: 1rem;">
+                            <span class="h3">Players:</span>
+                            <div class="player-count-buttons">
+                                <button class="player-count-btn active" data-count="2">2 Players</button>
+                                <button class="player-count-btn" data-count="4">4 Players</button>
+                            </div>
+                        </div>
+                        <button id="create-room-btn" class="button">Create Room</button>
+                    </div>
+                    <div class="available-rooms-section">
+                        <h3>Available Rooms</h3>
+                        <div id="available-rooms-list">
+                            <!-- Available rooms will be displayed here -->
+                            <div class="no-rooms-message">No rooms available</div>
+                        </div>
+                        <button id="refresh-rooms-btn" class="button">Refresh Rooms</button>
+                    </div>
                     <div class="room-join-section">
-                        <input type="text" id="room-code-input" placeholder="Enter room code" maxlength="6" style="margin-bottom: 0.5rem; padding: 0.5rem; border: 1px solid #ccc; border-radius: 5px; text-transform: uppercase;">
+                        <input type="text" id="room-code-input" placeholder="Enter room code" maxlength="4" style="margin-bottom: 0.5rem; padding: 0.5rem; border: 1px solid #ccc; border-radius: 5px; text-transform: uppercase;">
                         <button id="join-room-btn" class="button">Join Room</button>
                     </div>
                     <div id="current-room-info" style="display: none; margin-top: 1rem;">
                         <p><strong>Room Code: <span id="current-room-code"></span></strong></p>
                         <p>Players: <span id="current-room-players">0</span>/<span id="max-players">2</span></p>
                         <button id="leave-room-btn" class="button">Leave Room</button>
-                    </div>
-                </div>
-                <div id="player-count-selector" style="margin-top: 1rem;">
-                    <span class="h3">Players:</span>
-                    <div class="player-count-buttons">
-                        <button class="player-count-btn active" data-count="2">2 Players</button>
-                        <button class="player-count-btn" data-count="4">4 Players</button>
                     </div>
                 </div>
             </div>
@@ -94,8 +104,69 @@
                 const currentRoomPlayers = document.getElementById('current-room-players');
                 const maxPlayers = document.getElementById('max-players');
                 const playerCountButtons = document.querySelectorAll('.player-count-btn');
+                const createRoomSection = document.getElementById('create-room-section');
+                const availableRoomsSection = document.querySelector('.available-rooms-section');
+                const availableRoomsList = document.getElementById('available-rooms-list');
+                const refreshRoomsBtn = document.getElementById('refresh-rooms-btn');
+                const playerCountSelector = document.getElementById('player-count-selector');
+                
                 let selectedPlayerCount = 2; // Default to 2 players
                 let currentRoom = null;
+                let currentRoomMaxPlayers = 2;
+
+                // Function to fetch and display available rooms
+                function fetchAvailableRooms() {
+                    fetch('/api/get_available_rooms')
+                        .then(response => response.json())
+                        .then(data => {
+                            availableRoomsList.innerHTML = ''; // Clear existing rooms
+                            
+                            if (data.rooms && data.rooms.length > 0) {
+                                data.rooms.forEach(room => {
+                                    const roomItem = document.createElement('div');
+                                    roomItem.className = 'available-room-item';
+                                    roomItem.innerHTML = `
+                                        <span class="room-code">${room.room_code}</span>
+                                        <span class="room-players">${room.player_count}/${room.max_players} players</span>
+                                    `;
+                                    roomItem.addEventListener('click', () => {
+                                        joinRoomByCode(room.room_code);
+                                    });
+                                    availableRoomsList.appendChild(roomItem);
+                                });
+                            } else {
+                                availableRoomsList.innerHTML = '<div class="no-rooms-message">No rooms available</div>';
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error fetching available rooms:', error);
+                            availableRoomsList.innerHTML = '<div class="no-rooms-message">Error loading rooms</div>';
+                        });
+                }
+
+                // Join room by code function
+                function joinRoomByCode(roomCode) {
+                    if (!roomCode) {
+                        alert('Please enter a room code');
+                        return;
+                    }
+                    
+                    try {
+                        if (!socket.connected) {
+                            console.log('Socket not connected yet, waiting...');
+                            socket.on('connect', () => {
+                                socket.emit('join_room_by_code', { room_code: roomCode });
+                            });
+                        } else {
+                            socket.emit('join_room_by_code', { room_code: roomCode });
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert('Failed to join room');
+                    }
+                }
+
+                refreshRoomsBtn.addEventListener('click', fetchAvailableRooms);
 
                 playerCountButtons.forEach(button => {
                     button.addEventListener('click', () => {
@@ -103,7 +174,6 @@
                         button.classList.add('active');
                         selectedPlayerCount = parseInt(button.getAttribute('data-count'));
                         maxPlayers.textContent = selectedPlayerCount;
-                        updateLabels();
                     });
                 });
 
@@ -120,25 +190,35 @@
                 difficultySlider.addEventListener('input', updateDifficultyLabelFontSize);
 
                 function updateRoomBtns(userCount) {
-                    joinWaitingRoomBtn.textContent = `Join Online Room (${userCount}/${selectedPlayerCount})`;
-                    leaveWaitingRoomBtn.textContent = `Leave Online Room (${userCount}/${selectedPlayerCount})`;
+                    // Update the current room players count
+                    if (currentRoomPlayers) {
+                        currentRoomPlayers.textContent = userCount;
+                    }
+                    if (maxPlayers) {
+                        maxPlayers.textContent = selectedPlayerCount;
+                    }
                     updateStartGameButtonText(userCount);
                 }
 
                 function manualUpdateRoomsBtns() {
-
-                    fetch('/api/get_waiting_room_users')
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.error) {
-                                console.error('Room not found:', data.error);
-                            } else {
-                                updateRoomBtns(data.users.length);
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Fetch error:', error);
-                        });
+                    // Only fetch room users if we're in a room
+                    if (currentRoom) {
+                        fetch(`/api/get_waiting_room_users?room=${currentRoom}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.error) {
+                                    console.error('Room not found:', data.error);
+                                } else {
+                                    updateRoomBtns(data.users.length);
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Fetch error:', error);
+                            });
+                    } else {
+                        // Reset UI for no room
+                        updateRoomBtns(0);
+                    }
                 }
 
                 function updateLabels() {
@@ -150,6 +230,11 @@
                         rightLabel.style.opacity = '1';
                         difficultySliderContainer.classList.add('invisible');
                         roomSection.classList.remove('invisible');
+                        
+                        // Fetch available rooms when switching to multiplayer mode
+                        if (!currentRoom) {
+                            fetchAvailableRooms();
+                        }
                     } else {
                         leftLabel.style.opacity = '1';
                         rightLabel.style.opacity = '0.5';
@@ -179,29 +264,35 @@
 
                 // Function to update the Start Game button text
                 function updateStartGameButtonText(userCount = 0) {
-                    if (gameModeToggle.checked && currentRoom && userCount < selectedPlayerCount) {
-                        startGameButton.textContent = `Waiting for players...`;
-                        startGameButton.disabled = true;
+                    if (gameModeToggle.checked && currentRoom) {
+                        if (userCount < currentRoomMaxPlayers) {
+                            startGameButton.textContent = `Waiting for players...`;
+                            startGameButton.disabled = true;
+                        } else {
+                            startGameButton.disabled = false;
+                            startGameButton.textContent = "Start Online Game";
+                        }
                     } else {
                         startGameButton.disabled = false;
-                        if (currentRoom && gameModeToggle.checked) {
-                            startGameButton.textContent = "Start Online Game";
-                        } else {
-                            startGameButton.textContent = "Start Local Game";
-                        }
+                        startGameButton.textContent = "Start Local Game";
                     }
                 }
 
                 function updateRoomDisplay() {
                     if (currentRoom) {
                         currentRoomInfo.style.display = 'block';
-                        createRoomBtn.style.display = 'none';
+                        createRoomSection.style.display = 'none';
+                        availableRoomsSection.style.display = 'none';
                         joinRoomBtn.parentElement.style.display = 'none';
                         currentRoomCode.textContent = currentRoom;
+                        leaveRoomBtn.style.display = 'inline-block';
                     } else {
                         currentRoomInfo.style.display = 'none';
-                        createRoomBtn.style.display = 'inline-block';
+                        createRoomSection.style.display = 'block';
+                        availableRoomsSection.style.display = 'block';
                         joinRoomBtn.parentElement.style.display = 'block';
+                        leaveRoomBtn.style.display = 'none';
+                        fetchAvailableRooms(); // Refresh available rooms when leaving a room
                     }
                 }
 
@@ -212,7 +303,7 @@
                             console.log('Socket not connected yet, waiting...');
                             await new Promise((resolve) => socket.on('connect', resolve));
                         }
-                        socket.emit('create_room');
+                        socket.emit('create_room', { player_count: selectedPlayerCount });
                     } catch (error) {
                         console.error('Error:', error);
                         alert('Failed to create room');
@@ -220,23 +311,9 @@
                 });
 
                 // Join room button click handler
-                joinRoomBtn.addEventListener('click', async () => {
+                joinRoomBtn.addEventListener('click', () => {
                     const roomCode = roomCodeInput.value.trim().toUpperCase();
-                    if (!roomCode) {
-                        alert('Please enter a room code');
-                        return;
-                    }
-                    
-                    try {
-                        if (!socket.connected) {
-                            console.log('Socket not connected yet, waiting...');
-                            await new Promise((resolve) => socket.on('connect', resolve));
-                        }
-                        socket.emit('join_room_by_code', { room_code: roomCode });
-                    } catch (error) {
-                        console.error('Error:', error);
-                        alert('Failed to join room');
-                    }
+                    joinRoomByCode(roomCode);
                 });
 
                 // Leave room button click handler
@@ -266,7 +343,7 @@
                 startGameButton.addEventListener('click', async () => {
                     const gameMode = gameModeToggle.checked ? 'player' : 'computer';
                     const difficulty = difficultySlider.value; // Get the difficulty value
-                    const playerCount = selectedPlayerCount;
+                    const playerCount = gameMode === 'player' ? currentRoomMaxPlayers : selectedPlayerCount;
 
                     try {
                         if (!socket.connected) {
@@ -297,14 +374,18 @@
                 // Socket event listeners for room management
                 socket.on('room_created', (data) => {
                     currentRoom = data.room_code;
+                    currentRoomMaxPlayers = data.player_count;
+                    maxPlayers.textContent = currentRoomMaxPlayers;
                     roomCodeInput.value = '';
                     updateRoomDisplay();
-                    updateStartGameButtonText();
+                    updateStartGameButtonText(1); // Start with 1 player (creator)
                     alert(`Room created! Code: ${data.room_code}`);
                 });
 
                 socket.on('room_joined', (data) => {
                     currentRoom = data.room_code;
+                    currentRoomMaxPlayers = data.player_count || 2; // Default to 2 if not provided
+                    maxPlayers.textContent = currentRoomMaxPlayers;
                     roomCodeInput.value = '';
                     updateRoomDisplay();
                     updateStartGameButtonText();
@@ -313,6 +394,10 @@
                 socket.on('room_update', (data) => {
                     if (data.room === currentRoom) {
                         currentRoomPlayers.textContent = data.user_count;
+                        if (data.max_players) {
+                            currentRoomMaxPlayers = data.max_players;
+                            maxPlayers.textContent = data.max_players;
+                        }
                         updateStartGameButtonText(data.user_count);
                     }
                 });

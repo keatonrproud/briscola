@@ -221,22 +221,26 @@ input:checked + .slider:before {
 
 /* Difficulty Slider Styles */
 .difficulty-slider-container {
-    margin-top: 5%;
-    margin-bottom: 0; /* Space between the slider and the toggle */
+    margin-top: 10%;
+    margin-bottom: 10%; /* Increased space between slider and button */
     opacity: 1;
     display: flex;
     justify-content: center; /* Center horizontally */
     text-align: center; /* Center-align the slider and label */
     align-items: center; /* Center vertically */
     position: relative;
-    transition: opacity 0.3s ease; /* Smooth transition for fading in and out */
+    transition: all 0.3s ease; /* Smooth transition for all properties */
     user-select: none;
     height: 3rem;
     padding-right: .5rem;
 }
 
 .difficulty-slider-container.invisible {
-    opacity: 0; /* Fully visible */
+    display: none !important;
+    height: 0;
+    margin: 0;
+    padding: 0;
+    opacity: 0;
 }
 
 .difficulty-slider {
@@ -300,8 +304,12 @@ input:checked + .slider:before {
 }
 
 .room-section.invisible {
-    display: block; /* Show when the slider container should be visible */
-    opacity: 0; /* Fully visible */
+    display: none !important; /* Completely hide the section */
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    opacity: 0;
     pointer-events: none;
     cursor: auto;
 }
@@ -358,7 +366,7 @@ input:checked + .slider:before {
     cursor: pointer;
     font-size: 16px;
     margin-top: 10px;
-    display: none;
+    display: inline-block;
     height: 10%;
     width: 55%;
     transition: opacity 0.5s ease; /* Smooth transition for fading in and out */
@@ -413,13 +421,13 @@ a:focus, a:active {
     padding: 10px 20px; /* Button padding */
     font-size: 18px; /* Button font size */
     cursor: pointer; /* Pointer cursor on hover */
-    margin-top: 10%; /* Space between the slider and the toggle */
+    margin-top: 10%; /* Default space - will be overridden by JS */
     margin-bottom: 5%;
     border: none; /* Remove default button border */
     border-radius: 5px; /* Rounded corners */
     background-color: #007bff; /* Button background color */
     color: #fff; /* Button text color */
-    transition: background-color 0.3s ease; /* Smooth background color transition */
+    transition: all 0.3s ease; /* Smooth transition for all properties */
     user-select: none;
 }
 
@@ -1157,4 +1165,66 @@ a:focus, a:active {
 .player-score-info {
     display: flex;
     justify-content: space-between;
+}
+
+.available-rooms-section {
+    margin: 1rem 0;
+    padding: 0.5rem;
+    border-radius: 10px;
+    background-color: rgba(255, 255, 255, 0.1);
+    width: 100%;
+    text-align: center;
+}
+
+.available-rooms-section h3 {
+    margin-bottom: 0.5rem;
+    color: #333;
+    font-size: 1rem;
+}
+
+#available-rooms-list {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.available-room-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 0.5rem;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.available-room-item:hover {
+    background-color: #e0e0e0;
+}
+
+.room-code {
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.room-players {
+    color: #007bff;
+}
+
+.no-rooms-message {
+    color: #666;
+    font-style: italic;
+    padding: 0.5rem;
+}
+
+#refresh-rooms-btn {
+    background-color: #6c757d;
+    color: white;
+    padding: 5px 10px;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
 }

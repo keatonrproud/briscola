@@ -45,14 +45,14 @@ keep_alive()
 
 
 def generate_room_code() -> str:
-    """Generate a unique 6-character room code"""
+    """Generate a unique 4-digit numeric room code"""
     while True:
-        code = "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
+        code = "".join(random.choices(string.digits, k=4))
         if code not in ROOMS:
             return code
 
 
-def create_room(room_code: str | None = None) -> str:
+def create_room(room_code: str | None = None, player_count: int = 2) -> str:
     """Create a new room with a unique code"""
     if room_code is None:
         room_code = generate_room_code()
@@ -61,6 +61,7 @@ def create_room(room_code: str | None = None) -> str:
         "players": [],
         "created_at": str(request.headers.get("Date", "Unknown")),
         "game_active": False,
+        "player_count": player_count,
     }
     return room_code
 
@@ -356,6 +357,27 @@ def handle_disconnect():
     if online_room or game_of_oid:
         OLD_OID_INFO[oid] = OldOidInfo(online_room=online_room, game=game_of_oid)
 
+    # Check if we need to clean up room or end game
+    if online_room in ROOMS and oid in ROOMS[online_room]["players"]:
+        ROOMS[online_room]["players"].remove(oid)
+
+        # If room is empty, clean it up
+        if len(ROOMS[online_room]["players"]) == 0:
+            cleanup_room(online_room)
+        # If game is active and player disconnects, check if we need to end the game
+        elif game_of_oid and game_of_oid.game_ongoing:
+            remaining_players = [
+                p for p in ROOMS[online_room]["players"] if p in OID__GAME
+            ]
+            if len(remaining_players) == 0:
+                # End the game if no players remain
+                logger.info(
+                    f"All players left room {online_room}, ending game automatically"
+                )
+                game_of_oid.game_ongoing = False
+                # Force remaining players out
+                force_players_out_of_room(online_room)
+
     leave_room(room=online_room, sid=request.sid)
     send_room_user_count_update(online_room)
 
@@ -388,12 +410,19 @@ def get_game_of_oid(oid: str | None) -> BriscolaWeb | None:
 
 @app.route("/api/get_waiting_room_users")
 def get_waiting_room_users() -> tuple[Response, int]:
-    oids = get_oids_in_online_room("waiting_room")
+    # Get the room from the request
+    room_code = request.args.get("room")
 
-    if oids is None:
-        oids = []
-
-    return jsonify({"users": oids}), 200
+    if room_code and room_code in ROOMS:
+        # Return users for a specific room
+        oids = ROOMS[room_code]["players"]
+        return jsonify({"users": oids, "room": room_code}), 200
+    else:
+        # Fallback to old behavior for backward compatibility
+        oids = get_oids_in_online_room("waiting_room")
+        if oids is None:
+            oids = []
+        return jsonify({"users": oids}), 200
 
 
 def get_oids_in_online_room(room) -> list[str] | None:
@@ -414,9 +443,10 @@ def get_oids_in_online_room(room) -> list[str] | None:
 
 
 @socketio.on("create_room")
-def handle_create_room():
+def handle_create_room(data):
     """Create a new room with a unique code"""
-    room_code = create_room()
+    player_count = data.get("player_count", 2)
+    room_code = create_room(player_count=player_count)
     oid = get_oid(request.sid)
 
     # Add player to the room
@@ -424,8 +454,8 @@ def handle_create_room():
     OID__ONLINE_ROOM[oid] = room_code
     join_room(room_code, sid=request.sid)
 
-    emit("room_created", {"room_code": room_code})
-    logger.info(f"Room {room_code} created by player {oid}")
+    emit("room_created", {"room_code": room_code, "player_count": player_count})
+    logger.info(f"Room {room_code} created by player {oid} for {player_count} players")
 
 
 @socketio.on("join_room_by_code")
@@ -446,6 +476,15 @@ def handle_join_room_by_code(data):
         emit("error", {"message": "Game already in progress"})
         return
 
+    # Get the room's player count
+    player_count = ROOMS[room_code].get("player_count", 2)
+    current_players = len(ROOMS[room_code]["players"])
+
+    # Check if room is full
+    if current_players >= player_count:
+        emit("error", {"message": "Room is full"})
+        return
+
     # Add player to room
     if oid not in ROOMS[room_code]["players"]:
         ROOMS[room_code]["players"].append(oid)
@@ -453,7 +492,7 @@ def handle_join_room_by_code(data):
     OID__ONLINE_ROOM[oid] = room_code
     join_room(room_code, sid=request.sid)
 
-    emit("room_joined", {"room_code": room_code})
+    emit("room_joined", {"room_code": room_code, "player_count": player_count})
     send_room_user_count_update(room_code)
     logger.info(f"Player {oid} joined room {room_code}")
 
@@ -477,9 +516,16 @@ def handle_join_game(data):
 
 def send_room_user_count_update(room) -> None:
     users = get_oids_in_online_room(room) or []
+    max_players = ROOMS[room].get("player_count", 2) if room in ROOMS else 2
+
     emit(
         "room_update",
-        {"room": room, "users": users, "user_count": len(users)},
+        {
+            "room": room,
+            "users": users,
+            "user_count": len(users),
+            "max_players": max_players,
+        },
         to=room,
     )
 
@@ -488,6 +534,7 @@ def send_room_user_count_update(room) -> None:
 def handle_leave_room(data):
     room = data.get("room")
     oid = get_oid(request.sid)
+    game = get_game_of_oid(oid)
 
     # Remove from room data structure
     if room in ROOMS and oid in ROOMS[room]["players"]:
@@ -497,9 +544,23 @@ def handle_leave_room(data):
         if len(ROOMS[room]["players"]) == 0:
             cleanup_room(room)
             return
+        # If game is active and player leaves, check if we need to end the game
+        elif game and game.game_ongoing:
+            remaining_players = [p for p in ROOMS[room]["players"] if p in OID__GAME]
+            if len(remaining_players) == 0:
+                # End the game if no players remain
+                logger.info(f"All players left room {room}, ending game automatically")
+                game.game_ongoing = False
+                # Force remaining players out
+                force_players_out_of_room(room)
+                return
 
     if oid in OID__ONLINE_ROOM:
         del OID__ONLINE_ROOM[oid]
+
+    # Remove the game reference for this player
+    if oid in OID__GAME:
+        del OID__GAME[oid]
 
     leave_room(room, sid=request.sid)
 
@@ -511,23 +572,52 @@ def handle_leave_game():
     oid = get_oid(request.sid)
     game = get_game_of_oid(oid)
 
-    # if user is in an online room and the game has ended
-    if (online_room := get_online_room_of_oid(oid)) and not game.game_ongoing:
-        leave_room(online_room, sid=request.sid)
-        close_room(online_room)
+    if not game:
+        return
 
-    if oid in OID__ONLINE_ROOM or oid in OID__GAME:
+    online_room = get_online_room_of_oid(oid)
+
+    # if user is in an online room
+    if online_room:
+        # Remove from room data structure
+        if online_room in ROOMS and oid in ROOMS[online_room]["players"]:
+            ROOMS[online_room]["players"].remove(oid)
+
+            # If room is empty, clean it up
+            if len(ROOMS[online_room]["players"]) == 0:
+                cleanup_room(online_room)
+            # If game is active and player leaves, check if we need to end the game
+            elif game.game_ongoing:
+                remaining_players = [
+                    p for p in ROOMS[online_room]["players"] if p in OID__GAME
+                ]
+                if len(remaining_players) == 0:
+                    # End the game if no players remain
+                    logger.info(
+                        f"All players left room {online_room}, ending game automatically"
+                    )
+                    game.game_ongoing = False
+                    # Force remaining players out after a delay
+                    socketio.start_background_task(
+                        lambda: socketio.sleep(2)
+                        or force_players_out_of_room(online_room)
+                    )
+
+        # If game has ended, leave the room
         if not game.game_ongoing:
-            del OLD_OID_INFO[oid]
+            leave_room(online_room, sid=request.sid)
 
-        if oid in OID__ONLINE_ROOM:
-            del OID__ONLINE_ROOM[oid]
+    # Clean up player data
+    if oid in OID__ONLINE_ROOM:
+        del OID__ONLINE_ROOM[oid]
 
-        if oid in OID__GAME:
-            del OID__GAME[oid]
+    if oid in OID__GAME:
+        del OID__GAME[oid]
+
+    if oid in OLD_OID_INFO:
+        del OLD_OID_INFO[oid]
 
     target = online_room or request.sid
-
     emit("room_closed", to=target)
 
 
@@ -584,6 +674,30 @@ def convert_socketid_to_oid() -> tuple[Response, int]:
 def keep_app_alive():
     """Used to keep the server from sleeping on Render."""
     return "Keep-alive ping received", 200
+
+
+@app.route("/api/get_available_rooms")
+def get_available_rooms() -> tuple[Response, int]:
+    """Get a list of available rooms that haven't started games yet"""
+    available_rooms = []
+
+    for room_code, room_data in ROOMS.items():
+        if not room_data["game_active"]:
+            player_count = len(room_data["players"])
+            max_players = room_data.get("player_count", 2)
+            if player_count < max_players:  # Room still has space
+                available_rooms.append(
+                    {
+                        "room_code": room_code,
+                        "player_count": player_count,
+                        "max_players": max_players,
+                    }
+                )
+
+    # Only return the 3 most recent rooms (or fewer if there aren't 3)
+    available_rooms = available_rooms[:3]
+
+    return jsonify({"rooms": available_rooms}), 200
 
 
 if __name__ == "__main__":
