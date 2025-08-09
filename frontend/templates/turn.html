@@ -113,9 +113,21 @@
             }
         }
 
+        function setUpForceLeaveRoomListener() {
+            if (!socket.__setUpForceLeaveRoomListener) {
+                socket.on("force_leave_room", async (data) => {
+                    alert(data.message);
+                    window.location.href = '/';
+                })
+
+                socket.__setUpForceLeaveRoomListener = true;
+            }
+        }
+
         setUpGameStateListener();
         setUpEndPlayListener();
         setUpRoomClosedListener();
+        setUpForceLeaveRoomListener();
 
         // get random icon for loading spinner
         const icons = ['🪵', '🗡️', '🏆', '🪙'];

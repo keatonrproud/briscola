@@ -39,8 +39,18 @@
             </div>
 
             <div class="room-section invisible">
-                <button id="join-room-btn" class="button">Join Online Room</button>
-                <button id="leave-room-btn" class="button" style="display: none;">Leave</button>
+                <div class="room-controls">
+                    <button id="create-room-btn" class="button">Create Room</button>
+                    <div class="room-join-section">
+                        <input type="text" id="room-code-input" placeholder="Enter room code" maxlength="6" style="margin-bottom: 0.5rem; padding: 0.5rem; border: 1px solid #ccc; border-radius: 5px; text-transform: uppercase;">
+                        <button id="join-room-btn" class="button">Join Room</button>
+                    </div>
+                    <div id="current-room-info" style="display: none; margin-top: 1rem;">
+                        <p><strong>Room Code: <span id="current-room-code"></span></strong></p>
+                        <p>Players: <span id="current-room-players">0</span>/<span id="max-players">2</span></p>
+                        <button id="leave-room-btn" class="button">Leave Room</button>
+                    </div>
+                </div>
                 <div id="player-count-selector" style="margin-top: 1rem;">
                     <span class="h3">Players:</span>
                     <div class="player-count-buttons">
@@ -75,16 +85,24 @@
                 const difficultySliderContainer = document.querySelector('.difficulty-slider-container');
                 const difficultyLabel = document.querySelector('.difficulty-label');
                 const roomSection = document.querySelector('.room-section');
-                const joinWaitingRoomBtn = document.getElementById('join-room-btn');
-                const leaveWaitingRoomBtn = document.getElementById('leave-room-btn');
+                const createRoomBtn = document.getElementById('create-room-btn');
+                const joinRoomBtn = document.getElementById('join-room-btn');
+                const leaveRoomBtn = document.getElementById('leave-room-btn');
+                const roomCodeInput = document.getElementById('room-code-input');
+                const currentRoomInfo = document.getElementById('current-room-info');
+                const currentRoomCode = document.getElementById('current-room-code');
+                const currentRoomPlayers = document.getElementById('current-room-players');
+                const maxPlayers = document.getElementById('max-players');
                 const playerCountButtons = document.querySelectorAll('.player-count-btn');
                 let selectedPlayerCount = 2; // Default to 2 players
+                let currentRoom = null;
 
                 playerCountButtons.forEach(button => {
                     button.addEventListener('click', () => {
                         playerCountButtons.forEach(btn => btn.classList.remove('active'));
                         button.classList.add('active');
                         selectedPlayerCount = parseInt(button.getAttribute('data-count'));
+                        maxPlayers.textContent = selectedPlayerCount;
                         updateLabels();
                     });
                 });
@@ -159,14 +177,14 @@
                 gameModeToggle.addEventListener('change', updateLabels);
                 updateLabels(); // Initial call to set the correct state on page load
 
-                    // Function to update the Start Game button text
-                function updateStartGameButtonText(userCount) {
-                    if (gameModeToggle.checked && leaveWaitingRoomBtn.style.display !== "none" && userCount < selectedPlayerCount) {
+                // Function to update the Start Game button text
+                function updateStartGameButtonText(userCount = 0) {
+                    if (gameModeToggle.checked && currentRoom && userCount < selectedPlayerCount) {
                         startGameButton.textContent = `Waiting for players...`;
                         startGameButton.disabled = true;
                     } else {
                         startGameButton.disabled = false;
-                        if (leaveWaitingRoomBtn.style.display !== "none" && gameModeToggle.checked) {
+                        if (currentRoom && gameModeToggle.checked) {
                             startGameButton.textContent = "Start Online Game";
                         } else {
                             startGameButton.textContent = "Start Local Game";
@@ -174,27 +192,66 @@
                     }
                 }
 
-                // Join waiting room button click handler
-                joinWaitingRoomBtn.addEventListener('click', async () => {
+                function updateRoomDisplay() {
+                    if (currentRoom) {
+                        currentRoomInfo.style.display = 'block';
+                        createRoomBtn.style.display = 'none';
+                        joinRoomBtn.parentElement.style.display = 'none';
+                        currentRoomCode.textContent = currentRoom;
+                    } else {
+                        currentRoomInfo.style.display = 'none';
+                        createRoomBtn.style.display = 'inline-block';
+                        joinRoomBtn.parentElement.style.display = 'block';
+                    }
+                }
+
+                // Create room button click handler
+                createRoomBtn.addEventListener('click', async () => {
                     try {
                         if (!socket.connected) {
                             console.log('Socket not connected yet, waiting...');
                             await new Promise((resolve) => socket.on('connect', resolve));
                         }
-                        socket.emit('join_game', { room: 'waiting_room' });
-                        joinWaitingRoomBtn.style.display = 'none'; // Hide the join room button
-                        leaveWaitingRoomBtn.style.display = 'inline-block'; // Show the leave room button
-
+                        socket.emit('create_room');
                     } catch (error) {
                         console.error('Error:', error);
+                        alert('Failed to create room');
                     }
                 });
 
-                // Leave waiting room button click handler
-                leaveWaitingRoomBtn.addEventListener('click', () => {
-                    socket.emit('leave_room', { room: 'waiting_room' });
-                    joinWaitingRoomBtn.style.display = 'inline-block';
-                    leaveWaitingRoomBtn.style.display = 'none';
+                // Join room button click handler
+                joinRoomBtn.addEventListener('click', async () => {
+                    const roomCode = roomCodeInput.value.trim().toUpperCase();
+                    if (!roomCode) {
+                        alert('Please enter a room code');
+                        return;
+                    }
+                    
+                    try {
+                        if (!socket.connected) {
+                            console.log('Socket not connected yet, waiting...');
+                            await new Promise((resolve) => socket.on('connect', resolve));
+                        }
+                        socket.emit('join_room_by_code', { room_code: roomCode });
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert('Failed to join room');
+                    }
+                });
+
+                // Leave room button click handler
+                leaveRoomBtn.addEventListener('click', () => {
+                    if (currentRoom) {
+                        socket.emit('leave_room', { room: currentRoom });
+                        currentRoom = null;
+                        updateRoomDisplay();
+                        updateStartGameButtonText();
+                    }
+                });
+
+                // Auto-uppercase room code input
+                roomCodeInput.addEventListener('input', (e) => {
+                    e.target.value = e.target.value.toUpperCase();
                 });
 
                 // Listen for the game state response
@@ -216,16 +273,59 @@
                             console.log('Socket not connected yet, waiting...');
                             await new Promise((resolve) => socket.on('connect', resolve));
                         }
-                        socket.emit('start_game', {gameMode: gameMode, difficulty: difficulty, playerCount: playerCount}
-                        );
+                        
+                        // For online games, use the current room
+                        if (gameMode === 'player' && currentRoom) {
+                            socket.emit('start_game', {
+                                gameMode: gameMode, 
+                                difficulty: difficulty, 
+                                playerCount: playerCount,
+                                room: currentRoom
+                            });
+                        } else {
+                            socket.emit('start_game', {
+                                gameMode: gameMode, 
+                                difficulty: difficulty, 
+                                playerCount: playerCount
+                            });
+                        }
                     } catch (error) {
                         console.error('Error:', error);
                     }
                 });
 
+                // Socket event listeners for room management
+                socket.on('room_created', (data) => {
+                    currentRoom = data.room_code;
+                    roomCodeInput.value = '';
+                    updateRoomDisplay();
+                    updateStartGameButtonText();
+                    alert(`Room created! Code: ${data.room_code}`);
+                });
+
+                socket.on('room_joined', (data) => {
+                    currentRoom = data.room_code;
+                    roomCodeInput.value = '';
+                    updateRoomDisplay();
+                    updateStartGameButtonText();
+                });
+
                 socket.on('room_update', (data) => {
-                    const { users } = data;
-                    updateRoomBtns(users.length);
+                    if (data.room === currentRoom) {
+                        currentRoomPlayers.textContent = data.user_count;
+                        updateStartGameButtonText(data.user_count);
+                    }
+                });
+
+                socket.on('force_leave_room', (data) => {
+                    alert(data.message);
+                    currentRoom = null;
+                    updateRoomDisplay();
+                    updateStartGameButtonText();
+                });
+
+                socket.on('error', (data) => {
+                    alert(data.message);
                 });
 
 

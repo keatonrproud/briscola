@@ -1,4 +1,6 @@
 from dataclasses import dataclass
+import random
+import string
 
 from flask import Flask, Response, jsonify, render_template, request
 from flask_socketio import SocketIO, close_room, emit, join_room, leave_room  # type: ignore
@@ -23,6 +25,9 @@ OID__ONLINE_ROOM: dict[str, str | None] = {}
 OID__GAME: dict[str, BriscolaWeb | None] = {}  # the current game for each oid
 """ The current game for each oid. """
 
+ROOMS: dict[str, dict] = {}
+""" Dictionary to store room information including room codes and players """
+
 
 @dataclass
 class OldOidInfo:
@@ -37,6 +42,56 @@ OLD_OID_INFO: dict[str, OldOidInfo] = {}
 
 # used to ping the keep-alive endpoint at some interval to avoid Render's 15min sleep
 keep_alive()
+
+
+def generate_room_code() -> str:
+    """Generate a unique 6-character room code"""
+    while True:
+        code = "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
+        if code not in ROOMS:
+            return code
+
+
+def create_room(room_code: str | None = None) -> str:
+    """Create a new room with a unique code"""
+    if room_code is None:
+        room_code = generate_room_code()
+
+    ROOMS[room_code] = {
+        "players": [],
+        "created_at": str(request.headers.get("Date", "Unknown")),
+        "game_active": False,
+    }
+    return room_code
+
+
+def cleanup_room(room_code: str) -> None:
+    """Clean up a room and remove all players"""
+    if room_code in ROOMS:
+        # Remove all players from the room
+        for oid in ROOMS[room_code]["players"]:
+            if oid in OID__ONLINE_ROOM:
+                del OID__ONLINE_ROOM[oid]
+            if oid in OID__GAME:
+                del OID__GAME[oid]
+
+        # Close the room and delete it
+        close_room(room_code)
+        del ROOMS[room_code]
+        logger.info(f"Room {room_code} cleaned up")
+
+
+def force_players_out_of_room(room_code: str) -> None:
+    """Force all players out of a room when game ends"""
+    if room_code in ROOMS:
+        players = ROOMS[room_code]["players"].copy()
+        for oid in players:
+            emit(
+                "force_leave_room",
+                {"message": "Game ended, returning to lobby"},
+                to=oid if oid in SOCKET__OID.values() else None,
+            )
+        cleanup_room(room_code)
 
 
 @app.route("/")
@@ -71,9 +126,10 @@ def handle_start_game(data):
     game_mode = data.get("gameMode")
     difficulty = data.get("difficulty")
     player_count = int(data.get("playerCount", 2))
+    room_code = data.get("room")  # Get room code if provided
 
     oid = get_oid(request.sid)
-    online_room = get_online_room_of_oid(oid)
+    online_room = room_code or get_online_room_of_oid(oid)
     room_oids = get_oids_in_online_room(online_room)
 
     if game_mode is None or difficulty is None:
@@ -103,6 +159,10 @@ def handle_start_game(data):
                             room_oids, range(len(game.players))
                         )
                     }
+
+                    # Mark the room as having an active game
+                    if online_room in ROOMS:
+                        ROOMS[online_room]["game_active"] = True
                 else:
                     emit(
                         "error",
@@ -272,6 +332,14 @@ def end_game():
     # Emit the winner message to the online room if one exists, or the user's current socket
     emit("end_game_response", {"message": message, "scores": scores}, to=target)
 
+    # Clean up room if this was an online game
+    online_room = get_online_room_of_oid(oid)
+    if online_room and online_room in ROOMS:
+        # Force all players out of the room after a delay
+        socketio.start_background_task(
+            lambda: socketio.sleep(5) or force_players_out_of_room(online_room)
+        )
+
 
 @app.route("/end_game")
 def end_game_page():
@@ -332,12 +400,62 @@ def get_oids_in_online_room(room) -> list[str] | None:
     if room is None:
         return None
 
+    # First check new room system
+    if room in ROOMS:
+        return ROOMS[room]["players"]
+
+    # Fallback to old system for backward compatibility
     oids_in_room = set()
     for oid, room_of_oid in OID__ONLINE_ROOM.items():
         if room_of_oid == room:
             oids_in_room.update({oid})
 
     return list(oids_in_room)
+
+
+@socketio.on("create_room")
+def handle_create_room():
+    """Create a new room with a unique code"""
+    room_code = create_room()
+    oid = get_oid(request.sid)
+
+    # Add player to the room
+    ROOMS[room_code]["players"].append(oid)
+    OID__ONLINE_ROOM[oid] = room_code
+    join_room(room_code, sid=request.sid)
+
+    emit("room_created", {"room_code": room_code})
+    logger.info(f"Room {room_code} created by player {oid}")
+
+
+@socketio.on("join_room_by_code")
+def handle_join_room_by_code(data):
+    """Join a room using a room code"""
+    room_code = data.get("room_code", "").upper()
+    oid = get_oid(request.sid)
+
+    if not room_code:
+        emit("error", {"message": "Room code is required"})
+        return
+
+    if room_code not in ROOMS:
+        emit("error", {"message": "Room not found"})
+        return
+
+    if ROOMS[room_code]["game_active"]:
+        emit("error", {"message": "Game already in progress"})
+        return
+
+    # Add player to room
+    if oid not in ROOMS[room_code]["players"]:
+        ROOMS[room_code]["players"].append(oid)
+
+    OID__ONLINE_ROOM[oid] = room_code
+    join_room(room_code, sid=request.sid)
+
+    emit("room_joined", {"room_code": room_code})
+    send_room_user_count_update(room_code)
+    logger.info(f"Player {oid} joined room {room_code}")
 
 
 @socketio.on("join_game")
@@ -358,10 +476,11 @@ def handle_join_game(data):
 
 
 def send_room_user_count_update(room) -> None:
+    users = get_oids_in_online_room(room) or []
     emit(
         "room_update",
-        {"room": room, "users": get_oids_in_online_room(room)},
-        broadcast=True,
+        {"room": room, "users": users, "user_count": len(users)},
+        to=room,
     )
 
 
@@ -369,6 +488,15 @@ def send_room_user_count_update(room) -> None:
 def handle_leave_room(data):
     room = data.get("room")
     oid = get_oid(request.sid)
+
+    # Remove from room data structure
+    if room in ROOMS and oid in ROOMS[room]["players"]:
+        ROOMS[room]["players"].remove(oid)
+
+        # If room is empty, clean it up
+        if len(ROOMS[room]["players"]) == 0:
+            cleanup_room(room)
+            return
 
     if oid in OID__ONLINE_ROOM:
         del OID__ONLINE_ROOM[oid]

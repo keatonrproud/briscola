@@ -298,11 +298,50 @@ input:checked + .slider:before {
     user-select: none;
     cursor: pointer;
 }
+
 .room-section.invisible {
     display: block; /* Show when the slider container should be visible */
     opacity: 0; /* Fully visible */
     pointer-events: none;
     cursor: auto;
+}
+
+.room-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.room-join-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin-top: 10px;
+}
+
+#room-code-input {
+    text-align: center;
+    font-size: 1.2rem;
+    letter-spacing: 2px;
+    width: 80%;
+    margin-bottom: 10px;
+}
+
+#current-room-info {
+    background-color: rgba(255, 255, 255, 0.2);
+    padding: 10px;
+    border-radius: 10px;
+    width: 100%;
+    text-align: center;
+}
+
+#current-room-info p {
+    margin: 5px 0;
+    color: #333;
 }
 
 #join-room-btn:hover {
@@ -860,6 +899,25 @@ a:focus, a:active {
 @media (max-width: 600px) {
     #player-cards {
         max-height: 50%;
+        width: 100%;
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: hidden;
+        justify-content: center;
+        white-space: nowrap;
+        flex-direction: row;
+    }
+
+    #player-cards .card {
+        margin-right: -25px; /* Negative margin for overlapping effect */
+        flex-shrink: 0; /* Prevent cards from shrinking */
+        transform-origin: bottom center; /* For better hover effect */
+        transition: transform 0.2s ease;
+    }
+
+    #player-cards .card:hover {
+        transform: translateY(-10px);
+        z-index: 10;
     }
 
     .face-down-cards-vertical .card {
