@@ -454,7 +454,11 @@ def handle_create_room(data):
     OID__ONLINE_ROOM[oid] = room_code
     join_room(room_code, sid=request.sid)
 
-    emit("room_created", {"room_code": room_code, "player_count": player_count})
+    # Here we use max_players for the max allowed, and player_count for current count
+    emit(
+        "room_created",
+        {"room_code": room_code, "max_players": player_count, "player_count": 1},
+    )
     logger.info(f"Room {room_code} created by player {oid} for {player_count} players")
 
 
@@ -523,7 +527,7 @@ def send_room_user_count_update(room) -> None:
         {
             "room": room,
             "users": users,
-            "user_count": len(users),
+            "player_count": len(users),
             "max_players": max_players,
         },
         to=room,
