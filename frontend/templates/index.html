@@ -137,6 +137,10 @@
                         rightLabel.style.opacity = '0.5';
                         difficultySliderContainer.classList.remove('invisible');
                         roomSection.classList.add('invisible');
+                        // Reset to 2 players for local games
+                        playerCountButtons.forEach(btn => btn.classList.remove('active'));
+                        playerCountButtons[0].classList.add('active'); // Select "2 Players"
+                        selectedPlayerCount = 2;
                     }
                 }
 

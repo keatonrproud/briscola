@@ -435,10 +435,11 @@ a:focus, a:active {
     width: 100vw;
     flex-direction: row; /* Changed to row for 4-player layout */
     background: transparent; /* Gradient background */
-    justify-content: center; /* Center content vertically */
+    justify-content: space-between; /* Space out the left, center, right sections */
     align-items: center; /* Center content horizontally */
     opacity: 0; /* Start fully transparent */
     transition: opacity 0.5s ease; /* Smooth transition for fading in */
+    padding: 0 20px; /* Add some padding to prevent edge clipping */
 }
 
 /* if dynamic viewport is supported by the browser, then use that as the height of the body */
@@ -454,6 +455,32 @@ a:focus, a:active {
     justify-content: space-between;
     height: 100%;
     width: 60%;
+    position: relative;
+}
+
+/* Left and right player card containers */
+.face-down-cards-vertical {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 15%;
+    position: relative;
+}
+
+.face-down-cards-vertical .card {
+    width: 60px;
+    height: 90px;
+    background-color: #007bff;
+    border-radius: 10px;
+    border: 2px solid white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    margin: -30px 0; /* Reduced overlap for better visibility */
+    position: relative;
+    z-index: 1;
+    user-select: none;
+    transform: rotate(90deg);
 }
 
 /* Center the cards container vertically and horizontally */
@@ -463,8 +490,8 @@ a:focus, a:active {
     flex-wrap: wrap;
     justify-content: center; /* Center horizontally */
     align-items: center; /* Center vertically */
-    min-height: 20vh;
-    padding: 20px; /* Optional: Add some padding around the container */
+    min-height: 15vh;
+    padding: 10px; /* Optional: Add some padding around the container */
 }
 
 /* Style for each card */
@@ -538,6 +565,10 @@ a:focus, a:active {
     align-items: flex-end;
     width: 100vw;
     margin: auto 0 1rem 0;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    z-index: 100;
 }
 
 /* Exit Button Container */
@@ -767,18 +798,46 @@ a:focus, a:active {
 /* Player cards container at the bottom */
 #player-cards {
     position: absolute;
-    bottom: 15%;
+    bottom: 5%;
+    left: 50%;
+    transform: translateX(-50%);
     justify-content: center;
     align-content: flex-end;
     white-space: nowrap;
     padding: 0;
-    width: 100vw;
+    width: auto;
+    display: flex;
 }
 
-@media (max-width: 600px) {
-    #player-cards {
-        max-height: 50%;
-    }
+/* Face down cards for opponents (top player) */
+#opp-cards {
+    position: absolute;
+    top: 5%;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    width: auto;
+    pointer-events: none; /* Disable interaction */
+}
+
+/* Active Pile Section - centered for 4-player */
+#active-pile {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 300px;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    pointer-events: none;
+    padding: 15px;
+    user-select: none;
 }
 
 /* Keyframes for moving up and fading out */
@@ -798,20 +857,28 @@ a:focus, a:active {
     animation: moveUpFadeOut 0.5s ease forwards; /* Apply the animation */
 }
 
-/* Active Pile Section */
-#active-pile {
-    position: absolute;
-    top: 35%;
-    left: 50%;
-    width: 90%;
-    height: 20%;
-    display: flex;
-    align-items: center;
-    justify-content: center; /* Center cards horizontally within the pile */
-    z-index: 10; /* Ensure it's on top of other elements */
-    pointer-events: none; /* Disable interaction */
-    padding: 15px; /* Add padding if needed */
-    user-select: none; /* Prevent text selection */
+@media (max-width: 600px) {
+    #player-cards {
+        max-height: 50%;
+    }
+
+    .face-down-cards-vertical .card {
+        width: 40px;
+        height: 60px;
+        margin: -20px 0;
+    }
+
+    #main-content {
+        padding: 0 10px;
+    }
+
+    #center-content {
+        width: 70%;
+    }
+
+    .face-down-cards-vertical {
+        width: 12%;
+    }
 }
 
 /* Style for individual cards to overlap */
@@ -844,17 +911,6 @@ a:focus, a:active {
 /* Apply animation to cards being played */
 #active-pile.cleared {
     animation: pileMove 0.5s ease forwards; /* Apply the animation */
-}
-
-@media (max-width: 600px) {
-    #active-pile .container {
-        padding: 0;
-    }
-
-    /* closer to vertical center on mobile as deck can't be beside the active pile */
-    #active-pile {
-        top: 40%;
-    }
 }
 
 /* Animation for clearing the pile upwards */
@@ -1019,6 +1075,7 @@ a:focus, a:active {
     pointer-events: none; /* Disable interaction */
 }
 
+/* Face down cards for opponents */
 .face-down-cards .card {
     width: 80px; /* Adjust the width as needed */
     height: 120px; /* Adjust the height as needed */
@@ -1032,38 +1089,10 @@ a:focus, a:active {
     user-select: none; /* Disable text selection */
 }
 
-.face-down-cards-vertical {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    width: 20%;
-}
-
-.face-down-cards-vertical .card {
-    width: 80px;
-    height: 120px;
-    background-color: #007bff;
-    border-radius: 10px;
-    border: 2px solid white;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    margin: -60px 0; /* Vertical overlap */
-    position: relative;
-    z-index: 1;
-    user-select: none;
-}
-
 @media (max-width: 600px) {
-    .face-down-cards {
+    .face-down-cards .card {
         width: 60px;
         height: 90px;
-    }
-
-    .face-down-cards-vertical .card {
-        width: 60px;
-        height: 90px;
-        margin: -45px 0;
     }
 }
 
