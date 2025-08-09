@@ -12,7 +12,7 @@ from frontend.types import (
     InGameCheckKeys,
     RoomCreateJoinKeys,
 )
-from frontend.services.game_service import emit_game_state
+from frontend.services.game_service import game_service
 from frontend.services.room_service import (
     room_service,
 )
@@ -96,14 +96,21 @@ class SocketService:
                         return
 
                     if len(room_oids) == player_count:
-                        # Initialize the game instance for this room
-                        game = BriscolaWeb(online=True, player_count=player_count)
+                        # Initialize the game instance for this room using GameService
+                        game = game_service.create_game(
+                            player_count=player_count, online=True
+                        )
+
+                        # Set up the player-to-userid mapping
                         game.userid_playernum_map = {
                             user_id: player_num
                             for user_id, player_num in zip(
                                 room_oids, range(len(game.players))
                             )
                         }
+
+                        # Register the game with the room
+                        game_service.register_room_game(online_room, game)
 
                         # Mark the room as having an active game
                         if online_room in room_service.rooms:
@@ -117,15 +124,15 @@ class SocketService:
                         )
                         return
                 else:
-                    game = BriscolaWeb(player_count=player_count)
+                    game = game_service.create_game(player_count=player_count)
 
             elif game_mode == GameMode.LOCAL:
                 # Set up a game against the computer with a specified difficulty
-                game = BriscolaWeb(
-                    computer_count=1,
-                    computer_logic_override=(basic_choice,),
-                    computer_skill_level=difficulty_level,
+                game = game_service.create_game(
                     player_count=2,
+                    computer_count=1,
+                    computer_logic=basic_choice,
+                    computer_skill_level=difficulty_level,
                 )
             else:
                 self.emit(EmitType.ERROR, {ErrorKeys.MESSAGE: "Invalid gameMode"})
@@ -156,7 +163,7 @@ class SocketService:
 
                         join_room(online_room, sid=sid)
 
-            emit_game_state(game, additional_data=additional_data)
+            game_service.emit_game_state(game, additional_data=additional_data)
 
         except Exception as e:
             self.emit(EmitType.ERROR, {ErrorKeys.MESSAGE: str(e)})

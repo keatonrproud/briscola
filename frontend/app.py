@@ -2,7 +2,7 @@ from flask import Flask, Response, jsonify, render_template, request
 from flask_socketio import SocketIO, emit, join_room, leave_room  # type: ignore
 
 from config.logging_config import build_logger
-from frontend.services.game_service import emit_game_state
+from frontend.services.game_service import game_service
 from frontend.services.room_service import room_service
 from frontend.services.socket_service import socket_service
 from frontend.services.user_service import user_service
@@ -55,7 +55,7 @@ def handle_get_state(data=None):
         request_sid=request.sid
     )
     continue_play = data.get("continue_play") if data is not None else False
-    emit_game_state(oid_game, continue_play=continue_play)
+    game_service.emit_game_state(oid_game, continue_play=continue_play)
 
 
 @socketio.on("play_active_card")
@@ -75,11 +75,11 @@ def handle_play_active_card(data):
     logger.info(f"Player {oid} playing card at index {card_idx}")
     logger.info(f"Current game state before play: {game.to_dict()}")
 
-    game.active_player_play_card_idx(card_idx=card_idx)
-    logger.info(f"Game state after play: {game.to_dict()}")
+    game_state = game_service.handle_player_card_play(game, card_idx)
+    logger.info(f"Game state after play: {game_state}")
     logger.info(f"Emitting active_card_played to socket {request.sid}")
 
-    emit(EmitType.ACTIVE_CARD_PLAYED, game.to_dict(), to=request.sid)
+    emit(EmitType.ACTIVE_CARD_PLAYED, game_state, to=request.sid)
 
 
 @app.route("/api/get_computer_choice", methods=["POST"])
@@ -116,33 +116,31 @@ def handle_end_play():
 
 @socketio.on("end_game")
 def handle_end_game():
-    from frontend.services.game_service import notify_end_game
-
-    oid, game = socket_service.get_game_and_oid_from_request_sid(request.sid)
-
-    if oid is None:
-        return
-
-    target = user_service.get_room(oid) or request.sid
-
-    # return to /turn, and if the game isn't active at all it'll auto return home
-    if not game or game.game_ongoing:
-        emit(EmitType.GAME_NOT_COMPLETE, to=target)
-        return
-
-    # Notify players about end game
-    notify_end_game(game, target)
-
-    # Clean up room if this was an online game
+    oid, game = socket_service.get_game_and_oid_from_request_sid(
+        request_sid=request.sid
+    )
     online_room = socket_service.get_online_room_of_oid(oid)
-    if online_room and online_room in room_service.rooms:
-        # Force all players out of the room after a delay
-        socketio.start_background_task(
-            lambda: socketio.sleep(5)
-            or room_service.force_players_out_of_room(
-                online_room, user_service.socket_to_oid
-            )
+
+    if oid is None or game is None:
+        emit(EmitType.ERROR, {ErrorKeys.MESSAGE: "Game not found"})
+        return
+
+    if online_room:
+        # Force all players to leave and clean up the room
+        room_service.force_players_out_of_room(online_room, socket_service.socket_to_oid)
+        room_service.cleanup_room(
+            online_room,
+            oid_online_room=user_service.oid_to_room,
+            oid_game=user_service.oid_to_game,
         )
+        game_service.notify_end_game(game, target=online_room)
+    else:
+        # In local mode, just notify the current user
+        game_service.notify_end_game(game, target=request.sid)
+
+    # Clear the game
+    if oid and oid in user_service.oid_to_game:
+        del user_service.oid_to_game[oid]
 
 
 @socketio.on("disconnect")
@@ -160,11 +158,8 @@ def get_waiting_room_users() -> tuple[Response, int]:
         oids = room_service.rooms[room_code]["players"]
         return jsonify({"users": oids, "room": room_code}), 200
     else:
-        # Fallback to old behavior for backward compatibility
-        oids = room_service.get_oids_in_room("waiting_room")
-        if oids is None:
-            oids = []
-        return jsonify({"users": oids}), 200
+        # No room specified or invalid room
+        return jsonify({"users": [], "error": "Room not specified or invalid"}), 200
 
 
 @socketio.on("create_room")
