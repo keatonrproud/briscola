@@ -222,14 +222,37 @@ class SocketService:
                 for player_oid in self.get_oids_in_room(online_room):
                     sid = user_service.get_socket_from_oid(player_oid)
                     if sid:
+                        # Get player username for logging
+                        player_username = (
+                            user_service.get_username(player_oid)
+                            or f"Player {player_oid[:4]}"
+                        )
+
                         # Emit directly to this player's socket
                         logger.info(
-                            f"Sending initial game state directly to player {player_oid}"
+                            f"Sending initial game state directly to player {player_oid} ({player_username})"
                         )
+
+                        # Add player's username to the game state if not already there
+                        game_state = game.to_dict()
+                        if "player_usernames" not in game_state:
+                            game_state["player_usernames"] = {}
+
+                        # Add usernames for all players in the game
+                        for user_id, player_num in game.userid_playernum_map.items():
+                            username = user_service.get_username(user_id)
+                            if username:
+                                game_state["player_usernames"][str(player_num)] = (
+                                    username
+                                )
+                                logger.info(
+                                    f"Added username for player {player_num}: {username}"
+                                )
+
                         emit(
                             EmitType.GAME_STATE,
                             {
-                                GameStateKeys.GAME_STATE: game.to_dict(),
+                                GameStateKeys.GAME_STATE: game_state,
                                 GameStateKeys.CONTINUE_PLAY: False,
                                 **additional_data,
                             },

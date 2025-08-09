@@ -120,6 +120,49 @@ class RoomService:
 
         logger.info(f"Sent team update for {username} (team {team}) to room {room}")
 
+    def add_user_to_room(self, oid: str, room_code: str) -> bool:
+        """Add a user to a room if possible"""
+        # Check if room exists
+        if room_code not in self.rooms:
+            return False
+
+        # Check if game is already active
+        if self.rooms[room_code]["game_active"]:
+            return False
+
+        # Check if room is full
+        max_players = self.rooms[room_code].get("player_count", 2)
+        current_players = len(self.rooms[room_code]["players"])
+        if current_players >= max_players:
+            return False
+
+        # Add player to room if not already in
+        if oid not in self.rooms[room_code]["players"]:
+            self.rooms[room_code]["players"].append(oid)
+
+        # Send room update to all players
+        from frontend.services.socket_service import socket_service
+
+        self.send_room_update(room_code, socket_service.get_oids_in_room)
+
+        logger.info(f"Player {oid} added to room {room_code}")
+        return True
+
+    def get_room_data(self, room_code: str) -> dict:
+        """Get data about a room for client display"""
+        if room_code not in self.rooms:
+            return {}
+
+        # Get current player count
+        current_players = len(self.rooms[room_code]["players"])
+        max_players = self.rooms[room_code].get("player_count", 2)
+
+        return {
+            "room_code": room_code,
+            "player_count": current_players,
+            "max_players": max_players,
+        }
+
 
 # Create a singleton instance
 room_service = RoomService()

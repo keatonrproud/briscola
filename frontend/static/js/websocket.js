@@ -1,37 +1,37 @@
-export { socket };
+export const socket = (() => {
+    // Check if we're in a browser environment
+    if (typeof window === 'undefined') {
+        console.error('Not in browser environment');
+        return null;
+    }
 
-let socket;
-
-if (!socket) {
-    socket = io();
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-
-    socket.on('connect', () => {
+    // Create a socket connection
+    const socketInstance = io();
+    
+    // Set up event listeners
+    socketInstance.on('connect', () => {
         let userId = localStorage.getItem('user_id');
         if (!userId) {
-            localStorage.setItem('user_id', socket.id);
+            localStorage.setItem('user_id', socketInstance.id);
+            userId = socketInstance.id;
         }
-        socket.emit("update_user_id", { user_id: userId });
-    })
-
-    // Connect to the Socket.IO server
-    socket.on('disconnect', () => {
-        console.log('Socket disconnected, attempting to reconnect...');
-        socket.connect();
+        
+        // Get username from localStorage if available
+        const username = localStorage.getItem('username');
+        
+        // Log for debugging
+        console.log(`Sending user ID: ${userId}, username: ${username || 'none'} to server`);
+        
+        // Send both user ID and username to server
+        socketInstance.emit("update_user_id", { 
+            user_id: userId,
+            username: username
+        });
+    });
+    
+    socketInstance.on('connect_error', (error) => {
+        console.error('Socket connection error:', error);
     });
 
-    socket.on('connect_error', (error) => {
-        console.error('Connection error:', error);
-    });
-
-    socket.on('connect_timeout', (timeout) => {
-        console.warn('Connection timeout:', timeout);
-    });
-
-    socket.on('reconnect_attempt', () => {
-        console.log('Attempting to reconnect...');
-    });
-
-});
+    return socketInstance;
+})();

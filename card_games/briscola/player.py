@@ -27,13 +27,13 @@ class BriscolaPlayer(Player):
             color=color,
         )
         self.team = team
-        
+
     def to_dict(self) -> dict:
         # Get the parent class's to_dict result
         result = super().to_dict()
-        
+
         # Add team information if it exists
         if self.team:
             result["team"] = self.team.name
-            
+
         return result

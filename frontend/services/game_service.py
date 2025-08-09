@@ -58,8 +58,32 @@ class GameService:
         additional_data: dict | None = None,
     ) -> None:
         """Emit game state to clients"""
+        # Get the game state dictionary
+        game_state = game.to_dict()
+
+        # If this is an online game with player mappings, add usernames
+        if game.online and hasattr(game, "userid_playernum_map"):
+            from frontend.services.user_service import user_service
+
+            # Add usernames to the game state
+            if "player_usernames" not in game_state:
+                game_state["player_usernames"] = {}
+
+            # Debug log the player mapping
+            logger.info(f"Player mapping: {game.userid_playernum_map}")
+
+            for user_id, player_num in game.userid_playernum_map.items():
+                username = user_service.get_username(user_id)
+                if username:
+                    # Map player number to username and log for debugging
+                    player_num_str = str(player_num)
+                    game_state["player_usernames"][player_num_str] = username
+                    logger.info(
+                        f"Adding username for player {player_num_str}: {username}"
+                    )
+
         data = {
-            GameStateKeys.GAME_STATE: game.to_dict(),
+            GameStateKeys.GAME_STATE: game_state,
             GameStateKeys.CONTINUE_PLAY: continue_play,
         }
         if additional_data:

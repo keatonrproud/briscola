@@ -16,6 +16,7 @@ class UserSession:
     oid: str  # User's unique identifier
     online_room: Optional[str] = None  # Current room the user is in
     game: Optional[BriscolaWeb] = None  # Current game the user is in
+    username: Optional[str] = None  # User's display name
 
 
 class UserService:
@@ -30,6 +31,9 @@ class UserService:
 
         # Maps user_id (oid) -> game
         self.oid_to_game: Dict[str, BriscolaWeb] = {}
+
+        # Maps user_id (oid) -> username
+        self.usernames: Dict[str, str] = {}
 
         # Stores user sessions for reconnection
         self.saved_sessions: Dict[str, UserSession] = {}
@@ -48,6 +52,16 @@ class UserService:
         logger.debug(f"Registered socket {socket_id} for user {oid}")
 
         return oid
+
+    def set_username(self, oid: str, username: str) -> None:
+        """Set the username for a user"""
+        if username:
+            self.usernames[oid] = username
+            logger.debug(f"Set username for user {oid}: {username}")
+
+    def get_username(self, oid: str) -> Optional[str]:
+        """Get the username for a user"""
+        return self.usernames.get(oid)
 
     def _remove_existing_sockets(self, oid: str) -> None:
         """Remove any existing sockets for this oid"""
@@ -83,9 +97,12 @@ class UserService:
         """Save a user's session for reconnection"""
         room = self.get_room(oid)
         game = self.get_game(oid)
+        username = self.get_username(oid)
 
         if room or game:
-            self.saved_sessions[oid] = UserSession(oid=oid, online_room=room, game=game)
+            self.saved_sessions[oid] = UserSession(
+                oid=oid, online_room=room, game=game, username=username
+            )
             logger.debug(f"Saved session for user {oid}")
 
     def restore_session(self, socket_id: str, oid: str) -> bool:
@@ -96,6 +113,10 @@ class UserService:
         session = self.saved_sessions[oid]
         self.oid_to_game[oid] = session.game
         self.oid_to_room[oid] = session.online_room
+
+        # Restore username if it was saved
+        if session.username:
+            self.usernames[oid] = session.username
 
         if session.online_room:
             join_room(room=session.online_room, sid=socket_id)
@@ -113,6 +134,8 @@ class UserService:
 
         if oid in self.saved_sessions:
             del self.saved_sessions[oid]
+
+        # Don't remove username - keep it for when they reconnect
 
     def disconnect_socket(self, socket_id: str) -> Optional[str]:
         """Handle socket disconnection"""

@@ -154,6 +154,24 @@
                 if (localStorage.getItem('username')) {
                     usernameInput.value = localStorage.getItem('username');
                 }
+
+                // Add event listener for username changes to update server
+                usernameInput.addEventListener('change', function() {
+                    const username = this.value.trim();
+                    if (username) {
+                        localStorage.setItem('username', username);
+                        // Update server with new username if socket is connected
+                        if (socket && socket.connected) {
+                            const userId = localStorage.getItem('user_id');
+                            console.log(`Updating server with new username: ${username}`);
+                            socket.emit("update_user_id", {
+                                user_id: userId,
+                                username: username
+                            });
+                        }
+                    }
+                });
+                
                 const roomSection = document.querySelector('.room-section');
                 const createRoomBtn = document.getElementById('create-room-btn');
                 const joinRoomBtn = document.getElementById('join-room-btn');
@@ -425,23 +443,49 @@
                 }
 
                 // Create room button click handler
-                createRoomBtn.addEventListener('click', async () => {
-                    try {
-                        if (!socket.connected) {
-                            console.log('Socket not connected yet, waiting...');
-                            await new Promise((resolve) => socket.on('connect', resolve));
-                        }
-                        socket.emit('create_room', { player_count: selectedPlayerCount });
-                    } catch (error) {
-                        console.error('Error:', error);
-                        alert('Failed to create room');
+                createRoomBtn.addEventListener('click', () => {
+                    // Check for username
+                    const username = usernameInput.value.trim();
+                    if (!username) {
+                        alert('Please enter a username to create a room');
+                        usernameInput.focus();
+                        return;
                     }
+                    
+                    // Save username
+                    localStorage.setItem('username', username);
+                    
+                    // Create room
+                    socket.emit('create_room', { 
+                        player_count: selectedPlayerCount,
+                        username: username
+                    });
                 });
 
                 // Join room button click handler
                 joinRoomBtn.addEventListener('click', () => {
                     const roomCode = roomCodeInput.value.trim().toUpperCase();
-                    joinRoomByCode(roomCode);
+                    if (!roomCode) {
+                        alert('Please enter a room code');
+                        return;
+                    }
+                    
+                    // Check for username
+                    const username = usernameInput.value.trim();
+                    if (!username) {
+                        alert('Please enter a username to join the room');
+                        usernameInput.focus();
+                        return;
+                    }
+                    
+                    // Save username
+                    localStorage.setItem('username', username);
+                    
+                    // Send join room request with username
+                    socket.emit('join_room_by_code', { 
+                        room_code: roomCode,
+                        username: username
+                    });
                 });
 
                 // Leave room button click handler
@@ -478,13 +522,21 @@
                         return;
                     }
                     
-                    // Save username if provided
+                    const gameMode = gameModeToggle.checked ? 'online' : 'local';
                     const username = usernameInput.value.trim();
+                    
+                    // Require username for online play
+                    if (gameMode === 'online' && !username) {
+                        alert('Please enter a username to play online.');
+                        usernameInput.focus();
+                        return;
+                    }
+                    
+                    // Save username if provided
                     if (username) {
                         localStorage.setItem('username', username);
                     }
 
-                    const gameMode = gameModeToggle.checked ? 'online' : 'local';
                     const difficulty = difficultySlider.value; // Get the difficulty value
                     const maxPlayers = gameMode === 'online' ? currentRoomMaxPlayers : selectedPlayerCount;
 

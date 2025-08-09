@@ -166,55 +166,85 @@ def get_waiting_room_users() -> tuple[Response, int]:
 
 @socketio.on("create_room")
 def handle_create_room(data):
-    socket_service.handle_create_room(data)
+    player_count = data.get("player_count", 2)
+    username = data.get("username")
+
+    # Get the user's OID
+    oid = socket_service.get_oid(request.sid)
+    if not oid:
+        emit(EmitType.ERROR, {ErrorKeys.MESSAGE: "User ID not found"})
+        return
+
+    # If username is provided, save it
+    if username:
+        user_service.set_username(oid, username)
+        logger.info(f"User {oid} ({username}) is creating a room")
+
+    # Create a new room
+    room_code = room_service.create_room(player_count=player_count)
+
+    # Add the creator to the room
+    room_service.add_user_to_room(oid, room_code)
+
+    # Join the socket.io room
+    join_room(room_code)
+
+    # Set the user's current room
+    user_service.set_room(oid, room_code)
+
+    # Get current room data
+    room_data = room_service.get_room_data(room_code)
+    emit("room_joined", room_data)
 
 
 @socketio.on("join_room_by_code")
 def handle_join_room_by_code(data):
-    """Join a room using a room code"""
-    room_code = data.get("room_code", "").upper()
-    oid = socket_service.get_oid(request.sid)
+    room_code = data.get(RoomCreateJoinKeys.ROOM_CODE)
+    username = data.get("username")
 
-    if not room_code:
-        emit(EmitType.ERROR, {ErrorKeys.MESSAGE: "Room code is required"})
+    # Require username
+    if not username:
+        emit(EmitType.ERROR, {ErrorKeys.MESSAGE: "Username is required to join a room"})
         return
 
+    # Validate room code
+    if not room_code or not isinstance(room_code, str):
+        emit(EmitType.ERROR, {ErrorKeys.MESSAGE: "Invalid room code"})
+        return
+
+    # Convert to uppercase
+    room_code = room_code.upper()
+
+    # Check if the room exists
     if room_code not in room_service.rooms:
         emit(EmitType.ERROR, {ErrorKeys.MESSAGE: "Room not found"})
         return
 
-    if room_service.rooms[room_code]["game_active"]:
-        emit(EmitType.ERROR, {ErrorKeys.MESSAGE: "Game already in progress"})
+    # Get user ID
+    oid = socket_service.get_oid(request.sid)
+    if not oid:
+        emit(EmitType.ERROR, {ErrorKeys.MESSAGE: "User ID not found"})
         return
 
-    # Get the room's player count
-    max_players = room_service.rooms[room_code].get("player_count", 2)
-    current_players = len(room_service.rooms[room_code]["players"])
+    # Save username
+    user_service.set_username(oid, username)
+    logger.info(f"User {oid} ({username}) is joining room {room_code}")
 
-    # Check if room is full
-    if current_players >= max_players:
-        emit(EmitType.ERROR, {ErrorKeys.MESSAGE: "Room is full"})
+    # Add user to the room
+    success = room_service.add_user_to_room(oid, room_code)
+    if not success:
+        emit(EmitType.ERROR, {ErrorKeys.MESSAGE: "Failed to join room"})
         return
 
-    # Add player to room
-    if oid not in room_service.rooms[room_code]["players"]:
-        room_service.rooms[room_code]["players"].append(oid)
-        # Update current_players after adding this player
-        current_players = len(room_service.rooms[room_code]["players"])
+    # Join the socket.io room
+    join_room(room_code)
 
+    # Set the user's current room
     user_service.set_room(oid, room_code)
-    join_room(room_code, sid=request.sid)
 
-    emit(
-        EmitType.ROOM_JOINED,
-        {
-            RoomCreateJoinKeys.ROOM_CODE: room_code,
-            RoomCreateJoinKeys.PLAYER_COUNT: current_players,
-            RoomCreateJoinKeys.MAX_PLAYERS: max_players,
-        },
-    )
-    room_service.send_room_update(room_code, socket_service.get_oids_in_room)
-    logger.info(f"Player {oid} joined room {room_code}")
+    # Get current room data
+    room_data = room_service.get_room_data(room_code)
+    emit("room_joined", room_data)
 
 
 @socketio.on("select_team")
@@ -357,15 +387,20 @@ def handle_leave_game():
 @socketio.on("update_user_id")
 def update_user_id(data):
     oid = data.get("user_id")
+    username = data.get("username")
 
     # Register this socket with the user ID
     user_service.register_socket(request.sid, oid)
+
+    # Store username if provided
+    if username:
+        user_service.set_username(oid, username)
 
     # Try to restore a saved session if one exists
     restored = user_service.restore_session(request.sid, oid)
 
     logger.info(
-        f"User connected: {oid} on socket {request.sid}, Total users: {user_service.get_socket_count()}, Session restored: {restored}"
+        f"User connected: {oid} on socket {request.sid}, Username: {username}, Total users: {user_service.get_socket_count()}, Session restored: {restored}"
     )
 
     return jsonify({"status": "success"}), 200

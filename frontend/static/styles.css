@@ -670,16 +670,44 @@ a:focus, a:active {
     z-index: 1000; /* Ensure it's above other elements */
     user-select: none; /* Disables text selection */
     pointer-events: none; /* Disables clicking on text and images */
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0 auto;
 }
 
-/* Center the TurnInfo on large screens */
+/* Larger text on desktop */
 @media (min-width: 601px) {
     #turn-info {
-        position: absolute;
         font-size: 2rem;
-        margin-left: 50%;
-        transform: translateX(-50%);
     }
+}
+
+/* Turn indicator highlight animation */
+.highlight-turn {
+    animation: pulse 2s;
+}
+
+@keyframes pulse {
+    0% { transform: translateX(-50%) scale(1); }
+    25% { transform: translateX(-50%) scale(1.1); }
+    50% { transform: translateX(-50%) scale(1); }
+    75% { transform: translateX(-50%) scale(1.1); }
+    100% { transform: translateX(-50%) scale(1); }
+}
+
+/* Player name display */
+.player-name-display {
+    display: inline-block;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    position: relative;
+    z-index: 100;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 /* Scoreboard container */

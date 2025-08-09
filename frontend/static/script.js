@@ -40,25 +40,12 @@ function updateCards(players, shownPlayer, cardsPlayable) {
     if (leftPlayerCardsContainer) leftPlayerCardsContainer.innerHTML = '';
     if (rightPlayerCardsContainer) rightPlayerCardsContainer.innerHTML = '';
     
-    // Add player name display above cards
-    const username = localStorage.getItem('username');
-    if (username) {
-        const nameDisplay = document.createElement('div');
-        nameDisplay.className = 'player-name-display';
-        nameDisplay.textContent = username;
-        nameDisplay.style.position = 'absolute';
-        nameDisplay.style.bottom = '110%';
-        nameDisplay.style.left = '50%';
-        nameDisplay.style.transform = 'translateX(-50%)';
-        nameDisplay.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
-        nameDisplay.style.color = 'white';
-        nameDisplay.style.padding = '2px 8px';
-        nameDisplay.style.borderRadius = '4px';
-        nameDisplay.style.fontSize = '0.9rem';
-        nameDisplay.style.zIndex = '5';
-        playerCardsContainer.style.position = 'relative';
-        playerCardsContainer.appendChild(nameDisplay);
-    }
+    // Remove all existing player name displays
+    document.querySelectorAll('.player-name-display').forEach(el => {
+        if (el.parentNode) {
+            el.parentNode.remove();
+        }
+    });
 
 
     // Render shown player's cards
@@ -87,10 +74,119 @@ function updateCards(players, shownPlayer, cardsPlayable) {
         
         playerCardsContainer.appendChild(cardDiv);
     });
+    
+    // Get the username for the shown player
+    let username;
+    
+    // Debug shownPlayer object
+    console.log(`Trying to get username for shown player:`, shownPlayer);
+    
+    // First try to get from game state if it's an online game
+    if (currentGameState && currentGameState.player_usernames && shownPlayer.player_num) {
+        const playerNum = shownPlayer.player_num.toString();
+        console.log(`Looking up shown player username for player ${playerNum} in:`, currentGameState.player_usernames);
+        username = currentGameState.player_usernames[playerNum];
+        console.log(`Username found from game state for shown player: ${username || 'none'}`);
+    }
+    
+    // If not found and this is the current player, use localStorage
+    if (!username && shownPlayer.player_num === 1) {
+        username = localStorage.getItem('username');
+        console.log(`Username from localStorage: ${username || 'none'}`);
+    }
+    
+    // Default to a readable name if no username is available
+    if (!username) {
+        if (shownPlayer.is_person) {
+            username = `Player ${shownPlayer.player_num}`;
+        } else {
+            // For computers, use sequential numbering instead of player number
+            // Find all computer players in the game
+            const computerPlayers = currentGameState.players.filter(p => !p.is_person);
+            // Find the index of this computer player among all computer players
+            const computerIndex = computerPlayers.findIndex(p => p.player_num === shownPlayer.player_num);
+            // Use 1-based indexing for display
+            username = `Computer ${computerIndex + 1}`;
+            console.log(`Using computer index ${computerIndex + 1} for shown player ${shownPlayer.player_num}`);
+        }
+        console.log(`Using default username for shown player: ${username}`);
+    }
+    
+    // Don't display the current player's username - they know who they are
+    console.log("Current player's username:", username, "(not displaying)");
+
+    // Helper function to add username display for a player
+    function addPlayerNameDisplay(player, containerEl, position = 'top') {
+        // Get username for this player
+        let playerUsername;
+        
+        // Debug player object
+        console.log(`Trying to get username for player:`, player);
+        
+        // Try to get from game state if online game
+        if (currentGameState && currentGameState.player_usernames && player.player_num) {
+            const playerNum = player.player_num.toString();
+            console.log(`Looking up username for player ${playerNum} in:`, currentGameState.player_usernames);
+            playerUsername = currentGameState.player_usernames[playerNum];
+            console.log(`Username found from game state: ${playerUsername || 'none'}`);
+        }
+        
+        // Default name if no username found
+        if (!playerUsername) {
+            if (player.is_person) {
+                playerUsername = `Player ${player.player_num}`;
+            } else {
+                // For computers, use sequential numbering instead of player number
+                // Find all computer players in the game
+                const computerPlayers = currentGameState.players.filter(p => !p.is_person);
+                // Find the index of this computer player among all computer players
+                const computerIndex = computerPlayers.findIndex(p => p.player_num === player.player_num);
+                // Use 1-based indexing for display
+                playerUsername = `Computer ${computerIndex + 1}`;
+                console.log(`Using computer index ${computerIndex + 1} for player ${player.player_num}`);
+            }
+            console.log(`Using default username: ${playerUsername}`);
+        }
+        
+        // Create name display
+        const nameContainer = document.createElement('div');
+        nameContainer.style.width = '100%';
+        nameContainer.style.textAlign = 'center';
+        nameContainer.style.margin = position === 'top' ? '0 0 10px 0' : '10px 0 0 0';
+        nameContainer.style.position = 'relative';
+        nameContainer.style.zIndex = '100'; // Higher z-index to appear above cards
+        
+        const nameDisplay = document.createElement('div');
+        nameDisplay.className = 'player-name-display';
+        nameDisplay.textContent = playerUsername;
+        nameDisplay.style.display = 'inline-block';
+        nameDisplay.style.backgroundColor = 'rgba(0, 0, 0, 0.7)'; // Slightly darker for better contrast
+        nameDisplay.style.color = 'white';
+        nameDisplay.style.padding = '3px 8px';
+        nameDisplay.style.borderRadius = '4px';
+        nameDisplay.style.fontSize = '0.9rem';
+        nameDisplay.style.fontWeight = 'bold';
+        nameDisplay.style.zIndex = '100'; // Ensure name is above cards
+        
+        nameContainer.appendChild(nameDisplay);
+        
+        // Add to container based on position
+        if (position === 'top') {
+            containerEl.parentNode.insertBefore(nameContainer, containerEl);
+        } else {
+            containerEl.parentNode.insertBefore(nameContainer, containerEl.nextSibling);
+        }
+        
+        return playerUsername;
+    }
 
     // Render other players' cards (face down)
     if (playerCount === 2) {
         const oppPlayer = players.find(p => p.player_num !== shownPlayer.player_num);
+        
+        // Add opponent's name at the top of their cards
+        addPlayerNameDisplay(oppPlayer, oppCardsContainer, 'top');
+        
         oppPlayer.hand.cards.forEach(() => {
             const oppCardDiv = document.createElement('div');
             oppCardDiv.className = 'card';
@@ -105,6 +201,11 @@ function updateCards(players, shownPlayer, cardsPlayable) {
         const leftPlayer = players[(shownPlayerIndex + 3) % 4];
         const rightPlayer = players[(shownPlayerIndex + 1) % 4];
 
+        // Add opponent names
+        addPlayerNameDisplay(partnerPlayer, oppCardsContainer, 'top');
+        addPlayerNameDisplay(leftPlayer, leftPlayerCardsContainer, 'top');
+        addPlayerNameDisplay(rightPlayer, rightPlayerCardsContainer, 'top');
+        
         partnerPlayer.hand.cards.forEach(() => {
             const cardDiv = document.createElement('div');
             cardDiv.className = 'card';
@@ -139,82 +240,138 @@ function updateTurnInfo(player, shownPlayer, gameState) {
     const isYourTurnNow = player.player_num === shownPlayer.player_num && (gameState.online || singleHuman);
     const wasYourTurnBefore = prevTurnText.includes('Your Turn');
     
-    // if the active player is the shown one, and the game is either online or there's only one human, show Your Turn
+    // Check if this is an online game
+    const isOnlineGame = gameState.online === true;
+    
+    // If it's the current player, use "Your Turn"
     if (isYourTurnNow) {
         text = `${player.color} Your Turn`;
+    } 
+    // For other human players in online games, show their username
+    else if (player.is_person && isOnlineGame) {
+        // Get username for the active player
+        let playerUsername = null;
         
-        // Add visual highlight effect if it just became your turn
-        if (!wasYourTurnBefore) {
-            // Apply highlight animation
-            turnInfo.classList.add('highlight-turn');
-            setTimeout(() => {
-                turnInfo.classList.remove('highlight-turn');
-            }, 2000);
-            
-            // Play notification sound if supported
-            try {
-                const audio = new Audio('data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA/+M4wAAAAAAAAAAAAEluZm8AAAAPAAAAAwAAAbAAzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzM//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAZFgAAAAAAABsAAAAAAAAAAAAAAAP/jWMQACwALLDvrxC/VAPT+/sdtfigZ/uneLvPQLfJ/9e4FG0FQQhms0LBEARdX1tT661///9XV+LVVU5PABMgAIoAHuJ90oxnqZyucChGhIIANvBf/KAgEDUIIWZzo1LFui/JkXoVEIIJzneZQz/lz/KHs6/Wf/yh9C+XQfjKFuqpdnZ3NHxpcqgAEsAEn5NtGfhf/Lc/C/KX8zoiIRVXh8RaoiwzVW+mf/6oBiFAEQAALuKWwbtix7bNuxPttg0pRGm3RBtSxbT9VW227c3bnpQAGMAEVgAVg+TAYP3+Kig6iMtX/+UdHEVFR/lKjqK/9R1FfyoqOoqP//X////qKj+VHX//qKioqKn8qKioqKio+o6ioqP////iQAVQARIAfYUDf6P//+TOkyD//5M/kz+v//6aoADcAEJIAGMPkwpP//8jIywxJkf/+TMjLDLlSMuVOVP/P5cyMyUYnE5Wyp/9b//P9JGXPeTM/8mZF5M5UyMyU//8mZKo');
-                audio.play();
-            } catch(e) {
-                console.log('Sound not supported or blocked by browser');
-            }
+        // Try to get from game state
+        if (gameState.player_usernames && player.player_num) {
+            const playerNum = player.player_num.toString();
+            playerUsername = gameState.player_usernames[playerNum];
         }
-    } else {
-        // Parse the player representation correctly
-        text = formatPlayerDisplay(player);
+        
+        // If we have a username, use it
+        if (playerUsername) {
+            text = `${player.color} ${playerUsername}'s Turn`;
+        } 
+        // Otherwise fall back to Player X
+        else {
+            text = `${player.color} Player ${player.player_num}'s Turn`;
+        }
+    } 
+    // For local games with other human players (rare case)
+    else if (player.is_person) {
+        text = `${player.color} Player ${player.player_num}'s Turn`;
+    }
+    // For computer players, use sequential numbering
+    else {
+        // For computers, use sequential numbering instead of player number
+        if (gameState.players) {
+            // Find all computer players in the game
+            const computerPlayers = gameState.players.filter(p => !p.is_person);
+            // Find the index of this computer player among all computer players
+            const computerIndex = computerPlayers.findIndex(p => p.player_num === player.player_num);
+            // Use 1-based indexing for display
+            text = `${player.color} Computer ${computerIndex + 1}'s Turn`;
+        } else {
+            text = `${player.color} Computer's Turn`;
+        }
+    }
+    
+    // Add visual highlight effect if it just became your turn
+    if (isYourTurnNow && !wasYourTurnBefore) {
+        // Apply highlight animation
+        turnInfo.classList.add('highlight-turn');
+        setTimeout(() => {
+            turnInfo.classList.remove('highlight-turn');
+        }, 2000);
+        
+        // Play notification sound if supported
+        try {
+            const audio = new Audio('data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA/+M4wAAAAAAAAAAAAEluZm8AAAAPAAAAAwAAAbAAzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzM//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAZFgAAAAAAABsAAAAAAAAAAAAAAAP/jWMQACwALLDvrxC/VAPT+/sdtfigZ/uneLvPQLfJ/9e4FG0FQQhms0LBEARdX1tT661///9XV+LVVU5PABMgAIoAHuJ90oxnqZyucChGhIIANvBf/KAgEDUIIWZzo1LFui/JkXoVEIIJzneZQz/lz/KHs6/Wf/yh9C+XQfjKFuqpdnZ3NHxpcqgAEsAEn5NtGfhf/Lc/C/KX8zoiIRVXh8RaoiwzVW+mf/6oBiFAEQAALuKWwbtix7bNuxPttg0pRGm3RBtSxbT9VW227c3bnpQAGMAEVgAVg+TAYP3+Kig6iMtX/+UdHEVFR/lKjqK/9R1FfyoqOoqP//X////qKj+VHX//qKioqKn8qKioqKio+o6ioqP////iQAVQARIAfYUDf6P//+TOkyD//5M/kz+v//6aoADcAEJIAGMPkwpP//8jIywxJkf/+TMjLDLlSMuVOVP/P5cyMyUYnE5Wyp/9b//P9JGXPeTM/8mZF5M5UyMyU//8mZKo');
+            audio.play();
+        } catch(e) {
+            console.log('Sound not supported or blocked by browser');
+        }
     }
 
     // Add styles to the turn info element based on whose turn it is
     turnInfo.textContent = text;
     
+    // Always keep text white, just change the font weight for emphasis
     if (isYourTurnNow) {
         turnInfo.style.fontWeight = 'bold';
-        turnInfo.style.color = '#ff9500';
     } else {
         turnInfo.style.fontWeight = 'normal';
-        turnInfo.style.color = '';
     }
     
-    // If it's now your turn and wasn't before, add some CSS to make it noticeable
-    if (!window.__addedTurnStyles) {
-        window.__addedTurnStyles = true;
-        const style = document.createElement('style');
-        style.innerHTML = `
-            .highlight-turn {
-                animation: pulse 2s;
-            }
-            @keyframes pulse {
-                0% { transform: scale(1); }
-                25% { transform: scale(1.1); }
-                50% { transform: scale(1); }
-                75% { transform: scale(1.1); }
-                100% { transform: scale(1); }
-            }
-        `;
-        document.head.appendChild(style);
-    }
+    // Use the CSS positioning to ensure proper centering
+    // For large screens, the CSS will handle positioning with absolute and transform
 }
+
+// Store current game state globally to access player usernames
+let currentGameState = null;
 
 // Helper function to handle player display formatting
 function formatPlayerDisplay(player) {
     if (!player) return "";
     
-    // If we have a stored username in localStorage, use that for the current player
-    if (player.player_num === 1) { // Assuming player 1 is typically the current player
-        const username = localStorage.getItem('username');
-        if (username) {
-            return `${player.color} ${username}`;
+    // First check if we have username info in the game state
+    if (currentGameState && currentGameState.player_usernames && player.player_num) {
+        const playerNum = player.player_num.toString();
+        if (currentGameState.player_usernames[playerNum]) {
+            return `${player.color} ${currentGameState.player_usernames[playerNum]}`;
         }
     }
     
-    // If repr property exists and looks correctly formatted, use it
-    if (player.repr && !player.repr.includes('TeamName.')) {
-        return player.repr;
+    // If this is the current player and we have a local username, use that
+    const username = localStorage.getItem('username');
+    // Only use for the current player in local games
+    if (username && !currentGameState?.online && player.player_num === 1) {
+        return `${player.color} ${username}`;
+    }
+    
+    // Check for enum patterns in repr and fix them
+    if (player.repr) {
+        // If contains "PlayerType.HUMAN" or "PlayerType.COMPUTER", extract just the value
+        if (player.repr.includes('PlayerType.HUMAN')) {
+            const cleanRepr = player.repr.replace('PlayerType.HUMAN', 'Human');
+            return cleanRepr;
+        }
+        if (player.repr.includes('PlayerType.COMPUTER')) {
+            const cleanRepr = player.repr.replace('PlayerType.COMPUTER', 'Computer');
+            return cleanRepr;
+        }
+        // If no specific enum patterns but doesn't include TeamName, use as is
+        if (!player.repr.includes('TeamName.')) {
+            return player.repr;
+        }
     }
     
     // Otherwise construct a display name from available properties
-    const playerType = player.is_person ? "Player" : "Computer";
-    return `${player.color} ${playerType} ${player.player_num}`;
+    if (player.is_person) {
+        return `${player.color} Human ${player.player_num}`;
+    } else {
+        // For computers, use sequential numbering instead of player number
+        if (currentGameState && currentGameState.players) {
+            // Find all computer players in the game
+            const computerPlayers = currentGameState.players.filter(p => !p.is_person);
+            // Find the index of this computer player among all computer players
+            const computerIndex = computerPlayers.findIndex(p => p.player_num === player.player_num);
+            // Use 1-based indexing for display
+            return `${player.color} Computer ${computerIndex + 1}`;
+        }
+        // Fallback if we can't determine the computer index
+        return `${player.color} Computer ${player.player_num}`;
+    }
 }
 
 function updateBriscolaCard(card, num_cards_in_deck) {
@@ -506,8 +663,19 @@ async function updateGameState(data) {
         return;
     }
 
+    // Store the game state for username access
+    currentGameState = state;
+    
     const activePlayer = state.active_player;
     const playerNum = activePlayer.player_num;
+    
+    // Debug entire game state
+    console.log('Full game state:', JSON.parse(JSON.stringify(state)));
+    
+    // Debug log player usernames if available
+    if (state.player_usernames) {
+        console.log('Player usernames:', state.player_usernames);
+    }
 
     if (activePlayer.score - (pastScores[playerNum] || 0) > 11) {
         blastConfettiForBigScore()
