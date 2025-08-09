@@ -6,7 +6,7 @@ from typing import Callable, Final
 
 from card_games.briscola.card import BriscolaCard
 from card_games.briscola.deck import BriscolaDeck
-from card_games.briscola.game_settings import CARDS_IN_HAND, PLAY_DIRECTION
+from card_games.briscola.game_settings import CARDS_IN_HAND, PLAY_DIRECTION, TeamName
 from card_games.briscola.pile import BriscolaPile
 from card_games.briscola.player import BriscolaPlayer
 from card_games.general.cards.card import Card
@@ -22,7 +22,7 @@ logger = build_logger(__name__)
 
 @dataclass
 class Team:
-    name: int
+    name: TeamName
     score: int = 0
     players: list[BriscolaPlayer] = field(default_factory=list)
 
@@ -155,13 +155,13 @@ class BriscolaGame(CardGame, ABC):
         players = []
 
         if player_count == 4:
-            self.teams = [Team(name=1), Team(name=2)]
+            self.teams = [Team(name=TeamName.TEAM_1), Team(name=TeamName.TEAM_2)]
             for num in range(player_count):
-                team_id = 1 if (num % 2) == 0 else 2
+                team_id = TeamName.TEAM_1 if (num % 2) == 0 else TeamName.TEAM_2
                 player = BriscolaPlayer(
                     player_num=num + 1, color=colors[num], team=team_id
                 )
-                if team_id == 1:
+                if team_id == TeamName.TEAM_1:
                     self.teams[0].players.append(player)
                 else:
                     self.teams[1].players.append(player)

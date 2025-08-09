@@ -86,6 +86,42 @@
             import { socket } from '/static/js/websocket.js';
 
             document.addEventListener('DOMContentLoaded', () => {
+                // Define classes to match backend event types
+                const EmitType = {
+                    ROOM_UPDATE: "room_update",
+                    ROOM_CREATED: "room_created",
+                    ROOM_JOINED: "room_joined",
+                    ROOM_CLOSED: "room_closed",
+                    GAME_STATE: "game_state",
+                    ACTIVE_CARD_PLAYED: "active_card_played",
+                    END_PLAY: "end_play",
+                    END_GAME: "end_game_response",
+                    FORCE_LEAVE: "force_leave_room",
+                    ERROR: "error",
+                    IN_GAME_CHECK: "in_game_check_result",
+                    GAME_NOT_COMPLETE: "game_not_complete"
+                };
+
+                const RoomUpdateKeys = {
+                    ROOM: "room",
+                    PLAYERS: "users",
+                    PLAYER_COUNT: "player_count",
+                    MAX_PLAYERS: "max_players"
+                };
+
+                const RoomCreateJoinKeys = {
+                    ROOM_CODE: "room_code",
+                    PLAYER_COUNT: "player_count",
+                    MAX_PLAYERS: "max_players"
+                };
+
+                const ErrorKeys = {
+                    MESSAGE: "message"
+                };
+
+                const ForceLeaveKeys = {
+                    MESSAGE: "message"
+                };
 
                 const startGameButton = document.getElementById('start-game-btn');
                 const gameModeToggle = document.getElementById('game-mode-toggle');
@@ -345,7 +381,7 @@
                 });
 
                 // Listen for the game state response
-                socket.on('game_state', (data) => {
+                socket.on(EmitType.GAME_STATE, (data) => {
                     console.log('Received game state response:', data);
                     if (data.error) {
                         console.error('Error:', data.error);
@@ -363,9 +399,9 @@
                         return;
                     }
 
-                    const gameMode = gameModeToggle.checked ? 'player' : 'computer';
+                    const gameMode = gameModeToggle.checked ? 'online' : 'local';
                     const difficulty = difficultySlider.value; // Get the difficulty value
-                    const maxPlayers = gameMode === 'player' ? currentRoomMaxPlayers : selectedPlayerCount;
+                    const maxPlayers = gameMode === 'online' ? currentRoomMaxPlayers : selectedPlayerCount;
 
                     try {
                         if (!socket.connected) {
@@ -374,7 +410,7 @@
                         }
                         
                         // For online games, use the current room
-                        if (gameMode === 'player' && currentRoom) {
+                        if (gameMode === 'online' && currentRoom) {
                             // Get the current number of players in the room to double check
                             const currentPlayersCount = parseInt(currentRoomPlayers.textContent) || 0;
                             
@@ -399,11 +435,11 @@
                 });
 
                 // Socket event listeners for room management
-                socket.on('room_created', (data) => {
+                socket.on(EmitType.ROOM_CREATED, (data) => {
                     console.log('Room created:', data);
-                    currentRoom = data.room_code;
-                    currentRoomMaxPlayers = parseInt(data.max_players) || 2;
-                    const playerCount = parseInt(data.player_count) || 1;
+                    currentRoom = data[RoomCreateJoinKeys.ROOM_CODE];
+                    currentRoomMaxPlayers = parseInt(data[RoomCreateJoinKeys.MAX_PLAYERS]) || 2;
+                    const playerCount = parseInt(data[RoomCreateJoinKeys.PLAYER_COUNT]) || 1;
                     
                     maxPlayers.textContent = currentRoomMaxPlayers;
                     currentRoomPlayers.textContent = playerCount;
@@ -411,14 +447,14 @@
                     updateRoomDisplay();
                     
                     updateStartGameButtonText(playerCount); 
-                    alert(`Room created! Code: ${data.room_code}`);
+                    alert(`Room created! Code: ${data[RoomCreateJoinKeys.ROOM_CODE]}`);
                 });
 
-                socket.on('room_joined', (data) => {
+                socket.on(EmitType.ROOM_JOINED, (data) => {
                     console.log('Room joined:', data);
-                    currentRoom = data.room_code;
-                    currentRoomMaxPlayers = parseInt(data.max_players) || 2; // Default to 2 if not provided
-                    const playerCount = parseInt(data.player_count) || 0;
+                    currentRoom = data[RoomCreateJoinKeys.ROOM_CODE];
+                    currentRoomMaxPlayers = parseInt(data[RoomCreateJoinKeys.MAX_PLAYERS]) || 2;
+                    const playerCount = parseInt(data[RoomCreateJoinKeys.PLAYER_COUNT]) || 0;
                     
                     maxPlayers.textContent = currentRoomMaxPlayers;
                     currentRoomPlayers.textContent = playerCount;
@@ -430,14 +466,14 @@
                     updateStartGameButtonText(playerCount);
                 });
 
-                socket.on('room_update', (data) => {
+                socket.on(EmitType.ROOM_UPDATE, (data) => {
                     console.log('Room update received:', data);
-                    if (data.room === currentRoom) {
-                        const playerCount = parseInt(data.player_count) || 0;
+                    if (data[RoomUpdateKeys.ROOM] === currentRoom) {
+                        const playerCount = parseInt(data[RoomUpdateKeys.PLAYER_COUNT]) || 0;
                         currentRoomPlayers.textContent = playerCount;
                         
-                        if (data.max_players) {
-                            currentRoomMaxPlayers = parseInt(data.max_players) || 2;
+                        if (data[RoomUpdateKeys.MAX_PLAYERS]) {
+                            currentRoomMaxPlayers = parseInt(data[RoomUpdateKeys.MAX_PLAYERS]) || 2;
                             maxPlayers.textContent = currentRoomMaxPlayers;
                         }
                         
@@ -445,15 +481,15 @@
                     }
                 });
 
-                socket.on('force_leave_room', (data) => {
-                    alert(data.message);
+                socket.on(EmitType.FORCE_LEAVE, (data) => {
+                    alert(data[ForceLeaveKeys.MESSAGE]);
                     currentRoom = null;
                     updateRoomDisplay();
                     updateStartGameButtonText();
                 });
 
-                socket.on('error', (data) => {
-                    alert(data.message);
+                socket.on(EmitType.ERROR, (data) => {
+                    alert(data[ErrorKeys.MESSAGE]);
                 });
 
 

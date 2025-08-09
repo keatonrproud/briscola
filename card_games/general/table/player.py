@@ -12,6 +12,11 @@ class PlayerColor(Enum):
     YELLOW = "🟨"
 
 
+class PlayerType(str, Enum):
+    HUMAN = "Player"
+    COMPUTER = "Computer"
+
+
 class Player:
     def __init__(
         self,
@@ -34,7 +39,7 @@ class Player:
         self.unique_player_type = unique_player_type
 
     def __repr__(self) -> str:
-        player_type = "Player" if self.is_person else "Computer"
+        player_type = PlayerType.HUMAN if self.is_person else PlayerType.COMPUTER
         repr = f"{self.color.value} {player_type}"
         if not self.unique_player_type:
             repr += f" {self.player_num}"
