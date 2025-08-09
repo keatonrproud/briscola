@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Briscola</title>
     <link rel="stylesheet" href="/static/styles.css">
     <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
@@ -195,8 +195,13 @@
                         currentRoomPlayers.textContent = userCount;
                     }
                     if (maxPlayers) {
-                        maxPlayers.textContent = selectedPlayerCount;
+                        maxPlayers.textContent = currentRoomMaxPlayers || selectedPlayerCount;
                     }
+                    
+                    // Make sure userCount is a number
+                    userCount = parseInt(userCount) || 0;
+                    console.log(`Updating room buttons: ${userCount}/${currentRoomMaxPlayers} players`);
+                    
                     updateStartGameButtonText(userCount);
                 }
 
@@ -209,6 +214,7 @@
                                 if (data.error) {
                                     console.error('Room not found:', data.error);
                                 } else {
+                                    console.log('Room users fetched:', data.users.length, '/', currentRoomMaxPlayers);
                                     updateRoomBtns(data.users.length);
                                 }
                             })
@@ -265,12 +271,19 @@
                 // Function to update the Start Game button text
                 function updateStartGameButtonText(userCount = 0) {
                     if (gameModeToggle.checked && currentRoom) {
-                        if (userCount < currentRoomMaxPlayers) {
-                            startGameButton.textContent = `Waiting for players...`;
+                        // Ensure we're working with numbers
+                        userCount = parseInt(userCount) || 0;
+                        const maxPlayers = parseInt(currentRoomMaxPlayers) || 2;
+                        
+                        console.log(`Updating button: ${userCount}/${maxPlayers} players`);
+                        
+                        if (userCount < maxPlayers) {
+                            startGameButton.textContent = `Waiting for players (${userCount}/${maxPlayers})`;
                             startGameButton.disabled = true;
                         } else {
                             startGameButton.disabled = false;
                             startGameButton.textContent = "Start Online Game";
+                            console.log('Button enabled: Room is full');
                         }
                     } else {
                         startGameButton.disabled = false;
@@ -333,14 +346,23 @@
 
                 // Listen for the game state response
                 socket.on('game_state', (data) => {
+                    console.log('Received game state response:', data);
                     if (data.error) {
                         console.error('Error:', data.error);
+                        alert('Error starting game: ' + data.error);
                     } else {
+                        console.log('Starting game, navigating to /turn');
                         window.location.href = '/turn';
                     }
                 });
 
                 startGameButton.addEventListener('click', async () => {
+                    // Skip if button is disabled
+                    if (startGameButton.disabled) {
+                        console.log('Button is disabled, not sending start_game event');
+                        return;
+                    }
+
                     const gameMode = gameModeToggle.checked ? 'player' : 'computer';
                     const difficulty = difficultySlider.value; // Get the difficulty value
                     const playerCount = gameMode === 'player' ? currentRoomMaxPlayers : selectedPlayerCount;
@@ -353,13 +375,18 @@
                         
                         // For online games, use the current room
                         if (gameMode === 'player' && currentRoom) {
+                            // Get the current number of players in the room to double check
+                            const currentPlayersCount = parseInt(currentRoomPlayers.textContent) || 0;
+                            
+                            console.log(`Starting online game with room: ${currentRoom} (${currentPlayersCount}/${currentRoomMaxPlayers} players)`);
                             socket.emit('start_game', {
                                 gameMode: gameMode, 
                                 difficulty: difficulty, 
-                                playerCount: playerCount,
+                                playerCount: parseInt(currentRoomMaxPlayers),
                                 room: currentRoom
                             });
                         } else {
+                            console.log('Starting local game');
                             socket.emit('start_game', {
                                 gameMode: gameMode, 
                                 difficulty: difficulty, 
@@ -373,32 +400,59 @@
 
                 // Socket event listeners for room management
                 socket.on('room_created', (data) => {
+                    console.log('Room created:', data);
                     currentRoom = data.room_code;
-                    currentRoomMaxPlayers = data.player_count;
+                    currentRoomMaxPlayers = parseInt(data.player_count) || 2;
+                    const userCount = parseInt(data.user_count) || 1;
+                    
                     maxPlayers.textContent = currentRoomMaxPlayers;
+                    currentRoomPlayers.textContent = userCount;
                     roomCodeInput.value = '';
                     updateRoomDisplay();
-                    updateStartGameButtonText(1); // Start with 1 player (creator)
+                    
+                    updateStartGameButtonText(userCount); 
                     alert(`Room created! Code: ${data.room_code}`);
                 });
 
                 socket.on('room_joined', (data) => {
+                    console.log('Room joined:', data);
                     currentRoom = data.room_code;
-                    currentRoomMaxPlayers = data.player_count || 2; // Default to 2 if not provided
+                    currentRoomMaxPlayers = parseInt(data.player_count) || 2; // Default to 2 if not provided
                     maxPlayers.textContent = currentRoomMaxPlayers;
                     roomCodeInput.value = '';
                     updateRoomDisplay();
-                    updateStartGameButtonText();
+                    
+                    // Immediately fetch the current number of users in the room
+                    fetch(`/api/get_waiting_room_users?room=${currentRoom}`)
+                        .then(response => response.json())
+                        .then(roomData => {
+                            if (!roomData.error) {
+                                const userCount = roomData.users.length;
+                                console.log(`Room ${currentRoom} has ${userCount} users`);
+                                currentRoomPlayers.textContent = userCount;
+                                updateStartGameButtonText(userCount);
+                            } else {
+                                updateStartGameButtonText();
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error fetching room users:', error);
+                            updateStartGameButtonText();
+                        });
                 });
 
                 socket.on('room_update', (data) => {
+                    console.log('Room update received:', data);
                     if (data.room === currentRoom) {
-                        currentRoomPlayers.textContent = data.user_count;
+                        const userCount = parseInt(data.user_count) || 0;
+                        currentRoomPlayers.textContent = userCount;
+                        
                         if (data.max_players) {
-                            currentRoomMaxPlayers = data.max_players;
-                            maxPlayers.textContent = data.max_players;
+                            currentRoomMaxPlayers = parseInt(data.max_players) || 2;
+                            maxPlayers.textContent = currentRoomMaxPlayers;
                         }
-                        updateStartGameButtonText(data.user_count);
+                        
+                        updateStartGameButtonText(userCount);
                     }
                 });
 

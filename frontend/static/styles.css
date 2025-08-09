@@ -49,12 +49,15 @@ br {
 .container {
     position: relative;
     height: 100vh;
+    width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 20px; /* Added padding for small screens */
+    padding: 15px; /* Reduced padding for small screens */
     box-sizing: border-box; /* Ensures padding doesn't affect width */
+    overflow-x: hidden; /* Prevent horizontal scrolling */
+    max-width: 100%;
 }
 
 /* Intro card styling */
@@ -62,16 +65,19 @@ br {
     background: #ffffff;
     border-radius: 20px;
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
-    padding: 20px; /* Reduced padding for better mobile fit */
+    padding: 15px; /* Further reduced padding for better mobile fit */
     width: 100%;
     max-width: 600px;
     position: relative;
     z-index: 20;
     transform: scale(0.95);
     animation: zoomIn 0.6s ease-out forwards;
+    display: flex; /* Ensure flex is applied */
     flex-direction: column; /* Arrange children vertically */
     align-items: center; /* Center children horizontally */
     justify-content: center; /* Center children vertically */
+    overflow-x: hidden; /* Prevent horizontal scrolling */
+    box-sizing: border-box; /* Include padding in width calculation */
 }
 
 /* Title styling */
@@ -96,19 +102,21 @@ br {
 /* Media queries for mobile responsiveness */
 @media (max-width: 600px) {
     .title {
-        font-size: 2rem; /* Further reduce font size on smaller screens */
-        margin-bottom: 5%; /* Adjust spacing for smaller screens */
+        font-size: 1.8rem; /* Further reduce font size on smaller screens */
+        margin-bottom: 4%; /* Adjust spacing for smaller screens */
     }
 
     .description {
         font-size: 1rem; /* Adjust font size for readability on small screens */
-        margin-bottom: 15px; /* Reduce spacing for better fit */
+        margin-bottom: 12px; /* Reduce spacing for better fit */
     }
 
     .intro-card {
-        padding: 15px; /* Reduce padding for smaller screens */
-        max-width: 90%; /* Limit max width to ensure good fit on mobile */
-        max-height: 80%;
+        padding: 12px; /* Reduce padding for smaller screens */
+        max-width: 94%; /* Increase max width to ensure good fit on mobile */
+        max-height: 90%;
+        margin: 0 auto;
+        overflow-y: auto; /* Allow scrolling if needed */
     }
 }
 
@@ -611,11 +619,12 @@ a:focus, a:active {
     justify-content: space-between;
     align-items: flex-end;
     width: 100vw;
-    margin: auto 0 1rem 0;
+    margin: auto 0 0.5rem 0;
     position: fixed;
-    bottom: 0;
+    bottom: env(safe-area-inset-bottom, 0);
     left: 0;
     z-index: 100;
+    padding-bottom: 5px; /* Add padding at the bottom */
 }
 
 /* Exit Button Container */
@@ -786,14 +795,15 @@ a:focus, a:active {
 
 @media (max-width: 600px) {
     #briscola-card {
-        width: 5rem;
-        height: 8.5rem;
-        margin-right: 6rem;
+        width: 4.5rem;
+        height: 7.5rem;
+        margin-right: 5rem;
     }
 
     #briscola-container {
         top: 12%;
-        right: 0;
+        right: 2%;
+        transform: scale(0.9);
     }
 }
 
@@ -829,16 +839,17 @@ a:focus, a:active {
 
 @media (max-width: 600px) {
     #deck-container {
-        width: 90px;
+        width: 80px;
         height: 125px;
-        right: 0;
+        right: 1%;
         top: 25%;
+        transform: scale(0.9);
     }
 
     .deck-card {
-        width: 55px;
-        height: 84px;
-        margin-top: -95px;
+        width: 50px;
+        height: 78px;
+        margin-top: -90px;
     }
 }
 
@@ -906,21 +917,24 @@ a:focus, a:active {
 
 @media (max-width: 600px) {
     #player-cards {
-        max-height: 50%;
+        max-height: 45%;
         width: 100%;
         display: flex;
         flex-wrap: nowrap;
-        overflow-x: hidden;
+        overflow-x: visible;
         justify-content: center;
         white-space: nowrap;
         flex-direction: row;
+        padding-bottom: 50px; /* Add space at the bottom to prevent cutting off */
+        margin-bottom: 20px;
     }
 
     #player-cards .card {
-        margin-right: -25px; /* Negative margin for overlapping effect */
+        margin-right: -30px; /* Increased negative margin for overlapping effect */
         flex-shrink: 0; /* Prevent cards from shrinking */
         transform-origin: bottom center; /* For better hover effect */
         transition: transform 0.2s ease;
+        margin-bottom: 10px;
     }
 
     #player-cards .card:hover {
@@ -936,14 +950,23 @@ a:focus, a:active {
 
     #main-content {
         padding: 0 10px;
+        width: 100%;
+        max-width: 100vw;
+        overflow-x: hidden;
     }
 
     #center-content {
-        width: 70%;
+        width: 76%;
     }
 
     .face-down-cards-vertical {
-        width: 12%;
+        width: 10%;
+    }
+    
+    /* Fix for bottom buttons */
+    #bottom-buttons {
+        width: 100%;
+        bottom: 10px;
     }
 }
 
