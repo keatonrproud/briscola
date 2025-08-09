@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 import random
 import string
+import enum
 
 from flask import Flask, Response, jsonify, render_template, request
 from flask_socketio import SocketIO, close_room, emit, join_room, leave_room  # type: ignore
@@ -9,6 +10,16 @@ from config.logging_config import build_logger
 from other.computer_logic.basic import basic_choice
 from other.scheduled.keep_alive import keep_alive
 from play.web.client import BriscolaWeb
+
+
+# Define GameMode enum
+class GameMode(enum.Enum):
+    LOCAL = "computer"  # Local game (vs computer)
+    ONLINE = "player"   # Online multiplayer game
+
+    def __str__(self):
+        return self.value
+
 
 logger = build_logger(__name__)
 
@@ -140,7 +151,7 @@ def handle_start_game(data):
     difficulty = int(difficulty) // 1000
 
     try:
-        if game_mode == "player":
+        if game_mode == GameMode.ONLINE:
             if online_room:
                 if player_count not in [2, 4]:
                     emit(
@@ -173,7 +184,7 @@ def handle_start_game(data):
             else:
                 game = BriscolaWeb(player_count=player_count)
 
-        elif game_mode == "computer":
+        elif game_mode == GameMode.LOCAL:
             # Set up a game against the computer with a specified difficulty
             game = BriscolaWeb(
                 computer_count=1,
@@ -194,7 +205,7 @@ def handle_start_game(data):
         else:
             OID__GAME[oid] = game
 
-        in_room = online_room and game_mode == "player"
+        in_room = online_room and game_mode == GameMode.ONLINE
         emit_game_state(game, additional_data={"room": in_room})
 
     except Exception as e:
@@ -454,11 +465,7 @@ def handle_create_room(data):
     OID__ONLINE_ROOM[oid] = room_code
     join_room(room_code, sid=request.sid)
 
-    # Here we use max_players for the max allowed, and player_count for current count
-    emit(
-        "room_created",
-        {"room_code": room_code, "max_players": player_count, "player_count": 1},
-    )
+    emit("room_created", {"room_code": room_code, "player_count": player_count})
     logger.info(f"Room {room_code} created by player {oid} for {player_count} players")
 
 
@@ -527,7 +534,7 @@ def send_room_user_count_update(room) -> None:
         {
             "room": room,
             "users": users,
-            "player_count": len(users),
+            "user_count": len(users),
             "max_players": max_players,
         },
         to=room,

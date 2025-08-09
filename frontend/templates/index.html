@@ -189,20 +189,20 @@
                 // Update font size as the slider value changes
                 difficultySlider.addEventListener('input', updateDifficultyLabelFontSize);
 
-                function updateRoomBtns(userCount) {
+                function updateRoomBtns(playerCount) {
                     // Update the current room players count
                     if (currentRoomPlayers) {
-                        currentRoomPlayers.textContent = userCount;
+                        currentRoomPlayers.textContent = playerCount;
                     }
                     if (maxPlayers) {
                         maxPlayers.textContent = currentRoomMaxPlayers || selectedPlayerCount;
                     }
                     
-                    // Make sure userCount is a number
-                    userCount = parseInt(userCount) || 0;
-                    console.log(`Updating room buttons: ${userCount}/${currentRoomMaxPlayers} players`);
+                    // Make sure playerCount is a number
+                    playerCount = parseInt(playerCount) || 0;
+                    console.log(`Updating room buttons: ${playerCount}/${currentRoomMaxPlayers} players`);
                     
-                    updateStartGameButtonText(userCount);
+                    updateStartGameButtonText(playerCount);
                 }
 
                 function manualUpdateRoomsBtns() {
@@ -269,16 +269,16 @@
                 updateLabels(); // Initial call to set the correct state on page load
 
                 // Function to update the Start Game button text
-                function updateStartGameButtonText(userCount = 0) {
+                function updateStartGameButtonText(playerCount = 0) {
                     if (gameModeToggle.checked && currentRoom) {
                         // Ensure we're working with numbers
-                        userCount = parseInt(userCount) || 0;
+                        playerCount = parseInt(playerCount) || 0;
                         const maxPlayers = parseInt(currentRoomMaxPlayers) || 2;
                         
-                        console.log(`Updating button: ${userCount}/${maxPlayers} players`);
+                        console.log(`Updating button: ${playerCount}/${maxPlayers} players`);
                         
-                        if (userCount < maxPlayers) {
-                            startGameButton.textContent = `Waiting for players (${userCount}/${maxPlayers})`;
+                        if (playerCount < maxPlayers) {
+                            startGameButton.textContent = `Waiting for players (${playerCount}/${maxPlayers})`;
                             startGameButton.disabled = true;
                         } else {
                             startGameButton.disabled = false;
@@ -365,7 +365,7 @@
 
                     const gameMode = gameModeToggle.checked ? 'player' : 'computer';
                     const difficulty = difficultySlider.value; // Get the difficulty value
-                    const playerCount = gameMode === 'player' ? currentRoomMaxPlayers : selectedPlayerCount;
+                    const maxPlayers = gameMode === 'player' ? currentRoomMaxPlayers : selectedPlayerCount;
 
                     try {
                         if (!socket.connected) {
@@ -382,7 +382,7 @@
                             socket.emit('start_game', {
                                 gameMode: gameMode, 
                                 difficulty: difficulty, 
-                                playerCount: parseInt(currentRoomMaxPlayers),
+                                playerCount: parseInt(currentRoomMaxPlayers), // This is the max players for the game
                                 room: currentRoom
                             });
                         } else {
@@ -390,7 +390,7 @@
                             socket.emit('start_game', {
                                 gameMode: gameMode, 
                                 difficulty: difficulty, 
-                                playerCount: playerCount
+                                playerCount: maxPlayers // Use max players for local game
                             });
                         }
                     } catch (error) {
@@ -402,57 +402,46 @@
                 socket.on('room_created', (data) => {
                     console.log('Room created:', data);
                     currentRoom = data.room_code;
-                    currentRoomMaxPlayers = parseInt(data.player_count) || 2;
-                    const userCount = parseInt(data.user_count) || 1;
+                    currentRoomMaxPlayers = parseInt(data.max_players) || 2;
+                    const playerCount = parseInt(data.player_count) || 1;
                     
                     maxPlayers.textContent = currentRoomMaxPlayers;
-                    currentRoomPlayers.textContent = userCount;
+                    currentRoomPlayers.textContent = playerCount;
                     roomCodeInput.value = '';
                     updateRoomDisplay();
                     
-                    updateStartGameButtonText(userCount); 
+                    updateStartGameButtonText(playerCount); 
                     alert(`Room created! Code: ${data.room_code}`);
                 });
 
                 socket.on('room_joined', (data) => {
                     console.log('Room joined:', data);
                     currentRoom = data.room_code;
-                    currentRoomMaxPlayers = parseInt(data.player_count) || 2; // Default to 2 if not provided
+                    currentRoomMaxPlayers = parseInt(data.max_players) || 2; // Default to 2 if not provided
+                    const playerCount = parseInt(data.player_count) || 0;
+                    
                     maxPlayers.textContent = currentRoomMaxPlayers;
+                    currentRoomPlayers.textContent = playerCount;
                     roomCodeInput.value = '';
                     updateRoomDisplay();
                     
-                    // Immediately fetch the current number of users in the room
-                    fetch(`/api/get_waiting_room_users?room=${currentRoom}`)
-                        .then(response => response.json())
-                        .then(roomData => {
-                            if (!roomData.error) {
-                                const userCount = roomData.users.length;
-                                console.log(`Room ${currentRoom} has ${userCount} users`);
-                                currentRoomPlayers.textContent = userCount;
-                                updateStartGameButtonText(userCount);
-                            } else {
-                                updateStartGameButtonText();
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error fetching room users:', error);
-                            updateStartGameButtonText();
-                        });
+                    // Use the player count from the server response directly
+                    console.log(`Room ${currentRoom} has ${playerCount}/${currentRoomMaxPlayers} players`);
+                    updateStartGameButtonText(playerCount);
                 });
 
                 socket.on('room_update', (data) => {
                     console.log('Room update received:', data);
                     if (data.room === currentRoom) {
-                        const userCount = parseInt(data.user_count) || 0;
-                        currentRoomPlayers.textContent = userCount;
+                        const playerCount = parseInt(data.player_count) || 0;
+                        currentRoomPlayers.textContent = playerCount;
                         
                         if (data.max_players) {
                             currentRoomMaxPlayers = parseInt(data.max_players) || 2;
                             maxPlayers.textContent = currentRoomMaxPlayers;
                         }
                         
-                        updateStartGameButtonText(userCount);
+                        updateStartGameButtonText(playerCount);
                     }
                 });
 
