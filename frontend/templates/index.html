@@ -33,9 +33,9 @@
             </div>
 
             <!-- Username Input -->
-            <div class="username-container" style="margin-bottom: 15px;">
+            <div id="username-container" class="username-container" style="margin-bottom: 15px; display: none;">
                 <label for="username-input" style="display: block; margin-bottom: 5px;">Player Name:</label>
-                <input type="text" id="username-input" placeholder="Enter your name" maxlength="15" 
+                <input type="text" id="username-input" placeholder="Enter your name" maxlength="15" required
                     style="padding: 8px; border: 1px solid #ccc; border-radius: 5px; width: 100%; box-sizing: border-box;">
             </div>
 
@@ -352,15 +352,23 @@
                     }
                 }
 
+                // Function to update labels based on toggle state
                 function updateLabels() {
-
                     manualUpdateRoomsBtns();
 
-                    if (gameModeToggle.checked) {
+                    const isOnlineMode = gameModeToggle.checked;
+                    
+                    if (isOnlineMode) {
                         leftLabel.style.opacity = '0.5';
                         rightLabel.style.opacity = '1';
                         difficultySliderContainer.classList.add('invisible');
                         roomSection.classList.remove('invisible');
+                        
+                        // Show username input for online mode
+                        document.getElementById('username-container').style.display = 'block';
+                        
+                        // Update button text
+                        startGameButton.textContent = 'Start Online Game';
                         
                         // Fetch available rooms when switching to multiplayer mode
                         if (!currentRoom) {
@@ -371,11 +379,21 @@
                         rightLabel.style.opacity = '0.5';
                         difficultySliderContainer.classList.remove('invisible');
                         roomSection.classList.add('invisible');
+                        
+                        // Hide username input for local mode
+                        document.getElementById('username-container').style.display = 'none';
+                        
+                        // Update button text
+                        startGameButton.textContent = 'Start Local Game';
+                        
                         // Reset to 2 players for local games
                         playerCountButtons.forEach(btn => btn.classList.remove('active'));
                         playerCountButtons[0].classList.add('active'); // Select "2 Players"
                         selectedPlayerCount = 2;
                     }
+                    
+                    // Update button state
+                    updateStartButtonState();
                 }
 
 
@@ -390,6 +408,7 @@
                     updateLabels();
                 });
 
+                // Game mode toggle handler
                 gameModeToggle.addEventListener('change', updateLabels);
                 updateLabels(); // Initial call to set the correct state on page load
 
@@ -515,28 +534,28 @@
                     }
                 });
 
-                startGameButton.addEventListener('click', async () => {
-                    // Skip if button is disabled
-                    if (startGameButton.disabled) {
-                        console.log('Button is disabled, not sending start_game event');
-                        return;
-                    }
-                    
+                startGameButton.addEventListener('click', async function() {
                     const gameMode = gameModeToggle.checked ? 'online' : 'local';
-                    const username = usernameInput.value.trim();
                     
-                    // Require username for online play
-                    if (gameMode === 'online' && !username) {
-                        alert('Please enter a username to play online.');
-                        usernameInput.focus();
-                        return;
-                    }
-                    
-                    // Save username if provided
-                    if (username) {
+                    // For online games, username is required
+                    if (gameMode === 'online') {
+                        const username = usernameInput.value.trim();
+                        if (!username) {
+                            alert('Please enter a username to play online.');
+                            usernameInput.focus();
+                            return;
+                        }
+                        
+                        // Save username
                         localStorage.setItem('username', username);
                     }
-
+                    
+                    // For online mode, check if we're in a room
+                    if (gameMode === 'online' && !currentRoom) {
+                        alert('Please create or join a room first.');
+                        return;
+                    }
+                    
                     const difficulty = difficultySlider.value; // Get the difficulty value
                     const maxPlayers = gameMode === 'online' ? currentRoomMaxPlayers : selectedPlayerCount;
 
@@ -550,29 +569,39 @@
                         if (gameMode === 'online' && currentRoom) {
                             // Get the current number of players in the room to double check
                             const currentPlayersCount = parseInt(currentRoomPlayers.textContent) || 0;
-                            
-                            // Include team selection data for 4-player games
-                            const gameData = {
-                                gameMode: gameMode, 
-                                difficulty: difficulty, 
-                                playerCount: parseInt(currentRoomMaxPlayers), // This is the max players for the game
-                                room: currentRoom
-                            };
-                            
-                            // Add team selection if it's a 4-player game
-                            if (currentRoomMaxPlayers === 4) {
-                                gameData.team = selectedTeam || '1'; // Default to team 1 if not selected
+
+                            // Only allow starting the game if there are enough players
+                            if (currentPlayersCount < 2) {
+                                alert('Need at least 2 players to start the game.');
+                                return;
                             }
                             
-                            console.log(`Starting online game with room: ${currentRoom} (${currentPlayersCount}/${currentRoomMaxPlayers} players)`);
+                            // Get username for online games
+                            const username = usernameInput.value.trim();
+                            
+                            // Prepare data for online game
+                            const gameData = {
+                                game_mode: 'online',
+                                room: currentRoom,
+                                player_count: maxPlayers,
+                                username: username
+                            };
+                            
+                            // Add team selection for 4-player games
+                            if (maxPlayers === 4) {
+                                gameData.team = selectedTeam;
+                            }
+                            
                             socket.emit('start_game', gameData);
                         } else {
-                            console.log('Starting local game');
-                            socket.emit('start_game', {
-                                gameMode: gameMode, 
-                                difficulty: difficulty, 
-                                playerCount: maxPlayers // Use max players for local game
-                            });
+                            // Prepare data for local game
+                            const gameData = {
+                                game_mode: 'local',
+                                player_count: maxPlayers,
+                                difficulty: difficulty
+                            };
+                            
+                            socket.emit('start_game', gameData);
                         }
                     } catch (error) {
                         console.error('Error:', error);

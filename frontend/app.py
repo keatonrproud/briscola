@@ -46,6 +46,31 @@ def handle_check_if_in_game():
 
 @socketio.on("start_game")
 def handle_start_game(data):
+    game_mode = data.get("game_mode")
+    player_count = data.get("player_count", 2)
+    difficulty_level = data.get("difficulty", 10000)
+    online_room = data.get("room")
+    team_selection = data.get("team")
+    username = data.get("username")
+
+    # Get the user's OID
+    oid = socket_service.get_oid(request.sid)
+    if not oid:
+        emit(EmitType.ERROR, {ErrorKeys.MESSAGE: "User ID not found"})
+        return
+
+    # For online games, username is required
+    if game_mode == "online" and not username:
+        emit(
+            EmitType.ERROR, {ErrorKeys.MESSAGE: "Username is required for online games"}
+        )
+        return
+
+    # If username is provided, save it
+    if username:
+        user_service.set_username(oid, username)
+
+    # Continue with game creation
     socket_service.handle_start_game(data)
 
 
