@@ -141,7 +141,22 @@ class SocketService:
                 user_service.set_game(oid, game)
 
             in_room = online_room and game_mode == GameMode.ONLINE
-            emit_game_state(game, additional_data={GameStateKeys.ROOM: in_room})
+            additional_data = {
+                GameStateKeys.ROOM: in_room,
+            }
+
+            # Add the room code as additional data to ensure it's used for emitting
+            if in_room and online_room:
+                logger.info(f"Starting game in room: {online_room}")
+                # Explicitly join all players to the target room
+                for player_oid in self.get_oids_in_room(online_room):
+                    sid = user_service.get_socket_from_oid(player_oid)
+                    if sid:
+                        from flask_socketio import join_room
+
+                        join_room(online_room, sid=sid)
+
+            emit_game_state(game, additional_data=additional_data)
 
         except Exception as e:
             self.emit(EmitType.ERROR, {ErrorKeys.MESSAGE: str(e)})

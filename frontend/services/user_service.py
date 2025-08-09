@@ -127,6 +127,13 @@ class UserService:
 
         return oid
 
+    def get_socket_from_oid(self, oid: str) -> Optional[str]:
+        """Get the socket ID associated with a user ID"""
+        for socket_id, user_id in self.socket_to_oid.items():
+            if user_id == oid:
+                return socket_id
+        return None
+
     def get_socket_count(self) -> int:
         """Get the number of active socket connections"""
         return len(self.socket_to_oid)

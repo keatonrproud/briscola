@@ -29,9 +29,19 @@ def emit_game_state(
     if additional_data:
         data = data | additional_data
 
-    target_room = "waiting_room" if game.online else False
+    # For online games, get the actual room where players are instead of using "waiting_room"
+    target_room = False
+    if game.online and "userid_playernum_map" in game.to_dict():
+        # Get the first user ID from the map as they should all be in the same room
+        user_ids = list(game.userid_playernum_map.keys())
+        if user_ids:
+            from frontend.services.user_service import user_service
+
+            # Get the actual room associated with any player in the game
+            target_room = user_service.get_room(user_ids[0])
+
     logger.info(
-        f"Emitting game state to {'room waiting_room' if target_room else 'individual socket'}"
+        f"Emitting game state to {'room ' + str(target_room) if target_room else 'individual socket'}"
     )
     logger.info(f"Game state data: {data}")
     emit(EmitType.GAME_STATE, data, to=target_room, include_self=True)
