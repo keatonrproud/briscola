@@ -47,10 +47,6 @@ def handle_check_if_in_game():
 @socketio.on("start_game")
 def handle_start_game(data):
     game_mode = data.get("game_mode")
-    player_count = data.get("player_count", 2)
-    difficulty_level = data.get("difficulty", 10000)
-    online_room = data.get("room")
-    team_selection = data.get("team")
     username = data.get("username")
 
     # Get the user's OID
@@ -79,6 +75,18 @@ def handle_get_state(data=None):
     oid, oid_game = socket_service.get_game_and_oid_from_request_sid(
         request_sid=request.sid
     )
+
+    if oid_game is None:
+        logger.error(f"No game found for OID: {oid}, Socket: {request.sid}")
+        logger.error(f"Current oid_to_game mappings: {user_service.oid_to_game.keys()}")
+        logger.error(f"Current socket_to_oid mappings: {user_service.socket_to_oid}")
+        logger.error(f"Saved sessions: {user_service.saved_sessions.keys()}")
+        emit(
+            EmitType.ERROR,
+            {ErrorKeys.MESSAGE: "Game not found. Please start a new game."},
+        )
+        return
+
     continue_play = data.get("continue_play") if data is not None else False
     game_service.emit_game_state(oid_game, continue_play=continue_play)
 
@@ -243,6 +251,11 @@ def handle_join_room_by_code(data):
     # Check if the room exists
     if room_code not in room_service.rooms:
         emit(EmitType.ERROR, {ErrorKeys.MESSAGE: "Room not found"})
+        return
+
+    # Check if game is already active
+    if room_service.rooms[room_code]["game_active"]:
+        emit(EmitType.ERROR, {ErrorKeys.MESSAGE: "Game already in progress"})
         return
 
     # Get user ID

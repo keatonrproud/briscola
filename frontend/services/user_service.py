@@ -103,11 +103,14 @@ class UserService:
             self.saved_sessions[oid] = UserSession(
                 oid=oid, online_room=room, game=game, username=username
             )
-            logger.debug(f"Saved session for user {oid}")
+            logger.info(f"Saved session for user {oid}: game={game is not None}, room={room}")
+        else:
+            logger.warning(f"Not saving session for {oid} - no game or room found")
 
     def restore_session(self, socket_id: str, oid: str) -> bool:
         """Restore a user's session on reconnection"""
         if oid not in self.saved_sessions:
+            logger.info(f"No saved session found for {oid}")
             return False
 
         session = self.saved_sessions[oid]
@@ -121,7 +124,7 @@ class UserService:
         if session.online_room:
             join_room(room=session.online_room, sid=socket_id)
 
-        logger.debug(f"Restored session for user {oid}")
+        logger.info(f"Restored session for user {oid}: game={session.game is not None}, room={session.online_room}")
         return True
 
     def remove_user(self, oid: str) -> None:

@@ -393,7 +393,7 @@
                     }
                     
                     // Update button state
-                    updateStartButtonState();
+                    updateStartGameButtonText();
                 }
 
 
@@ -530,7 +530,10 @@
                         alert('Error starting game: ' + data.error);
                     } else {
                         console.log('Starting game, navigating to /turn');
-                        window.location.href = '/turn';
+                        // Small delay to ensure backend has time to process everything
+                        setTimeout(() => {
+                            window.location.href = '/turn';
+                        }, 100);
                     }
                 });
 
@@ -581,9 +584,9 @@
                             
                             // Prepare data for online game
                             const gameData = {
-                                game_mode: 'online',
+                                gameMode: 'online',
                                 room: currentRoom,
-                                player_count: maxPlayers,
+                                playerCount: maxPlayers,
                                 username: username
                             };
                             
@@ -596,8 +599,8 @@
                         } else {
                             // Prepare data for local game
                             const gameData = {
-                                game_mode: 'local',
-                                player_count: maxPlayers,
+                                gameMode: 'local',
+                                playerCount: maxPlayers,
                                 difficulty: difficulty
                             };
                             

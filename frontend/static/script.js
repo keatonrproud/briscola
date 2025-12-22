@@ -78,21 +78,15 @@ function updateCards(players, shownPlayer, cardsPlayable) {
     // Get the username for the shown player
     let username;
     
-    // Debug shownPlayer object
-    console.log(`Trying to get username for shown player:`, shownPlayer);
-    
     // First try to get from game state if it's an online game
     if (currentGameState && currentGameState.player_usernames && shownPlayer.player_num) {
         const playerNum = shownPlayer.player_num.toString();
-        console.log(`Looking up shown player username for player ${playerNum} in:`, currentGameState.player_usernames);
         username = currentGameState.player_usernames[playerNum];
-        console.log(`Username found from game state for shown player: ${username || 'none'}`);
     }
     
     // If not found and this is the current player, use localStorage
     if (!username && shownPlayer.player_num === 1) {
         username = localStorage.getItem('username');
-        console.log(`Username from localStorage: ${username || 'none'}`);
     }
     
     // Default to a readable name if no username is available
@@ -107,28 +101,18 @@ function updateCards(players, shownPlayer, cardsPlayable) {
             const computerIndex = computerPlayers.findIndex(p => p.player_num === shownPlayer.player_num);
             // Use 1-based indexing for display
             username = `Computer ${computerIndex + 1}`;
-            console.log(`Using computer index ${computerIndex + 1} for shown player ${shownPlayer.player_num}`);
         }
-        console.log(`Using default username for shown player: ${username}`);
     }
-    
-    // Don't display the current player's username - they know who they are
-    console.log("Current player's username:", username, "(not displaying)");
 
     // Helper function to add username display for a player
     function addPlayerNameDisplay(player, containerEl, position = 'top') {
         // Get username for this player
         let playerUsername;
         
-        // Debug player object
-        console.log(`Trying to get username for player:`, player);
-        
         // Try to get from game state if online game
         if (currentGameState && currentGameState.player_usernames && player.player_num) {
             const playerNum = player.player_num.toString();
-            console.log(`Looking up username for player ${playerNum} in:`, currentGameState.player_usernames);
             playerUsername = currentGameState.player_usernames[playerNum];
-            console.log(`Username found from game state: ${playerUsername || 'none'}`);
         }
         
         // Default name if no username found
@@ -143,9 +127,7 @@ function updateCards(players, shownPlayer, cardsPlayable) {
                 const computerIndex = computerPlayers.findIndex(p => p.player_num === player.player_num);
                 // Use 1-based indexing for display
                 playerUsername = `Computer ${computerIndex + 1}`;
-                console.log(`Using computer index ${computerIndex + 1} for player ${player.player_num}`);
             }
-            console.log(`Using default username: ${playerUsername}`);
         }
         
         // Create name display
@@ -293,14 +275,6 @@ function updateTurnInfo(player, shownPlayer, gameState) {
         setTimeout(() => {
             turnInfo.classList.remove('highlight-turn');
         }, 2000);
-        
-        // Play notification sound if supported
-        try {
-            const audio = new Audio('data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA/+M4wAAAAAAAAAAAAEluZm8AAAAPAAAAAwAAAbAAzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzM//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAZFgAAAAAAABsAAAAAAAAAAAAAAAP/jWMQACwALLDvrxC/VAPT+/sdtfigZ/uneLvPQLfJ/9e4FG0FQQhms0LBEARdX1tT661///9XV+LVVU5PABMgAIoAHuJ90oxnqZyucChGhIIANvBf/KAgEDUIIWZzo1LFui/JkXoVEIIJzneZQz/lz/KHs6/Wf/yh9C+XQfjKFuqpdnZ3NHxpcqgAEsAEn5NtGfhf/Lc/C/KX8zoiIRVXh8RaoiwzVW+mf/6oBiFAEQAALuKWwbtix7bNuxPttg0pRGm3RBtSxbT9VW227c3bnpQAGMAEVgAVg+TAYP3+Kig6iMtX/+UdHEVFR/lKjqK/9R1FfyoqOoqP//X////qKj+VHX//qKioqKn8qKioqKio+o6ioqP////iQAVQARIAfYUDf6P//+TOkyD//5M/kz+v//6aoADcAEJIAGMPkwpP//8jIywxJkf/+TMjLDLlSMuVOVP/P5cyMyUYnE5Wyp/9b//P9JGXPeTM/8mZF5M5UyMyU//8mZKo');
-            audio.play();
-        } catch(e) {
-            console.log('Sound not supported or blocked by browser');
-        }
     }
 
     // Add styles to the turn info element based on whose turn it is
@@ -423,7 +397,6 @@ function setUpHumanCardPlayedListener() {
 
     // Listen for the response from the server
     socket.on('active_card_played', async (data) => {
-        console.log('Card played event received:', new Date().toLocaleTimeString());
         if (!data.active_player.is_person) {
             return;
         }
@@ -668,14 +641,6 @@ async function updateGameState(data) {
     
     const activePlayer = state.active_player;
     const playerNum = activePlayer.player_num;
-    
-    // Debug entire game state
-    console.log('Full game state:', JSON.parse(JSON.stringify(state)));
-    
-    // Debug log player usernames if available
-    if (state.player_usernames) {
-        console.log('Player usernames:', state.player_usernames);
-    }
 
     if (activePlayer.score - (pastScores[playerNum] || 0) > 11) {
         blastConfettiForBigScore()

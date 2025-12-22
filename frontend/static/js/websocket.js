@@ -19,9 +19,6 @@ export const socket = (() => {
         // Get username from localStorage if available
         const username = localStorage.getItem('username');
         
-        // Log for debugging
-        console.log(`Sending user ID: ${userId}, username: ${username || 'none'} to server`);
-        
         // Send both user ID and username to server
         socketInstance.emit("update_user_id", { 
             user_id: userId,

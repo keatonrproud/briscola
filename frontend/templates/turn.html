@@ -85,7 +85,6 @@
             
             // Add fresh listener
             socket.on('game_state', async (data) => {
-                console.log('Game state update received:', new Date().toLocaleTimeString());
                 if (data.error) {
                     console.error('Error:', data.error);
                 } else {
@@ -170,7 +169,20 @@
                 }, 300);
             }, 500); // Delay before starting fade out
 
-            socket.emit("get_state");
+            // Wait for socket to be fully connected before requesting game state
+            if (socket.connected) {
+                // Give time for session restoration to complete
+                setTimeout(() => {
+                    socket.emit("get_state");
+                }, 200);
+            } else {
+                socket.on('connect', () => {
+                    // Give time for update_user_id and session restoration to complete
+                    setTimeout(() => {
+                        socket.emit("get_state");
+                    }, 200);
+                });
+            }
 
             const scoreboardToggle = document.getElementById('scoreboard-toggle');
             const scoreboard = document.getElementById('scoreboard');
